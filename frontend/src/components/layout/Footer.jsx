@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { useSite } from '../../context/SiteContext.jsx';
+import { logoUrl } from '../../utils/branding.js';
 import { PRODUCT_PAGES, pathFor } from '../../utils/routes.js';
 
 export default function Footer() {
@@ -9,6 +10,9 @@ export default function Footer() {
   return (
     <footer>
       <div className="container">
+        {logoUrl(site) && (
+          <div className="footer-brand"><img src={logoUrl(site)} alt={site.brandName} /><span>CONNECT · SUPPORT · GROW</span></div>
+        )}
         <div className="footer-grid">
           <div>
             <h4>PRODUCT</h4>
@@ -20,6 +24,7 @@ export default function Footer() {
             <h4>COMPANY</h4>
             <Link to="/about">About / Trust</Link>
             <Link to="/contact">Contact</Link>
+            <Link to="/account">Customer login</Link>
             {extra('company').map((p) => <Link key={p.slug} to={`/${p.slug}`}>{p.title}</Link>)}
           </div>
           <div>

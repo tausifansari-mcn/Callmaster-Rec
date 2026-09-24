@@ -6,6 +6,7 @@ import { ZodError } from 'zod';
 import rateLimit from 'express-rate-limit';
 import { env } from '../config/env.js';
 import { Admins } from '../repositories/admins.js';
+import { Customers } from '../repositories/customers.js';
 import { ApiError, asyncHandler } from '../utils/ApiError.js';
 import { randomToken } from '../utils/helpers.js';
 
@@ -48,6 +49,29 @@ export const requireAdmin = asyncHandler(async (req, _res, next) => {
 export const requireSuperAdmin = (req, _res, next) =>
   req.admin?.role === 'superadmin' ? next() : next(ApiError.forbidden('Only a super admin can do this'));
 
+// ---------------------------------------------------------------- customer dashboard auth
+export const signCustomerToken = (account) =>
+  jwt.sign({ sub: String(account.id), kind: 'customer' }, env.jwtSecret, { expiresIn: '12h' });
+
+/** Signed-in customer. `allowPasswordChange` lets an account with a temporary password reach the change-password screen only. */
+export const requireCustomer = (allowPasswordChange = false) => asyncHandler(async (req, _res, next) => {
+  const header = req.headers.authorization || '';
+  const token = header.startsWith('Bearer ') ? header.slice(7) : '';
+  if (!token) throw ApiError.unauthorized();
+  let payload;
+  try {
+    payload = jwt.verify(token, env.jwtSecret);
+  } catch {
+    throw ApiError.unauthorized('Session expired. Please sign in again.');
+  }
+  if (payload.kind !== 'customer') throw ApiError.unauthorized();
+  const account = await Customers.findById(payload.sub);
+  if (!account || !account.active) throw ApiError.unauthorized('This account is disabled or no longer exists.');
+  if (account.mustChangePassword && !allowPasswordChange) throw new ApiError(403, 'Please set a new password to continue.', { code: 'PASSWORD_CHANGE_REQUIRED' });
+  req.customer = account;
+  next();
+});
+
 export const signAdminToken = (admin) =>
   jwt.sign({ sub: String(admin.id), kind: 'admin', role: admin.role }, env.jwtSecret, { expiresIn: env.jwtExpiresIn });
 
@@ -65,17 +89,18 @@ const limiter = (windowMs, limit, message, extra = {}) =>
 export const apiLimiter = limiter(15 * 60 * 1000, 600, 'Too many requests. Please slow down.');
 // Only failed sign-ins count towards the limit, so a legitimate admin logging in repeatedly is never locked out.
 export const loginLimiter = limiter(15 * 60 * 1000, 10, 'Too many failed login attempts. Try again in a few minutes.', { skipSuccessfulRequests: true });
-export const otpLimiter = limiter(10 * 60 * 1000, 12, 'Too many verification requests. Try again later.');
+// The suite verifies a fresh email for every order it places, which is far more than a real visitor would.
+export const otpLimiter = limiter(10 * 60 * 1000, 12, 'Too many verification requests. Try again later.', { skip: () => process.env.NODE_ENV === 'test' });
 // Each audit spends real Deepgram + Anthropic credits, so uploads are limited much harder than ordinary forms.
 export const auditLimiter = limiter(60 * 60 * 1000, 6, 'Too many call uploads from this device. Please try again in an hour.');
-export const formLimiter = limiter(60 * 60 * 1000, 30, 'Too many submissions from this device. Try again later.');
+export const formLimiter = limiter(60 * 60 * 1000, 30, 'Too many submissions from this device. Try again later.', { skip: () => process.env.NODE_ENV === 'test' });
 
 // ---------------------------------------------------------------- uploads
 export const AUDIO_EXTS = ['.mp3', '.wav', '.m4a', '.mpeg', '.mpga', '.ogg', '.aac', '.flac', '.amr', '.wma'];
 export const DOC_EXTS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.txt', '.csv', '.ppt', '.pptx'];
-export const UPLOAD_KINDS = { audio: 'audio', sow: 'sow' };
+export const UPLOAD_KINDS = { audio: 'audio', sow: 'sow', whitepapers: 'whitepapers', branding: 'branding' };
 
-function makeUpload(kind, allowed, fieldName) {
+function makeUpload(kind, allowed, fieldName, maxMb = env.uploadMaxMb) {
   const dir = path.join(env.uploadDir, kind);
   fs.mkdirSync(dir, { recursive: true });
   const upload = multer({
@@ -83,7 +108,7 @@ function makeUpload(kind, allowed, fieldName) {
       destination: dir,
       filename: (_req, file, cb) => cb(null, `${Date.now()}-${randomToken(6)}${path.extname(file.originalname).toLowerCase()}`),
     }),
-    limits: { fileSize: env.uploadMaxMb * 1024 * 1024, files: 1 },
+    limits: { fileSize: maxMb * 1024 * 1024, files: 1 },
     fileFilter: (_req, file, cb) => {
       const ext = path.extname(file.originalname).toLowerCase();
       if (allowed.includes(ext)) return cb(null, true);
@@ -95,7 +120,7 @@ function makeUpload(kind, allowed, fieldName) {
     upload(req, res, (err) => {
       if (!err) return next();
       if (err instanceof multer.MulterError) {
-        const msg = err.code === 'LIMIT_FILE_SIZE' ? `File is too large (max ${env.uploadMaxMb} MB)` : err.message;
+        const msg = err.code === 'LIMIT_FILE_SIZE' ? `File is too large (max ${maxMb} MB)` : err.message;
         return next(ApiError.badRequest(msg));
       }
       return next(err);
@@ -104,6 +129,8 @@ function makeUpload(kind, allowed, fieldName) {
 
 export const uploadAudio = makeUpload(UPLOAD_KINDS.audio, AUDIO_EXTS, 'file');
 export const uploadScope = makeUpload(UPLOAD_KINDS.sow, DOC_EXTS, 'scopeOfWork');
+export const uploadPdf = makeUpload(UPLOAD_KINDS.whitepapers, ['.pdf'], 'file');
+export const uploadLogo = makeUpload(UPLOAD_KINDS.branding, ['.png', '.jpg', '.jpeg', '.webp', '.gif'], 'file', 2);
 
 export const fileMeta = (file) =>
   file ? { originalName: file.originalname, storedName: file.filename, size: file.size } : undefined;

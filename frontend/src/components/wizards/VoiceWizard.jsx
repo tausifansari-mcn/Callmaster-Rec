@@ -319,7 +319,9 @@ export default function VoiceWizard() {
               </div>
               <div className="checkbox-row">
                 <input type="checkbox" id="v-consent" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-                <label htmlFor="v-consent">This is my own number. I've read the Privacy Policy and consent to receive this demo call.</label>
+                <label htmlFor="v-consent">
+                  This is my own number. I understand CallMaster does not store or retain this demo call recording on the website beyond the session, in line with the DPDP Act, 2023, and I consent to receive this demo call. <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.
+                </label>
               </div>
               {apiError && <div className="field-error-banner">{apiError}</div>}
               <div className="btn-row">

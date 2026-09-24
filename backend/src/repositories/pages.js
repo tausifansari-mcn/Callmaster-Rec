@@ -3,7 +3,7 @@ import { bit, flag, parseJson } from './_util.js';
 
 export const RESERVED_SLUGS = [
   'admin', 'api', 'home', 'pricing', 'about', 'contact', 'deep-customer-insights', 'voice-bot', 'dialers',
-  'email-automation', 'whatsapp-api', 'cloud-telephony', 'uploads', 'assets',
+  'email-automation', 'whatsapp-api', 'cloud-telephony', 'insights', 'account', 'uploads', 'assets',
 ];
 
 const map = (r) => r && ({

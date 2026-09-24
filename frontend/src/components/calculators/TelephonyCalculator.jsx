@@ -5,8 +5,8 @@ import { money } from '../../utils/format.js';
 import { Stepper, TotalRow } from './Stepper.jsx';
 
 export default function TelephonyCalculator() {
-  const { telephony } = useSite().pricing;
-  const { openCart } = usePurchase();
+  const { pricing: { telephony }, site } = useSite();
+  const { openCart, openCancel } = usePurchase();
   const lic = useIntField(1, 1);
   const chan = useIntField(0, 0);
   const did = useIntField(0, 0);
@@ -53,11 +53,17 @@ export default function TelephonyCalculator() {
 
       <TotalRow amount={total} />
       <p className="plan-indicative" style={{ marginTop: 8 }}>
-        Have a discount code, e.g. CALLMASTER10? Apply it at checkout on the payment step — 10% off, subtracted before GST.
+        Have a discount code, e.g. {site.promoCodeExample}? Apply it at checkout on the payment step — 10% off, subtracted before GST.
+      </p>
+      <p className="plan-indicative" style={{ marginTop: 2 }}>
+        Cancel within {site.cancellationWindowDays} days of purchase for a full refund — processed to your original payment method within {site.refundWorkingDays} working days. This cancellation window applies to Cloud Telephony only.
       </p>
       <div className="btn-row" style={{ marginTop: 10 }}>
         <button type="button" className="btn" onClick={buy}>Proceed to Purchase</button>
       </div>
+      <p className="ct-cancel-note">
+        Already subscribed and need to cancel? <button type="button" className="link-btn" onClick={openCancel}>Request cancellation →</button>
+      </p>
     </div>
   );
 }

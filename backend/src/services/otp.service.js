@@ -22,19 +22,21 @@ export async function sendOtp({ target, purpose }) {
   const code = randomDigits(4);
   await Otps.replace(target, purpose, hashCode(target, purpose, code), new Date(Date.now() + OTP_TTL_MS));
 
-  const delivery = purpose === 'checkout'
+  const byEmail = purpose === 'checkout' || purpose === 'audit-demo';
+  const delivery = byEmail
     ? await sendOtpEmail(target, code)
     : await sendSms(target, `Your CallMaster verification code is ${code}. It expires in 10 minutes.`);
 
   if (!delivery.sent && !env.sandboxMode) {
     await Otps.removeFor(target, purpose);
-    throw new ApiError(503, purpose === 'checkout'
+    throw new ApiError(503, byEmail
       ? 'We could not send the verification email right now. Please try again shortly.'
       : 'We could not send the verification SMS right now. Please try again shortly.');
   }
 
-  // In sandbox mode the code is echoed back so the flow can be tested without a mail/SMS provider.
-  return { sent: delivery.sent, ...(env.sandboxMode ? { devOtp: code } : {}) };
+  // Sandbox only: when nothing could actually deliver the code (no mail/SMS provider set up) it is echoed back so the
+  // flow can still be tested. Once delivery works, the code reaches the owner of the address/number and nobody else.
+  return { sent: delivery.sent, ...(env.sandboxMode && !delivery.sent ? { devOtp: code } : {}) };
 }
 
 /** Returns a short-lived token proving `target` was verified for `purpose`. */

@@ -45,6 +45,8 @@ export const env = {
   corsOrigins: list(process.env.CORS_ORIGINS),
   trustProxy: bool(process.env.TRUST_PROXY, false),
   serveFrontend: bool(process.env.SERVE_FRONTEND, false),
+  // Public address of the website — used for links in emails (e.g. the customer dashboard login).
+  publicSiteUrl: (process.env.PUBLIC_SITE_URL || 'http://localhost:5173').replace(/\/$/, ''),
   frontendDist: process.env.FRONTEND_DIST || path.resolve(BACKEND_ROOT, '..', 'frontend', 'dist'),
 
   // ---- Behaviour flags ----
@@ -88,9 +90,6 @@ export const env = {
   uploadMaxMb: int(process.env.UPLOAD_MAX_MB, 25),
   dataRetentionDays: int(process.env.DATA_RETENTION_DAYS, 30),
 };
-
-/** True when both API keys are present; otherwise the demo falls back to the randomised sandbox scorecard. */
-export const auditIsLive = () => Boolean(env.audit.deepgramKey && env.audit.anthropicKey);
 
 export function assertEnv() {
   const problems = [];

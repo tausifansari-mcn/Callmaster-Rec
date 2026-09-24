@@ -1,6 +1,5 @@
 import fs from 'node:fs';
 import path from 'node:path';
-import { env } from '../../config/env.js';
 import { AuditError, NO_SPEECH } from './errors.js';
 
 const MIME = {
@@ -10,9 +9,9 @@ const MIME = {
 
 const MIN_WORDS = 15;
 
-async function listen(buffer, contentType, extraParams) {
+async function listen(cfg, buffer, contentType, extraParams) {
   const params = new URLSearchParams({
-    model: env.audit.deepgramModel,
+    model: cfg.deepgramModel,
     smart_format: 'true',
     punctuate: 'true',
     diarize: 'true', // who is speaking — the audit needs agent vs customer
@@ -21,7 +20,7 @@ async function listen(buffer, contentType, extraParams) {
   });
   return fetch(`https://api.deepgram.com/v1/listen?${params}`, {
     method: 'POST',
-    headers: { Authorization: `Token ${env.audit.deepgramKey}`, 'Content-Type': contentType },
+    headers: { Authorization: `Token ${cfg.deepgramKey}`, 'Content-Type': contentType },
     body: buffer,
     signal: AbortSignal.timeout(240000),
   });
@@ -49,15 +48,15 @@ function toTurns(utterances) {
  * Speech-to-text with speaker labels. Returns { turns, durationSec, languages, wordCount }.
  * `language=multi` lets one pass handle English, Hindi and mixed (Hinglish) calls.
  */
-export async function transcribe(filePath) {
+export async function transcribe(filePath, cfg) {
   const buffer = await fs.promises.readFile(filePath);
   const contentType = MIME[path.extname(filePath).toLowerCase()] || 'application/octet-stream';
 
   let res;
   try {
-    res = await listen(buffer, contentType, { language: env.audit.deepgramLanguage });
+    res = await listen(cfg, buffer, contentType, { language: cfg.deepgramLanguage });
     // Some models/regions reject the multilingual mode — fall back to automatic language detection.
-    if (res.status === 400 && env.audit.deepgramLanguage === 'multi') res = await listen(buffer, contentType, { detect_language: 'true' });
+    if (res.status === 400 && cfg.deepgramLanguage === 'multi') res = await listen(cfg, buffer, contentType, { detect_language: 'true' });
   } catch (err) {
     throw new AuditError('DEEPGRAM_NETWORK', `Deepgram request failed: ${err.message}`, 'The transcription service did not respond in time. Please try again.');
   }

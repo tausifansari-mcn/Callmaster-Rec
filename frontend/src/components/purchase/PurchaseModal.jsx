@@ -19,6 +19,25 @@ function loadRazorpay() {
 
 const EMPTY_CUSTOMER = { company: '', contact: '', gstNumber: '', phone: '', email: '' };
 
+const PROGRESS_LABELS = ['Your details', 'Verify', 'Payment'];
+const STAGE = { requirement: 0, details: 0, otp: 1, processing: 1, payment: 2 };
+
+/** Three-segment progress bar above every checkout step (hidden once the order is done). */
+function Progress({ step }) {
+  if (step === 'success') return null;
+  const stage = STAGE[step] ?? 2;
+  return (
+    <div className="pm-progress">
+      {PROGRESS_LABELS.map((label, i) => (
+        <div key={label} className={`pm-progress-seg ${i < stage ? 'done' : i === stage ? 'current' : ''}`}>
+          <div className="pm-progress-bar" />
+          <div className="pm-progress-label">{label}</div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
 export default function PurchaseModal({ session, onClose }) {
   const { payment } = useSite();
   const isCart = session.mode === 'cart';
@@ -31,6 +50,7 @@ export default function PurchaseModal({ session, onClose }) {
   const [verifyToken, setVerifyToken] = useState('');
   const [promoCode, setPromoCode] = useState('');
   const [result, setResult] = useState(null);
+  const [accessToken, setAccessToken] = useState(''); // the order's secret — lets the buyer cancel straight from the success screen
   const [busy, setBusy] = useState(false); // true while the order is being created / payment is in flight
 
   // What the server should price: cart flows send the page's configuration, plan flows the chosen plan + quantity.
@@ -58,7 +78,8 @@ export default function PurchaseModal({ session, onClose }) {
   const pay = async (currentPromo) => {
     setBusy(true);
     try {
-      const order = await publicApi.createOrder({ ...itemFor({ promoCode: currentPromo }), customer, verifyToken }, scopeFile);
+      const order = await publicApi.createOrder({ ...itemFor({ promoCode: currentPromo }), customer, verifyToken, dpdpConsent: true }, scopeFile);
+      setAccessToken(order.accessToken);
 
       if (order.paymentMode === 'razorpay') {
         await loadRazorpay();
@@ -97,6 +118,7 @@ export default function PurchaseModal({ session, onClose }) {
     <div className="pm-overlay open" onMouseDown={(e) => { if (e.target === e.currentTarget) close(); }}>
       <div className="pm-box">
         <button type="button" className="pm-close" aria-label="Close" onClick={close}>&times;</button>
+        <Progress step={step} />
         <div>
           {step === 'requirement' && (
             <RequirementStep session={session} qty={qty} setQty={setQty} onNext={() => setStep('details')} />
@@ -150,7 +172,12 @@ export default function PurchaseModal({ session, onClose }) {
             />
           )}
           {step === 'success' && result && (
-            <SuccessStep result={result} sandbox={payment.mode !== 'razorpay'} onDone={onClose} />
+            <SuccessStep
+              result={{ ...result, cancelOrder: (token) => publicApi.cancelOrder(result.orderId, token) }}
+              accessToken={accessToken}
+              sandbox={payment.mode !== 'razorpay'}
+              onDone={onClose}
+            />
           )}
         </div>
       </div>

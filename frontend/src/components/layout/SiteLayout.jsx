@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { SiteProvider, useSite, useSiteState } from '../../context/SiteContext.jsx';
+import { logoUrl } from '../../utils/branding.js';
 import { PurchaseProvider } from '../purchase/PurchaseContext.jsx';
 import ChatWidget from '../chat/ChatWidget.jsx';
 import Footer from './Footer.jsx';
@@ -14,6 +15,19 @@ function Shell() {
 
   useEffect(() => { setMenuOpen(false); }, [pathname]);
   useEffect(() => { document.title = site.siteTitle; }, [site.siteTitle]);
+
+  // A logo makes the header taller (CSS var --nav-h), and doubles as the browser-tab icon.
+  const logo = logoUrl(site);
+  useEffect(() => {
+    document.documentElement.classList.toggle('has-brand-logo', Boolean(logo));
+    if (logo) {
+      let link = document.querySelector('link[rel="icon"]');
+      if (!link) { link = document.createElement('link'); link.rel = 'icon'; document.head.appendChild(link); }
+      link.removeAttribute('type');
+      link.href = logo;
+    }
+    return () => document.documentElement.classList.remove('has-brand-logo');
+  }, [logo]);
 
   return (
     <PurchaseProvider>

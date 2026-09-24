@@ -6,6 +6,7 @@ import { ERR, isEmail } from '../../utils/validators.js';
 import AuditReport from '../audit/AuditReport.jsx';
 import Field from '../ui/Field.jsx';
 import StepDots from '../ui/StepDots.jsx';
+import OtpInput from './OtpInput.jsx';
 
 const FRAMEWORK_BY_LOB = {
   'Inbound Support': 'CLAP',
@@ -73,6 +74,9 @@ export default function InsightsWizard() {
   const [report, setReport] = useState(null); // { results, transcript, submitter }
   const [session, setSession] = useState(null); // { id, accessToken } — the visitor saved at step 1
   const [busy, setBusy] = useState(false);
+  // Email verification (step 1): the visitor must enter the code we send to their inbox before anything is saved.
+  const [otp, setOtp] = useState({ stage: 'details', code: '', devOtp: '', error: '', resent: false });
+  const [verified, setVerified] = useState({ email: '', token: '' });
   const alive = useRef(true);
   const messageTimer = useRef();
   useEffect(() => {
@@ -93,14 +97,54 @@ export default function InsightsWizard() {
     setApiError('');
     setBusy(true);
     try {
-      const saved = await publicApi.auditRegister({ name, company, email, ...(session || {}) });
-      setSession({ id: saved.id, accessToken: saved.accessToken });
       setData((d) => ({ ...d, name, company, email }));
-      setStep(2);
+      // Already proved this address a moment ago (e.g. they pressed Back and Continue again): no second code needed.
+      if (verified.token && verified.email === email.toLowerCase()) {
+        await saveVisitor({ name, company, email }, verified.token);
+        return;
+      }
+      const sent = await publicApi.sendOtp({ purpose: 'audit-demo', email: email.toLowerCase() });
+      setOtp({ stage: 'code', code: '', devOtp: sent.devOtp || '', error: '', resent: false });
     } catch (err) {
       setApiError(err.message);
     } finally {
       setBusy(false);
+    }
+  };
+
+  /** Saves name / organization / email (the row appears in the admin panel) and moves to the upload step. */
+  const saveVisitor = async ({ name, company, email }, verifyToken) => {
+    const saved = await publicApi.auditRegister({ name, company, email, verifyToken, ...(session || {}) });
+    setSession({ id: saved.id, accessToken: saved.accessToken });
+    setOtp({ stage: 'details', code: '', devOtp: '', error: '', resent: false });
+    setStep(2);
+  };
+
+  const verifyCode = async () => {
+    if (otp.code.length !== 4) return setOtp((o) => ({ ...o, error: "That code doesn't match. Try again." }));
+    setOtp((o) => ({ ...o, error: '' }));
+    setBusy(true);
+    try {
+      const email = data.email.toLowerCase();
+      const r = await publicApi.verifyOtp({ purpose: 'audit-demo', target: email, code: otp.code });
+      setVerified({ email, token: r.verifyToken });
+      await saveVisitor(data, r.verifyToken);
+    } catch (err) {
+      // clear the boxes (and put the cursor back in the first one) so the visitor can simply retype
+      setOtp((o) => ({ ...o, code: '', attempt: (o.attempt || 0) + 1, error: err.message }));
+    } finally {
+      setBusy(false);
+    }
+    return undefined;
+  };
+
+  const resendCode = async () => {
+    setOtp((o) => ({ ...o, error: '' }));
+    try {
+      const sent = await publicApi.sendOtp({ purpose: 'audit-demo', email: data.email.toLowerCase() });
+      setOtp((o) => ({ ...o, code: '', devOtp: sent.devOtp || '', resent: true }));
+    } catch (err) {
+      setOtp((o) => ({ ...o, error: err.message }));
     }
   };
 
@@ -179,6 +223,7 @@ export default function InsightsWizard() {
     setRight({ kind: 'placeholder' });
     setReport(null);
     setSession(null); // the next audit starts a fresh record
+    setOtp({ stage: 'details', code: '', devOtp: '', error: '', resent: false });
     setStep(1);
   };
 
@@ -190,14 +235,36 @@ export default function InsightsWizard() {
         <div className="left">
           <StepDots total={4} current={step} />
           <div>
-            {step === 1 && (
+            {step === 1 && otp.stage === 'code' && (
+              <>
+                <div className="step-label">STEP 1 OF 4 — VERIFY YOUR EMAIL</div>
+                <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '0 0 10px' }}>We sent a 4-digit code to <b style={{ color: 'var(--ink)' }}>{data.email}</b>. Enter it to continue — this makes sure the report and recording stay with the person who owns this address.</p>
+                {otp.devOtp && (
+                  <div className="otp-hint">
+                    SANDBOX MODE — email delivery isn't set up on this server, so the code is shown here. Your test code is <b>{otp.devOtp}</b>
+                  </div>
+                )}
+                <div className="field">
+                  <OtpInput key={otp.attempt || 0} value={otp.code} onChange={(code) => setOtp((o) => ({ ...o, code }))} onEnter={verifyCode} />
+                  {otp.error && <div className="err" style={{ display: 'block' }}>{otp.error}</div>}
+                  {otp.resent && !otp.error && <div className="hint">A new code has been sent.</div>}
+                  <div className="resend"><button type="button" onClick={resendCode}>Resend code</button></div>
+                </div>
+                <div className="btn-row">
+                  <button type="button" className="btn secondary" onClick={() => setOtp({ stage: 'details', code: '', devOtp: '', error: '', resent: false })}>Back</button>
+                  <button type="button" className="btn" onClick={verifyCode} disabled={busy}>{busy ? 'Verifying…' : 'Verify & continue'}</button>
+                </div>
+              </>
+            )}
+
+            {step === 1 && otp.stage === 'details' && (
               <>
                 <div className="step-label">STEP 1 OF 4</div>
                 <Field label="Name" error={errors.name}><input type="text" value={data.name} onChange={set('name')} /></Field>
                 <Field label="Organization" error={errors.company}><input type="text" value={data.company} onChange={set('company')} /></Field>
                 <Field label="Email" error={errors.email}><input type="email" value={data.email} onChange={set('email')} /></Field>
                 {apiError && <div className="field-error-banner">{apiError}</div>}
-                <div className="btn-row"><button type="button" className="btn" onClick={next1} disabled={busy}>{busy ? 'Saving…' : 'Continue'}</button></div>
+                <div className="btn-row"><button type="button" className="btn" onClick={next1} disabled={busy}>{busy ? 'Sending code…' : 'Continue'}</button></div>
               </>
             )}
 

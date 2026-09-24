@@ -4,6 +4,7 @@ import { Demos } from '../../repositories/demos.js';
 import { notifyTeam } from '../mail.service.js';
 import { transcribe } from './deepgram.js';
 import { auditTranscript } from './claude.js';
+import { getAuditConfig } from './config.js';
 import { AuditError } from './errors.js';
 import { rubricFor } from './rubrics.js';
 import { buildResults } from './scoring.js';
@@ -36,11 +37,12 @@ async function runAudit(id) {
 
     // 1) speech → text (Deepgram)
     await Demos.setAuditStage(id, 'transcribing');
-    const meta = await transcribe(filePath);
+    const cfg = await getAuditConfig(); // keys from Admin → API keys (or .env), resolved per audit
+    const meta = await transcribe(filePath, cfg);
 
     // 2) audit the transcript against the LOB rubric (Claude)
     await Demos.setAuditStage(id, 'auditing');
-    const { audit, model, usage } = await auditTranscript({ rubric, turns: meta.turns, meta });
+    const { audit, model, usage } = await auditTranscript({ rubric, turns: meta.turns, meta, cfg });
 
     const { results, transcript } = buildResults({ rubric, raw: audit, turns: meta.turns, meta, model });
     await Demos.completeAudit(id, { results, transcript });

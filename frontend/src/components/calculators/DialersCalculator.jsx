@@ -6,7 +6,8 @@ import { money } from '../../utils/format.js';
 import { Stepper, TotalRow } from './Stepper.jsx';
 
 export default function DialersCalculator() {
-  const { tiers } = useSite().pricing.dialers;
+  const { pricing, site } = useSite();
+  const { tiers } = pricing.dialers;
   const { openCart } = usePurchase();
   const qty = useIntField(1, 1);
 
@@ -35,7 +36,7 @@ export default function DialersCalculator() {
       <TotalRow amount={total} custom={rate === null} />
       {rate !== null && (
         <p className="plan-indicative" style={{ marginTop: 8 }}>
-          Have a discount code, e.g. CALLMASTER10? Apply it at checkout on the payment step — 10% off, subtracted before GST.
+          Have a discount code, e.g. {site.promoCodeExample}? Apply it at checkout on the payment step — 10% off, subtracted before GST.
         </p>
       )}
       <div className="btn-row" style={{ marginTop: 10 }}>

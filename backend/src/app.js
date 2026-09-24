@@ -20,6 +20,7 @@ export function createApp() {
       useDefaults: true,
       directives: {
         'script-src': ["'self'", 'https://checkout.razorpay.com'],
+        'media-src': ["'self'", 'blob:'], // the admin panel plays call recordings from a blob: URL
         'style-src': ["'self'", "'unsafe-inline'", 'https://fonts.googleapis.com'],
         'font-src': ["'self'", 'https://fonts.gstatic.com'],
         'frame-src': ["'self'", 'https://api.razorpay.com', 'https://checkout.razorpay.com'],

@@ -34,6 +34,11 @@ export default function TelephonyPage() {
 
         <Section id="telephony-pricing">
           <h2>Configure &amp; buy online</h2>
+          <div className="welcome-offer-box">
+            <div className="wob-badge">🎁 Welcome offer — new Cloud Telephony customers</div>
+            <h3>Your first month, audited for free</h3>
+            <p>We'll automatically audit 2% of your calls through Deep Customer Insights (CLAP / MAGIC Script / RESO) for your first billing month and share the full results with you — no extra charge, no setup needed.</p>
+          </div>
           <p className="no-price-note">Set your licenses, channels and numbers below — the price updates as you go. Pay online and you're provisioning immediately.</p>
           <TelephonyCalculator />
         </Section>

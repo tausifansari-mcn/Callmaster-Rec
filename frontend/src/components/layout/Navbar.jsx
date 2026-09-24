@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useSite } from '../../context/SiteContext.jsx';
 import { GoButton } from '../../hooks/useGoto.jsx';
+import { logoUrl } from '../../utils/branding.js';
 import { PRODUCT_PAGES, pathFor } from '../../utils/routes.js';
 
 function ProductsDropdown() {
@@ -35,11 +36,16 @@ export function Navbar({ onToggleMenu }) {
   const site = useSite().site;
   return (
     <nav className="site-nav">
-      <Link to="/" className="brand"><span className="dot" />{site.brandName}</Link>
+      <Link to="/" className="brand">
+        {logoUrl(site)
+          ? <img className="brand-logo" src={logoUrl(site)} alt={site.brandName} />
+          : <><span className="dot" />{site.brandName}</>}
+      </Link>
       <div className="nav-links">
         <NavLink to="/" end>Home</NavLink>
         <ProductsDropdown />
         <NavLink to="/pricing">Pricing</NavLink>
+        <NavLink to="/insights">Insights</NavLink>
         <NavLink to="/about">About</NavLink>
         <NavLink to="/contact">Contact</NavLink>
       </div>
@@ -70,6 +76,7 @@ export function MobileMenu({ open }) {
         ))}
       </div>
       <NavLink to="/pricing">Pricing</NavLink>
+      <NavLink to="/insights">Insights</NavLink>
       <NavLink to="/about">About</NavLink>
       <NavLink to="/contact">Contact</NavLink>
       <GoButton to="audit" className="btn nav-cta">{site.navCtaLabel}</GoButton>

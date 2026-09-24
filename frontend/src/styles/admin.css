@@ -192,3 +192,5 @@ a.adm-stat:hover { border-color: var(--accent-live); }
 .adm-toasts { position: fixed; z-index: 300; right: 16px; bottom: 16px; display: grid; gap: 8px; max-width: min(380px, calc(100vw - 32px)); }
 .adm-toast { padding: 11px 14px; border-radius: 9px; font-size: 13.5px; border: 1px solid rgba(51,199,154,0.4); background: #0f2a22; color: var(--ink); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
 .adm-toast.error { border-color: rgba(255,110,94,0.5); background: #2c1512; }
+
+.adm-json { margin: 0; max-height: 420px; overflow: auto; font-family: var(--font-mono); font-size: 11.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; color: var(--ink-soft); }

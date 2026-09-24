@@ -1,4 +1,5 @@
-import { env, auditIsLive } from '../config/env.js';
+import { env } from '../config/env.js';
+import { isAuditLive } from '../services/audit/config.js';
 import { Demos } from '../repositories/demos.js';
 import { ApiError, asyncHandler } from '../utils/ApiError.js';
 import { fileMeta, removeUploaded } from '../middleware/common.js';
@@ -48,7 +49,9 @@ async function ownedSession(id, type, token) {
 
 // ---------------------------------------------------------------- Insights (call audit)
 export const registerAuditDemo = asyncHandler(async (req, res) => {
-  const { id, accessToken, ...fields } = req.body;
+  const { id, accessToken, verifyToken, ...fields } = req.body;
+  // Only the owner of the mailbox can start (or resume) an audit under this email — no more typing someone else's address.
+  assertVerified(verifyToken, fields.email, 'audit-demo');
   const session = await saveRegistration('audit', { id, accessToken, fields, ip: req.ip });
   res.status(201).json({ ok: true, ...session });
 });
@@ -65,7 +68,7 @@ export const submitAuditDemo = asyncHandler(async (req, res) => {
     if (!['registered', 'failed'].includes(session.audit_status)) throw ApiError.conflict('This call has already been submitted.');
 
     const { lob } = req.body;
-    const live = auditIsLive();
+    const live = await isAuditLive();
     if (live && env.audit.maxPerEmailPerDay > 0) {
       const used = await Demos.countAuditsByEmailSince(session.email, new Date(Date.now() - DAY));
       if (used >= env.audit.maxPerEmailPerDay) {

@@ -44,6 +44,8 @@ export function RequirementStep({ session, qty, setQty, onNext }) {
 export function DetailsStep({ eyebrow, customer, setCustomer, requiresFile, file, setFile, onBack, onSendOtp }) {
   const [errors, setErrors] = useState({});
   const [fileError, setFileError] = useState(false);
+  const [dpdp, setDpdp] = useState(false);
+  const [dpdpError, setDpdpError] = useState(false);
   const [apiError, setApiError] = useState('');
   const [sending, setSending] = useState(false);
 
@@ -61,7 +63,8 @@ export function DetailsStep({ eyebrow, customer, setCustomer, requiresFile, file
     const missingFile = requiresFile && !file;
     setErrors(next);
     setFileError(missingFile);
-    if (Object.values(next).some(Boolean) || missingFile) return;
+    setDpdpError(!dpdp);
+    if (Object.values(next).some(Boolean) || missingFile || !dpdp) return;
 
     setCustomer({ ...c, gstNumber: c.gstNumber.toUpperCase() });
     setApiError('');
@@ -78,7 +81,7 @@ export function DetailsStep({ eyebrow, customer, setCustomer, requiresFile, file
     <>
       <div className="pm-eyebrow">{eyebrow} — COMPANY DETAILS</div>
       <h2 className="pm-title">Tell us who this is for</h2>
-      <p className="pm-sub">We'll send a one-time code to your Email ID to verify before checkout.</p>
+      <p className="pm-sub">Two minutes — company details, a one-time code to your email, then payment. That's the whole checkout.</p>
       <div className="field-row2">
         <Field label="Company name" error={errors.company}><input type="text" value={customer.company} onChange={set('company')} /></Field>
         <Field label="Contact person" error={errors.contact}><input type="text" value={customer.contact} onChange={set('contact')} /></Field>
@@ -109,6 +112,14 @@ export function DetailsStep({ eyebrow, customer, setCustomer, requiresFile, file
           </label>
         </Field>
       )}
+
+      <div className="checkbox-row" id="pm-dpdp-f">
+        <input type="checkbox" id="pm-dpdp" checked={dpdp} onChange={(e) => { setDpdp(e.target.checked); if (e.target.checked) setDpdpError(false); }} />
+        <label htmlFor="pm-dpdp">
+          I understand CallMaster does not store or retain what I enter on this website beyond what's needed to process this order and meet legal record-keeping requirements, in line with India's Digital Personal Data Protection Act, 2023 (DPDP Act). <a href="/privacy" target="_blank" rel="noreferrer">Read the Privacy Policy</a>.
+        </label>
+      </div>
+      {dpdpError && <div className="err" id="pm-dpdp-err" style={{ display: 'block', marginTop: -8, marginBottom: 8 }}>Please confirm you've read and understood this before continuing</div>}
 
       {apiError && <div className="field-error-banner">{apiError}</div>}
       <div className="btn-row">
@@ -273,6 +284,7 @@ export function PaymentStep({ eyebrow, session, sandbox, busy, promoCode, setPro
       <button type="button" className="btn pm-pay-btn" style={{ marginTop: 16 }} onClick={pay}>
         Pay {money(quote.total)} via Razorpay
       </button>
+      <div className="pm-trust-note">🔒 Secured checkout — card details go straight to Razorpay, never stored on this site.</div>
       <div className="razorpay-mark">
         {sandbox ? 'SANDBOX MODE — simulates the Razorpay Checkout popup. No real payment is captured.' : 'Secure payment powered by Razorpay.'}
       </div>
@@ -284,15 +296,105 @@ export function PaymentStep({ eyebrow, session, sandbox, busy, promoCode, setPro
 }
 
 // ---------------------------------------------------------------- 5. success
-export function SuccessStep({ result, sandbox, onDone }) {
+/** The welcome email as it was sent (shown here too, so the buyer has their login details even if the mail is slow). */
+function WelcomePreview({ result, sandbox }) {
+  const { account } = result;
+  const isCT = Boolean(result.welcomeOffer);
+  const onCancel = result.onCancel;
+  return (
+    <div className="pm-email-preview">
+      <div className="pep-flag">
+        {account.emailed
+          ? `A copy of this welcome email has been sent to ${result.email}`
+          : `${sandbox ? 'SANDBOX MODE — ' : ''}email delivery isn't configured on this server, so here is the welcome message we would send to ${result.email}`}
+      </div>
+      <div className="pep-subject">Welcome to CallMaster — your {result.product} purchase is confirmed</div>
+      <div className="pep-body">
+        <p>Hi {result.contact},</p>
+        <p>Thanks for purchasing <b>{result.product}</b> ({result.plan}). We've received your payment of <b>{money(result.total)}</b> against Order <b>{result.orderId}</b>.</p>
+        {account.created ? (
+          <>
+            <p><b>Your account is ready.</b> Manage billing and your subscription anytime from your <a href="/account" target="_blank" rel="noreferrer">CallMaster dashboard</a>:</p>
+            <div className="pep-cred">
+              Username: {account.username}<br />
+              {account.tempPassword
+                ? <>Temporary password: {account.tempPassword} (you'll be asked to change this on first login)</>
+                : <>Temporary password: sent to your email (you'll be asked to change it on first login)</>}
+            </div>
+          </>
+        ) : (
+          <p>This order has been added to your existing CallMaster account (<b>{account.username}</b>) — sign in to your <a href="/account" target="_blank" rel="noreferrer">dashboard</a> with your current password.</p>
+        )}
+        {isCT && result.cancellation && (
+          <>
+            <p><b>Your welcome offer:</b> for your first billing month, we'll audit 2% of your call volume through Deep Customer Insights and share the results with you at no extra cost.</p>
+            <p>
+              <b>Cancellation &amp; refunds:</b> you can cancel within {result.cancellation.windowDays} days of this purchase for a full refund, processed to your original payment method within {result.cancellation.refundDays} working days.{' '}
+              <button type="button" className="link-btn" onClick={onCancel}>Cancel this subscription</button>.
+            </p>
+          </>
+        )}
+        <p>Questions? Just reply to this email or reach the helpline from the site.</p>
+      </div>
+    </div>
+  );
+}
+
+export function SuccessStep({ result, sandbox, accessToken, onDone }) {
+  const [view, setView] = useState('summary'); // summary → confirm → cancelled
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const [refund, setRefund] = useState(null);
+
+  const confirmCancel = async () => {
+    setBusy(true);
+    setError('');
+    try {
+      setRefund(await result.cancelOrder(accessToken));
+      setView('cancelled');
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  if (view === 'confirm') {
+    return (
+      <>
+        <h2 className="pm-title">Cancel Cloud Telephony subscription?</h2>
+        <p className="pm-sub">
+          Order {result.orderId} — you're within the {result.cancellation.windowDays}-day cancellation window, so this qualifies for a full refund of {money(result.total)}, processed to your original payment method within {result.cancellation.refundDays} working days.
+        </p>
+        {error && <div className="field-error-banner">{error}</div>}
+        <div className="btn-row">
+          <button type="button" className="btn secondary" onClick={() => setView('summary')} disabled={busy}>Keep subscription</button>
+          <button type="button" className="btn dark" onClick={confirmCancel} disabled={busy}>{busy ? 'Cancelling…' : 'Confirm cancellation'}</button>
+        </div>
+      </>
+    );
+  }
+  if (view === 'cancelled') {
+    return (
+      <>
+        <div className="pm-success-icon">✓</div>
+        <h2 className="pm-title">Cancellation confirmed</h2>
+        <p className="pm-sub">
+          Order {result.orderId} has been cancelled. A refund of {money(refund?.refundAmount ?? result.total)} will reach your original payment method within {refund?.refundDays ?? result.cancellation.refundDays} working days. A confirmation has been sent to {result.email}.
+        </p>
+        <div className="btn-row" style={{ marginTop: 20 }}><button type="button" className="btn" onClick={onDone}>Done</button></div>
+      </>
+    );
+  }
   return (
     <>
       <div className="pm-success-icon">✓</div>
       <h2 className="pm-title">Payment successful{sandbox ? ' (sandbox)' : ''}</h2>
       <p className="pm-sub">{result.product} — {result.plan} is now provisioning for {result.company}.</p>
       <div className="pm-order-id">Order ID: {result.orderId}</div>
-      <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '10px 0 0' }}>
-        Receipt and onboarding instructions sent to {result.email}. Our team will reach out on {result.phone} if any setup step needs you.
+      <WelcomePreview result={{ ...result, onCancel: () => setView('confirm') }} sandbox={sandbox} />
+      <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '12px 0 0' }}>
+        Our team will reach out on {result.phone} if any setup step needs you.
       </p>
       <div className="btn-row" style={{ marginTop: 20 }}><button type="button" className="btn" onClick={onDone}>Done</button></div>
     </>

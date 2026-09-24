@@ -8,7 +8,7 @@ import { Fields } from './SchemaForm.jsx';
  * Loads one settings document, lets the admin edit it with a schema-driven form, and saves it.
  * `sections` lets a screen show several tabs of the same document (e.g. Pricing → Cloud Telephony / Dialers / …).
  */
-export default function SettingsEditor({ settingKey, title, subtitle, fields, sections, previewPath }) {
+export default function SettingsEditor({ settingKey, title, subtitle, fields, sections, previewPath, onSaved }) {
   const toast = useToast();
   const [saved, setSaved] = useState(null);
   const [draft, setDraft] = useState(null);
@@ -44,6 +44,7 @@ export default function SettingsEditor({ settingKey, title, subtitle, fields, se
       setSaved(next);
       setDraft(structuredClone(next));
       toast.success('Saved — the live site now uses these values.');
+      onSaved?.();
     } catch (err) {
       toast.error(err.message);
     } finally {
@@ -58,6 +59,7 @@ export default function SettingsEditor({ settingKey, title, subtitle, fields, se
       setSaved(next);
       setDraft(structuredClone(next));
       toast.success('Restored the defaults.');
+      onSaved?.();
     } catch (err) {
       toast.error(err.message);
     }

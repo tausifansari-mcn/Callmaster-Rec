@@ -6,7 +6,7 @@ Schema: [`schema.sql`](schema.sql) (applied automatically on start-up). Times ar
 
 | Visitor action | Table | When it is written |
 |---|---|---|
-| **Insights demo, step 1** — name, organization, email → **Continue** | `demo_sessions` (`type='audit'`) | **Immediately** on Continue. `audit_status = registered`. Pressing Continue again, or going Back and editing, updates the same row (no duplicates). |
+| **Insights demo, step 1** — name, organization, email → **Continue** → enter the 4-digit code emailed to that address | `demo_sessions` (`type='audit'`); code in `otps` (purpose `audit-demo`, hashed, 10 min) | Saved **only after the code is verified** — nobody can register an address they don't own. `audit_status = registered`. Pressing Continue again, or going Back and editing, updates the same row (no duplicates). |
 | **Insights demo, step 2** — recording + line of business → **Get results** | `demo_sessions` (same row) | Recording saved to `backend/uploads/audio/`; `file_*`, `lob`, `framework` filled; `audit_status = processing`, `audit_stage = transcribing → auditing` |
 | **Audit finished** | `demo_sessions` (same row) | Deepgram transcript → `transcript`; Claude audit → `results`; `audit_status = completed`. On failure: `audit_status = failed` + `audit_error` |
 | **Voice Bot demo, step 5** — name, organization, email + bot choices → **Continue** | `demo_sessions` (`type='voice'`) | **Immediately** on Continue. `call_status = registered`, with industry / call type / gender / language |
@@ -14,6 +14,11 @@ Schema: [`schema.sql`](schema.sql) (applied automatically on start-up). Times ar
 | **Contact page** form | `contacts` | On submit |
 | **Insights pricing request** form | `leads` | On submit |
 | **Checkout** (buy a plan / configure & buy) | `orders` + `order_items` | Order row when the customer reaches the payment step (`status = pending`); becomes `paid` after payment. Line items (licenses, channels, languages…) go to `order_items`. Scope-of-work file → `backend/uploads/sow/` |
+| **Checkout consent** (DPDP tick-box) | `orders.dpdp_consent_at` | Stored with the order; the server refuses an order without it |
+| **Paid order → customer login** | `customer_accounts` (+ `orders.customer_account_id`) | Created when the order is paid; password stored only as a bcrypt hash |
+| **Cloud Telephony welcome offer** | `orders.welcome_offer` | `1` for Cloud Telephony orders |
+| **Cancel a Cloud Telephony order** (checkout screen / dashboard / site form) | `cancellation_requests`; `orders.status` → `cancelled` / `refunded`, `orders.cancelled_at` | On submit. Requests that match no order are kept too (`matched = 0`) |
+| **White paper unlock** — name + work email | `whitepaper_leads` | On submit (`delivered = 1` when the PDF link was handed out). The papers themselves are in `whitepapers` |
 | **Email / phone OTP** codes | `otps` | When a code is sent (hashed, expires in 10 min) |
 
 ## 2. Admin panel → tables
@@ -24,6 +29,11 @@ Schema: [`schema.sql`](schema.sql) (applied automatically on start-up). Times ar
 | Pricing, home text, FAQs, chatbot rules, site settings, **email/SMTP settings** (password encrypted) | `settings` (one JSON row per area) |
 | Legal pages and custom pages | `pages` |
 | Promo codes | `promo_codes` (`used_count` goes up when an order is paid) |
+| White papers + their PDFs | `whitepapers` (PDF file in `backend/uploads/whitepapers/`) |
+| Logo | `settings` → `site.logoFile` (image in `backend/uploads/branding/`) |
+| Insights page copy, chat nudge, cancellation window, example promo code | `settings` (`insights`, `chatbot`, `site`) |
+| Cancellation status / notes, white-paper lead status / notes | `cancellation_requests`, `whitepaper_leads` |
+| Customer accounts (disable, temporary password reset) | `customer_accounts` |
 | Order status / notes, lead status / notes, contact status / notes | `orders`, `leads`, `contacts` (`status`, `notes` columns) |
 
 ## 3. The `demo_sessions` row, step by step

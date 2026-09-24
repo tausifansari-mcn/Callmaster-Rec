@@ -48,6 +48,10 @@ const ADDED_COLUMNS = [
   { table: 'demo_sessions', column: 'audit_error', ddl: 'VARCHAR(500) NULL AFTER audit_stage' },
   { table: 'demo_sessions', column: 'access_token', ddl: 'VARCHAR(64) NULL AFTER audit_error' },
   { table: 'demo_sessions', column: 'transcript', ddl: 'LONGTEXT NULL AFTER results' },
+  { table: 'orders', column: 'customer_account_id', ddl: 'BIGINT UNSIGNED NULL AFTER sow_size' },
+  { table: 'orders', column: 'dpdp_consent_at', ddl: 'DATETIME(3) NULL AFTER customer_account_id' },
+  { table: 'orders', column: 'welcome_offer', ddl: 'TINYINT(1) NOT NULL DEFAULT 0 AFTER dpdp_consent_at' },
+  { table: 'orders', column: 'cancelled_at', ddl: 'DATETIME(3) NULL AFTER welcome_offer' },
 ];
 
 async function migrateColumns(connection) {
@@ -75,6 +79,14 @@ async function migrateColumns(connection) {
       await connection.query('ALTER TABLE demo_sessions MODIFY COLUMN ?? ' + ddl, [column]);
       console.log('[db] demo_sessions.' + column + ' now allows "registered"');
     }
+  }
+  // The Insights wizard now verifies the visitor's email with a one-time code before saving them.
+  const [[otp]] = await connection.query(
+    "SELECT COLUMN_TYPE AS t FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'otps' AND COLUMN_NAME = 'purpose'"
+  );
+  if (otp && !String(otp.t).includes("'audit-demo'")) {
+    await connection.query("ALTER TABLE otps MODIFY COLUMN purpose ENUM('checkout','voice-demo','audit-demo') NOT NULL");
+    console.log('[db] otps.purpose now allows "audit-demo"');
   }
   // Audit reports can exceed TEXT's 64 KB limit.
   const [[res]] = await connection.query(

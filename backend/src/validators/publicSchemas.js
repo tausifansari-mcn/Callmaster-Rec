@@ -41,11 +41,12 @@ export const leadSchema = z.object({
 
 export const otpSendSchema = z.discriminatedUnion('purpose', [
   z.object({ purpose: z.literal('checkout'), email: officialEmail }),
+  z.object({ purpose: z.literal('audit-demo'), email }),
   z.object({ purpose: z.literal('voice-demo'), phone }),
 ]);
 
 export const otpVerifySchema = z.object({
-  purpose: z.enum(['checkout', 'voice-demo']),
+  purpose: z.enum(['checkout', 'voice-demo', 'audit-demo']),
   target: z.string().trim().toLowerCase().min(1),
   code: z.string().trim().regex(/^\d{4}$/, 'Enter the 4-digit code'),
 });
@@ -53,7 +54,7 @@ export const otpVerifySchema = z.object({
 const session = { id: z.coerce.number().int().positive().optional(), accessToken: z.string().max(64).optional() };
 
 /** Step 1 of the Insights wizard — saved the moment the visitor clicks Continue. */
-export const auditRegisterSchema = z.object({ name: text('your name'), company: text('your organization'), email, ...session });
+export const auditRegisterSchema = z.object({ name: text('your name'), company: text('your organization'), email, verifyToken: z.string().min(10, 'Verify your email first'), ...session });
 
 /** Step 2 — the recording (multipart file) plus these fields, attached to the registered visitor. */
 export const auditSubmitSchema = z.object({
@@ -98,6 +99,7 @@ export const orderSchema = quoteRequestSchema.extend({
     email: officialEmail,
   }),
   verifyToken: z.string().min(10),
+  dpdpConsent: z.literal(true, { errorMap: () => ({ message: 'Please confirm you have read and understood this before continuing' }) }),
 });
 
 export const replySchema = z.object({ subject: z.string().trim().min(1, 'Enter a subject').max(200), message: z.string().trim().min(1, 'Enter a message').max(10000) });
@@ -139,5 +141,30 @@ export const pageSchema = z.object({
   published: z.boolean().default(true),
   showInFooter: z.boolean().default(true),
   footerColumn: z.enum(['product', 'company', 'legal']).default('company'),
+  order: z.coerce.number().int().min(0).max(1000).default(100),
+});
+
+/** Public: cancellation request form (Cloud Telephony) */
+export const cancelRequestSchema = z.object({
+  orderId: text('your order ID', 40),
+  email,
+});
+
+/** Public: unlock a white paper */
+export const unlockSchema = z.object({ name: text('your name'), email: officialEmail });
+
+/** Customer dashboard */
+export const customerLoginSchema = z.object({ login: text('your username or email', 190), password: z.string().min(1, 'Enter your password').max(200) });
+export const customerPasswordSchema = z.object({
+  currentPassword: z.string().min(1, 'Enter your current password'),
+  newPassword: z.string().min(8, 'Use at least 8 characters').max(128),
+});
+
+/** Admin: white papers */
+export const whitepaperSchema = z.object({
+  slug: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Use lowercase letters, numbers and dashes').max(80),
+  title: text('a title', 190),
+  description: z.string().trim().max(500).default(''),
+  active: z.boolean().default(true),
   order: z.coerce.number().int().min(0).max(1000).default(100),
 });

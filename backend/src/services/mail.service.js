@@ -75,21 +75,64 @@ export function sendOtpEmail(to, code) {
   });
 }
 
-export function sendOrderReceipt(order) {
+/**
+ * Welcome + receipt sent after payment. `extra` carries the dashboard account (username and, for a brand-new
+ * account, the temporary password) and the cancellation policy so Cloud Telephony buyers see their refund window.
+ */
+export function sendOrderReceipt(order, extra = {}) {
+  const { account, created, tempPassword, policy } = extra;
   const rows = (order.mode === 'cart' ? order.rows : [{ label: `${order.product} — ${order.plan}`, sub: `${order.qty} × ${money(order.unitPrice)}${order.unit}`, value: order.subtotal }])
     .map((r) => `<tr><td style="padding:4px 0">${escapeHtml(r.label)}${r.sub ? ` <span style="color:#7a8094">(${escapeHtml(r.sub)})</span>` : ''}</td><td style="text-align:right">${money(r.value)}</td></tr>`)
     .join('');
+  const loginUrl = `${env.publicSiteUrl}/account`;
+  const isCT = order.productKey === 'cloud-telephony';
+
+  const accountBlock = account
+    ? `<p><b>Your account is ready.</b> Manage billing and your subscription anytime from the CallMaster dashboard: <a href="${escapeHtml(loginUrl)}">${escapeHtml(loginUrl)}</a></p>${
+      created
+        ? `<p style="font-family:monospace;background:#eefaf5;border:1px solid #bfe8d8;border-radius:6px;padding:8px 10px">Username: ${escapeHtml(account.username)}<br>Temporary password: ${escapeHtml(tempPassword)} (you'll be asked to change this on first login)</p>`
+        : `<p>This order was added to your existing account (username <b>${escapeHtml(account.username)}</b>).</p>`}`
+    : '';
+  const ctBlock = isCT && policy
+    ? `<p><b>Your welcome offer:</b> for your first billing month, we'll audit 2% of your call volume through Deep Customer Insights and share the results with you at no extra cost.</p>
+<p><b>Cancellation &amp; refunds:</b> you can cancel within ${policy.windowDays} days of this purchase for a full refund, processed to your original payment method within ${policy.refundDays} working days. You can cancel from your dashboard: <a href="${escapeHtml(loginUrl)}">${escapeHtml(loginUrl)}</a>.</p>`
+    : '';
+
+  const text = [
+    `Hi ${order.customer.contact},`,
+    `Thanks for purchasing ${order.product} (${order.plan}). We've received your payment of ${money(order.total)} against Order ${order.orderId}.`,
+    account ? `Your dashboard: ${loginUrl}\nUsername: ${account.username}${created ? `\nTemporary password: ${tempPassword} (change it on first login)` : ''}` : '',
+    isCT && policy ? `Welcome offer: we'll audit 2% of your first billing month's calls at no extra cost. Cancel within ${policy.windowDays} days for a full refund (processed within ${policy.refundDays} working days).` : '',
+  ].filter(Boolean).join('\n\n');
+
   return sendMail({
     to: order.customer.email,
-    subject: `CallMaster order ${order.orderId} confirmed`,
-    text: `Thanks — ${order.product} (${order.plan}) is now provisioning for ${order.customer.company}. Order ID: ${order.orderId}. Total paid: ${money(order.total)}.`,
-    html: shell('Payment received', `<p>${escapeHtml(order.product)} — ${escapeHtml(order.plan)} is now provisioning for <b>${escapeHtml(order.customer.company)}</b>.</p>
-<p>Order ID: <b>${escapeHtml(order.orderId)}</b></p>
+    subject: `Welcome to CallMaster — your ${order.product} purchase is confirmed`,
+    text,
+    html: shell('Welcome to CallMaster', `<p>Hi ${escapeHtml(order.customer.contact)},</p>
+<p>Thanks for purchasing <b>${escapeHtml(order.product)}</b> (${escapeHtml(order.plan)}). We've received your payment of <b>${money(order.total)}</b> against Order <b>${escapeHtml(order.orderId)}</b> — your receipt is below.</p>
 <table style="width:100%;border-collapse:collapse">${rows}
 ${order.discountAmount ? `<tr><td>Discount (${escapeHtml(order.discountCode)})</td><td style="text-align:right">−${money(order.discountAmount)}</td></tr>` : ''}
 <tr><td>GST (${order.gstRate}%)</td><td style="text-align:right">${money(order.gst)}</td></tr>
 <tr><td style="border-top:1px solid #ddd;padding-top:8px"><b>Total paid</b></td><td style="border-top:1px solid #ddd;padding-top:8px;text-align:right"><b>${money(order.total)}</b></td></tr></table>
-<p>Our team will reach out on ${escapeHtml(order.customer.phone)} if any setup step needs you.</p>`),
+${accountBlock}${ctBlock}
+<p>Questions? Just reply to this email or reach the helpline from the site. Our team will reach out on ${escapeHtml(order.customer.phone)} if any setup step needs you.</p>`),
+  });
+}
+
+/** Confirmation to the email registered on the order (never to an address typed into a public form). */
+export function sendCancellationEmail({ order, eligible, approved, policy }) {
+  const amount = money(order.total);
+  const body = approved
+    ? `<p>Order <b>${escapeHtml(order.orderId)}</b> has been cancelled. A refund of <b>${amount}</b> will reach your original payment method within ${policy.refundDays} working days.</p>`
+    : eligible
+      ? `<p>We've received your cancellation request for order <b>${escapeHtml(order.orderId)}</b>. It is inside the ${policy.windowDays}-day cancellation window, so it qualifies for a full refund of <b>${amount}</b>, processed to your original payment method within ${policy.refundDays} working days once our team confirms it.</p>`
+      : `<p>We've received your cancellation request for order <b>${escapeHtml(order.orderId)}</b>. It is outside the ${policy.windowDays}-day cancellation window, so our team will review it and get back to you.</p>`;
+  return sendMail({
+    to: order.customer.email,
+    subject: approved ? `Order ${order.orderId} cancelled` : `Cancellation request received — order ${order.orderId}`,
+    text: approved ? `Order ${order.orderId} has been cancelled. A refund of ${amount} will reach your original payment method within ${policy.refundDays} working days.` : `We've received your cancellation request for order ${order.orderId}.`,
+    html: shell(approved ? 'Cancellation confirmed' : 'Cancellation request received', body),
   });
 }
 

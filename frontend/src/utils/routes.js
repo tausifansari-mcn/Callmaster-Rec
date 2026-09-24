@@ -11,6 +11,8 @@ export const ROUTES = {
   'whatsapp-api': '/whatsapp-api',
   telephony: '/cloud-telephony',
   pricing: '/pricing',
+  insights: '/insights',
+  account: '/account',
   about: '/about',
   contact: '/contact',
   terms: '/terms',

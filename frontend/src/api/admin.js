@@ -54,6 +54,11 @@ export const adminApi = {
     setTimeout(() => URL.revokeObjectURL(url), 5000);
   },
 
+  /** Loads a stored file (e.g. a call recording) into a blob: URL the browser can play — the file route needs the admin token. */
+  fileObjectUrl: async (kind, storedName) => URL.createObjectURL(await (await call('GET', `/files/${kind}/${encodeURIComponent(storedName)}`, { raw: true })).blob()),
+
+  integrationStatus: () => call('GET', '/integrations/status'),
+  testIntegration: (service) => call('POST', '/integrations/test', { body: { service } }),
   testEmail: (to) => call('POST', '/email/test', { body: { to } }),
   replyContact: (id, subject, message) => call('POST', `/contacts/${id}/reply`, { body: { subject, message } }),
 
@@ -71,6 +76,18 @@ export const adminApi = {
   createPromo: (body) => call('POST', '/promos', { body }),
   updatePromo: (id, body) => call('PUT', `/promos/${id}`, { body }),
   deletePromo: (id) => call('DELETE', `/promos/${id}`),
+
+  // white papers, logo, customer accounts
+  whitepapers: () => call('GET', '/whitepapers'),
+  createWhitepaper: (body) => call('POST', '/whitepapers', { body }),
+  updateWhitepaper: (id, body) => call('PUT', `/whitepapers/${id}`, { body }),
+  deleteWhitepaper: (id) => call('DELETE', `/whitepapers/${id}`),
+  uploadWhitepaperPdf: (id, file) => { const f = new FormData(); f.append('file', file); return call('POST', `/whitepapers/${id}/file`, { body: f }); },
+  removeWhitepaperPdf: (id) => call('DELETE', `/whitepapers/${id}/file`),
+  uploadLogo: (file) => { const f = new FormData(); f.append('file', file); return call('POST', '/branding/logo', { body: f }); },
+  deleteLogo: () => call('DELETE', '/branding/logo'),
+  setCustomerActive: (id, active) => call('PATCH', `/customers/${id}/active`, { body: { active } }),
+  resetCustomerPassword: (id) => call('POST', `/customers/${id}/reset-password`),
 
   users: () => call('GET', '/users'),
   createUser: (body) => call('POST', '/users', { body }),

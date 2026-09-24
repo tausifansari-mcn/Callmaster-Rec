@@ -1,8 +1,10 @@
-import { env, auditIsLive } from '../config/env.js';
+import { env } from '../config/env.js';
+import { isAuditLive } from '../services/audit/config.js';
 import { Contacts } from '../repositories/contacts.js';
 import { Demos } from '../repositories/demos.js';
 import { Leads } from '../repositories/leads.js';
 import { Pages } from '../repositories/pages.js';
+import { Whitepapers } from '../repositories/whitepapers.js';
 import { ApiError, asyncHandler } from '../utils/ApiError.js';
 import { getAllSettings } from '../services/settings.service.js';
 import { publicPaymentConfig } from '../services/payment.service.js';
@@ -11,14 +13,15 @@ import { sendOtp, verifyOtp } from '../services/otp.service.js';
 
 /** Everything the site needs to render, in one round trip. */
 export const getConfig = asyncHandler(async (_req, res) => {
-  const [settings, footerPages] = await Promise.all([getAllSettings(), Pages.listFooter()]);
+  const [settings, footerPages, live, papers] = await Promise.all([getAllSettings(), Pages.listFooter(), isAuditLive(), Whitepapers.listActive()]);
   res.json({
     ...settings,
     footerPages,
     payment: publicPaymentConfig(),
     sandbox: env.sandboxMode,
     limits: { uploadMaxMb: env.uploadMaxMb },
-    audit: { live: auditIsLive() },
+    audit: { live },
+    whitepapers: papers.map((p) => ({ slug: p.slug, title: p.title, description: p.description, available: Boolean(p.file) })),
   });
 });
 
@@ -52,7 +55,7 @@ export const submitLead = asyncHandler(async (req, res) => {
 // ---------------------------------------------------------------- OTP
 export const otpSend = asyncHandler(async (req, res) => {
   const { purpose } = req.body;
-  const target = purpose === 'checkout' ? req.body.email : req.body.phone;
+  const target = purpose === 'voice-demo' ? req.body.phone : req.body.email;
 
   if (purpose === 'voice-demo' && env.demoLimitEnabled && (await Demos.voiceTrialUsed(target))) {
     throw ApiError.conflict('This number has already used its one-time trial.');

@@ -46,6 +46,10 @@ async function mapRows(rows) {
       : null,
     status: r.status,
     payment: { mode: r.payment_mode, razorpayOrderId: r.razorpay_order_id, razorpayPaymentId: r.razorpay_payment_id, paidAt: r.paid_at },
+    customerAccountId: r.customer_account_id,
+    dpdpConsentAt: r.dpdp_consent_at,
+    welcomeOffer: Boolean(r.welcome_offer),
+    cancelledAt: r.cancelled_at,
     notes: r.notes || '',
     createdAt: r.created_at,
     updatedAt: r.updated_at,
@@ -71,13 +75,14 @@ export const Orders = {
         `INSERT INTO orders (order_id, access_token, product_key, product, plan, mode, unit, billing_note, qty_label, qty, unit_price, config,
            subtotal, discount_code, discount_pct, discount_amount, gst_rate, gst, total,
            customer_company, customer_contact, customer_gst_number, customer_phone, customer_email,
-           sow_original_name, sow_stored_name, sow_size, payment_mode, ip)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+           sow_original_name, sow_stored_name, sow_size, payment_mode, ip, dpdp_consent_at, welcome_offer)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           o.orderId, o.accessToken, o.productKey, o.product, o.plan, o.mode, o.unit ?? null, o.billingNote ?? null, o.qtyLabel ?? null, o.qty || 1, o.unitPrice ?? null, toJson(o.config),
           o.subtotal, o.discountCode || null, o.discountPct || 0, o.discountAmount || 0, o.gstRate, o.gst, o.total,
           o.customer.company, o.customer.contact, o.customer.gstNumber, o.customer.phone, o.customer.email,
           o.scopeOfWork?.originalName ?? null, o.scopeOfWork?.storedName ?? null, o.scopeOfWork?.size ?? null, o.paymentMode, o.ip || null,
+          o.dpdpConsentAt ?? null, o.welcomeOffer ? 1 : 0,
         ]
       );
       for (const [i, row] of (o.rows || []).entries()) {
@@ -100,6 +105,35 @@ export const Orders = {
 
   async markPaid(id, { mode, razorpayPaymentId }) {
     await exec("UPDATE orders SET status = 'paid', payment_mode = ?, razorpay_payment_id = ?, paid_at = NOW(3) WHERE id = ?", [mode, razorpayPaymentId || null, id]);
+  },
+
+  /** Order by its public reference AND the registered email (both must match — used by the cancellation request form). */
+  async findByRefAndEmail(orderId, email) {
+    const row = await one('SELECT * FROM orders WHERE order_id = ? AND customer_email = ?', [String(orderId).trim(), String(email).trim().toLowerCase()]);
+    return row ? (await mapRows([row]))[0] : null;
+  },
+
+  /** Everything a customer bought (for their dashboard), newest first. */
+  async listForEmail(email) {
+    const rows = await query("SELECT * FROM orders WHERE customer_email = ? AND status <> 'pending' ORDER BY created_at DESC, id DESC", [String(email).toLowerCase()]);
+    return mapRows(rows);
+  },
+
+  async findByRef(orderId) {
+    const row = await one('SELECT * FROM orders WHERE order_id = ?', [String(orderId).trim()]);
+    return row ? (await mapRows([row]))[0] : null;
+  },
+
+  async attachAccount(id, accountId) {
+    await exec('UPDATE orders SET customer_account_id = ? WHERE id = ?', [accountId, id]);
+  },
+
+  async markCancelled(id) {
+    await exec("UPDATE orders SET status = 'cancelled', cancelled_at = NOW(3) WHERE id = ?", [id]);
+  },
+
+  async markRefunded(id) {
+    await exec("UPDATE orders SET status = 'refunded' WHERE id = ? AND status = 'cancelled'", [id]);
   },
 
   async markFailed(id) {

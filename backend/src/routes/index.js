@@ -5,11 +5,14 @@ import * as order from '../controllers/order.controller.js';
 import * as auth from '../controllers/admin.auth.controller.js';
 import * as res_ from '../controllers/admin.resource.controller.js';
 import * as content from '../controllers/admin.content.controller.js';
+import * as customer from '../controllers/customer.controller.js';
+import * as wp from '../controllers/whitepaper.controller.js';
 import {
-  auditLimiter, formLimiter, loginLimiter, otpLimiter, requireAdmin, requireSuperAdmin, uploadAudio, uploadScope, validate,
+  auditLimiter, formLimiter, loginLimiter, otpLimiter, requireAdmin, requireCustomer, requireSuperAdmin, uploadAudio, uploadLogo, uploadPdf, uploadScope, validate,
 } from '../middleware/common.js';
 import { quoteRequestSchema } from '../services/pricing.service.js';
 import {
+  cancelRequestSchema, customerLoginSchema, customerPasswordSchema, unlockSchema, whitepaperSchema,
   replySchema, adminLoginSchema, adminUserSchema, auditRegisterSchema, auditSubmitSchema, voiceRegisterSchema, changePasswordSchema, contactSchema, leadSchema, orderAccessSchema,
   otpSendSchema, otpVerifySchema, pageSchema, promoSchema, razorpayVerifySchema, voiceDemoSchema,
 } from '../validators/publicSchemas.js';
@@ -24,6 +27,10 @@ router.get('/public/pages/:slug', pub.getPage);
 router.post('/public/contact', formLimiter, validate(contactSchema), pub.submitContact);
 router.post('/public/leads', formLimiter, validate(leadSchema), pub.submitLead);
 
+router.post('/public/whitepapers/:slug/unlock', formLimiter, validate(unlockSchema), wp.unlockWhitepaper);
+router.get('/public/whitepapers/download', wp.downloadWhitepaper);
+router.get('/public/branding/logo', wp.getLogo);
+
 router.post('/otp/send', otpLimiter, validate(otpSendSchema), pub.otpSend);
 router.post('/otp/verify', otpLimiter, validate(otpVerifySchema), pub.otpVerify);
 
@@ -35,8 +42,19 @@ router.post('/demos/voice', formLimiter, validate(voiceDemoSchema), demo.createV
 
 router.post('/checkout/quote', validate(quoteRequestSchema), order.quote);
 router.post('/orders', formLimiter, uploadScope, order.createOrder);
+router.post('/orders/cancel-request', formLimiter, validate(cancelRequestSchema), order.cancelRequest);
+router.post('/orders/:orderId/cancel', formLimiter, validate(orderAccessSchema), order.cancelOrder);
 router.post('/orders/:orderId/sandbox-pay', validate(orderAccessSchema), order.sandboxPay);
 router.post('/orders/:orderId/verify', validate(razorpayVerifySchema), order.verifyRazorpay);
+
+// ------------------------------------------------------------------ customer dashboard
+const cust = Router();
+cust.post('/login', loginLimiter, validate(customerLoginSchema), customer.login);
+cust.get('/me', requireCustomer(true), customer.me);
+cust.post('/change-password', requireCustomer(true), validate(customerPasswordSchema), customer.changePassword);
+cust.get('/orders', requireCustomer(), customer.orders);
+cust.post('/orders/:orderId/cancel', requireCustomer(), customer.cancelMyOrder);
+router.use('/customer', cust);
 
 // ------------------------------------------------------------------ admin
 const admin = Router();
@@ -60,8 +78,27 @@ mountResource('leads', res_.leadsResource);
 mountResource('contacts', res_.contactsResource);
 mountResource('demos', res_.demosResource);
 
+mountResource('cancellations', wp.cancellationsResource);
+mountResource('whitepaper-leads', wp.whitepaperLeadsResource);
+admin.get('/customers', wp.customersResource.list);
+admin.get('/customers/:id', wp.customersResource.get);
+admin.patch('/customers/:id/active', wp.setCustomerActive);
+admin.post('/customers/:id/reset-password', wp.resetCustomerPassword);
+
+admin.get('/whitepapers', wp.listWhitepapers);
+admin.post('/whitepapers', validate(whitepaperSchema), wp.createWhitepaper);
+admin.put('/whitepapers/:id', validate(whitepaperSchema), wp.updateWhitepaper);
+admin.delete('/whitepapers/:id', wp.deleteWhitepaper);
+admin.post('/whitepapers/:id/file', uploadPdf, wp.uploadWhitepaperPdf);
+admin.delete('/whitepapers/:id/file', wp.removeWhitepaperPdf);
+
+admin.post('/branding/logo', uploadLogo, wp.uploadLogoFile);
+admin.delete('/branding/logo', wp.deleteLogo);
+
 admin.get('/settings', content.listSettings);
 admin.post('/email/test', content.testEmail);
+admin.get('/integrations/status', requireSuperAdmin, content.integrationStatus);
+admin.post('/integrations/test', requireSuperAdmin, content.testIntegration);
 admin.post('/contacts/:id/reply', validate(replySchema), res_.replyToContact);
 admin.put('/settings/:key', content.updateSetting);
 admin.post('/settings/:key/reset', content.resetSettingToDefault);

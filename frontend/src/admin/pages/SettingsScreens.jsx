@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { adminApi } from '../../api/admin.js';
 import { useAuth, useToast } from '../AdminContext.jsx';
 import SettingsEditor from '../components/SettingsEditor.jsx';
+import { LogoCard } from './CommerceScreens.jsx';
 
 // ---------------------------------------------------------------- Pricing
 const planFields = [
@@ -151,7 +152,7 @@ const TARGETS = [
   { value: 'home', label: 'Home' }, { value: 'audit', label: 'Deep Customer Insights' }, { value: 'voice', label: 'Voice Bot' },
   { value: 'dialers', label: 'Dialers' }, { value: 'email-automation', label: 'Email Automation' },
   { value: 'whatsapp-api', label: 'WhatsApp Business API' }, { value: 'telephony', label: 'Cloud Telephony' },
-  { value: 'pricing', label: 'Pricing' }, { value: 'about', label: 'About' }, { value: 'contact', label: 'Contact' },
+  { value: 'pricing', label: 'Pricing' }, { value: 'insights', label: 'Insights & Resources' }, { value: 'account', label: 'Customer login' }, { value: 'about', label: 'About' }, { value: 'contact', label: 'Contact' },
   { value: 'terms', label: 'Terms & Conditions' }, { value: 'privacy', label: 'Privacy Policy' },
   { value: 'cookie-policy', label: 'Cookie Policy' }, { value: 'data-retention', label: 'Data Retention Policy' },
   { value: 'refund-policy', label: 'Refund & Cancellation Policy' },
@@ -167,8 +168,16 @@ export const ChatbotScreen = () => (
       { type: 'textarea', key: 'fallback', label: 'Reply when nothing matches', rows: 2, hint: 'A "Go to Contact" link is added automatically.' },
       { type: 'strings', key: 'quickReplies', label: 'Quick-reply buttons', addLabel: 'Add button' },
       {
+        type: 'group', key: 'nudge', label: 'Proactive nudge', hint: 'If a visitor sits idle on a page, the chat opens by itself with one of these messages — once per page, and never over the checkout.',
+        fields: [
+          { type: 'boolean', key: 'enabled', label: 'Status', switchLabel: 'Nudge idle visitors' },
+          { type: 'number', key: 'idleSeconds', label: 'Idle for', suffix: 'seconds', step: 1, min: 10 },
+          { type: 'strings', key: 'messages', label: 'Messages (one is picked at random)', addLabel: 'Add message' },
+        ],
+      },
+      {
         type: 'list', key: 'rules', label: 'Reply rules', addLabel: 'Add rule', confirmRemove: 'Remove this rule?',
-        hint: 'Prices can be inserted so they stay in sync with the Pricing screen, e.g. {{voiceBot.setupFee}}, {{voiceBot.perMinuteRate}}, {{dialers.tiers.0.rate}}, {{emailAutomation.plans.0.price}}, {{whatsapp.plans.0.price}}, {{telephony.licenseRate}}, {{gstRate}}.',
+        hint: 'Prices can be inserted so they stay in sync with the Pricing screen, e.g. {{voiceBot.setupFee}}, {{voiceBot.perMinuteRate}}, {{dialers.tiers.0.rate}}, {{emailAutomation.plans.0.price}}, {{whatsapp.plans.0.price}}, {{telephony.licenseRate}}, {{gstRate}}, {{site.promoCodeExample}}.',
         itemTitle: (r, i) => `${i + 1}. ${r.keywords?.filter(Boolean).slice(0, 3).join(', ') || (r.pattern ? `/${r.pattern}/` : 'Untitled rule')}`,
         newItem: () => ({ keywords: [], pattern: '', excludePattern: '', reply: '', target: '', anchor: '', label: '' }),
         fields: [
@@ -187,6 +196,8 @@ export const ChatbotScreen = () => (
 
 // ---------------------------------------------------------------- Site settings
 export const SiteScreen = () => (
+  <>
+  <LogoCard />
   <SettingsEditor
     settingKey="site"
     title="Site settings"
@@ -214,8 +225,12 @@ export const SiteScreen = () => (
         ],
       },
       { type: 'text', key: 'footerNote', label: 'Footer note', wide: true, hint: 'Leave empty to hide the line under the footer links.' },
+      { type: 'text', key: 'promoCodeExample', label: 'Example promo code shown on pricing pages', placeholder: 'MCN247X', hint: 'Shown as “Have a discount code, e.g. …?” and in the chatbot. Create the real code under Promo codes.' },
+      { type: 'number', key: 'cancellationWindowDays', label: 'Cloud Telephony cancellation window', suffix: 'days', step: 1, min: 1, hint: 'A customer can cancel inside this window for a full refund.' },
+      { type: 'number', key: 'refundWorkingDays', label: 'Refund processing time', suffix: 'working days', step: 1, min: 1 },
     ]}
   />
+  </>
 );
 
 // ---------------------------------------------------------------- Email & notifications

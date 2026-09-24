@@ -9,6 +9,7 @@ const get = (obj, path) => path.split('.').reduce((o, k) => (o == null ? o : o[k
 export function resolvePriceTokens(text, pricing) {
   return String(text).replace(/\{\{\s*([\w.]+)\s*\}\}/g, (whole, path) => {
     const v = get(pricing, path);
+    if (typeof v === 'string') return v; // e.g. {{site.promoCodeExample}}
     if (typeof v !== 'number') return whole;
     if (path === 'gstRate') return String(v);
     if (/perMinuteRate$/.test(path)) return `₹${rate(v)}`;

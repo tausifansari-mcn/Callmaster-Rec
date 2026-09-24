@@ -6,7 +6,7 @@ import { Badge, KV, Modal, fmtDate, inr } from '../components/ui.jsx';
 import { useToast } from '../AdminContext.jsx';
 
 /** Status + internal notes editor shared by orders, leads and contact messages. */
-function TriageForm({ resource, item, statuses, onChanged, onDeleted, deleteLabel = 'Delete' }) {
+export function TriageForm({ resource, item, statuses, onChanged, onDeleted, deleteLabel = 'Delete' }) {
   const toast = useToast();
   const [status, setStatus] = useState(item.status);
   const [notes, setNotes] = useState(item.notes || '');
@@ -250,6 +250,26 @@ export const ContactsScreen = () => (
 );
 
 // ---------------------------------------------------------------- demos
+const fmtBytes = (n) => (n > 1024 * 1024 ? `${(n / 1024 / 1024).toFixed(1)} MB` : `${Math.max(1, Math.round((n || 0) / 1024))} KB`);
+const fmtDuration = (sec) => (sec ? `${Math.floor(sec / 60)}m ${String(Math.round(sec % 60)).padStart(2, '0')}s` : '—');
+
+/** Plays the stored recording in the panel (the file route needs the admin token, so it is fetched into a blob URL). */
+function RecordingPlayer({ file }) {
+  const [src, setSrc] = useState('');
+  const [error, setError] = useState('');
+  useEffect(() => {
+    let url = '';
+    let alive = true;
+    adminApi.fileObjectUrl('audio', file.storedName)
+      .then((u) => { url = u; if (alive) setSrc(u); })
+      .catch((err) => alive && setError(err.message));
+    return () => { alive = false; if (url) URL.revokeObjectURL(url); };
+  }, [file.storedName]);
+  if (error) return <p className="adm-muted small">Recording unavailable: {error}</p>;
+  if (!src) return <p className="adm-muted small">Loading recording…</p>;
+  return <audio controls src={src} style={{ width: '100%' }} preload="metadata" />;
+}
+
 function DemoDetail({ item, onClose, onDeleted }) {
   const toast = useToast();
   const [d, setD] = useState(item);
@@ -300,8 +320,54 @@ function DemoDetail({ item, onClose, onDeleted }) {
           </>
         )}
       </dl>
+      {d.type === 'audit' && (
+        <>
+          <h4 className="adm-subhead">Call details</h4>
+          <dl className="adm-kvs">
+            <KV label="Submitted by">{d.name} · {d.company} · {d.email}</KV>
+            <KV label="Recording file">{d.file?.originalName ? `${d.file.originalName}${d.file.size ? ` · ${fmtBytes(d.file.size)}` : ''}` : '—'}</KV>
+            <KV label="Line of business / framework">{d.lob ? `${d.lob} · ${d.framework}` : '—'}</KV>
+            <KV label="Call length">{fmtDuration(r?.call?.durationSec ?? d.transcript?.durationSec)}</KV>
+            <KV label="Language(s) heard">{(r?.call?.languages || d.transcript?.languages || []).join(', ') || '—'}</KV>
+            <KV label="Speakers / turns / words">{r?.call ? `${r.call.speakers} speakers · ${r.call.turns} turns · ${r.call.words} words` : '—'}</KV>
+            <KV label="Talk share">{r?.call ? `Agent ${r.call.agentTalkPct}% · Customer ${r.call.customerTalkPct}%` : '—'}</KV>
+            <KV label="Transcribed by">{r ? (r.mock ? 'Sample data (no Deepgram key was configured)' : 'Deepgram') : '—'}</KV>
+            <KV label="Audited by">{r ? (r.mock ? 'Sample data (no Anthropic key was configured)' : (r.model || 'Claude')) : '—'}</KV>
+          </dl>
+          {d.file?.storedName && (
+            <>
+              <h4 className="adm-subhead">Call recording</h4>
+              <RecordingPlayer file={d.file} />
+            </>
+          )}
+          {!d.file?.storedName && d.file?.originalName && <p className="adm-muted small">The recording was deleted after the retention window.</p>}
+        </>
+      )}
       {d.type === 'audit' && r && (
         <div className="ar-narrow"><AuditReport results={r} transcript={d.transcript} admin /></div>
+      )}
+      {d.type === 'audit' && (r || d.transcript) && (
+        <>
+          <h4 className="adm-subhead">Full audit data</h4>
+          <details className="transcript">
+            <summary>Show the raw stored data (audit result + transcript, JSON)</summary>
+            <pre className="adm-json">{JSON.stringify({ results: r, transcript: d.transcript }, null, 2)}</pre>
+          </details>
+          <div className="adm-modal-actions" style={{ justifyContent: 'flex-start' }}>
+            <button
+              type="button"
+              className="adm-btn"
+              onClick={() => {
+                const blob = new Blob([JSON.stringify({ id: d.id, submittedAt: d.createdAt, name: d.name, company: d.company, email: d.email, lob: d.lob, framework: d.framework, file: d.file, results: r, transcript: d.transcript }, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = `audit-${d.id}.json`;
+                document.body.appendChild(a); a.click(); a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 5000);
+              }}
+            >Download audit as JSON</button>
+          </div>
+        </>
       )}
       <div className="adm-modal-actions">
         <button type="button" className="adm-btn danger" onClick={remove}>{d.type === 'voice' ? 'Delete / reset trial' : 'Delete'}</button>

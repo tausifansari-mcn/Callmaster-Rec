@@ -9,6 +9,8 @@ import { PRODUCTS, buildQuote } from '../services/pricing.service.js';
 import { orderSchema } from '../validators/publicSchemas.js';
 import { createRazorpayOrder, isRazorpay, verifyRazorpaySignature } from '../services/payment.service.js';
 import { notifyTeam, sendOrderReceipt } from '../services/mail.service.js';
+import { ensureAccountForOrder } from '../services/customer.service.js';
+import { getCancellationPolicy, isCancellable, requestCancellation } from '../services/cancellation.service.js';
 import { randomToken, safeEqual } from '../utils/helpers.js';
 
 export const quote = asyncHandler(async (req, res) => {
@@ -51,6 +53,8 @@ export const createOrder = asyncHandler(async (req, res) => {
       scopeOfWork: fileMeta(file),
       paymentMode: env.paymentMode,
       ip: req.ip,
+      dpdpConsentAt: new Date(), // the buyer ticked the DPDP consent box (the schema refuses the order otherwise)
+      welcomeOffer: q.productKey === 'cloud-telephony',
     });
 
     let razorpay;
@@ -79,22 +83,50 @@ async function markPaid(order, paymentFields) {
   await Orders.markPaid(order.id, paymentFields);
   if (order.discountCode) await Promos.incrementUsed(order.discountCode);
 
-  sendOrderReceipt(order);
+  // Every buyer gets a dashboard account (or their existing one) and a welcome email with the login details.
+  const acct = await ensureAccountForOrder(order);
+  const policy = await getCancellationPolicy();
+  const mail = await sendOrderReceipt(order, { account: acct.account, created: acct.created, tempPassword: acct.tempPassword, policy });
   notifyTeam('order', `New order ${order.orderId} — ${order.product}`, {
     Product: `${order.product} — ${order.plan}`, Total: `₹${order.total}`, Company: order.customer.company,
     Contact: order.customer.contact, Email: order.customer.email, Phone: order.customer.phone, GST: order.customer.gstNumber,
   }, order.customer.email);
-  return order;
+  return { ...acct, mailSent: mail.sent, policy };
 }
 
-const summary = (order) => ({ ok: true, orderId: order.orderId, product: order.product, plan: order.plan, company: order.customer.company, email: order.customer.email, phone: order.customer.phone, total: order.total });
+/**
+ * What the checkout modal shows after payment. The temporary password is included only in sandbox mode (no real
+ * email delivery) or when the welcome email could not be sent — otherwise it travels by email only.
+ */
+function paidSummary(order, paid) {
+  const exposePassword = paid.created && (env.sandboxMode || !paid.mailSent);
+  return {
+    ok: true,
+    orderId: order.orderId,
+    product: order.product,
+    plan: order.plan,
+    company: order.customer.company,
+    contact: order.customer.contact,
+    email: order.customer.email,
+    phone: order.customer.phone,
+    total: order.total,
+    account: {
+      username: paid.account.username,
+      created: paid.created,
+      tempPassword: exposePassword ? paid.tempPassword : undefined,
+      emailed: paid.mailSent,
+    },
+    welcomeOffer: order.productKey === 'cloud-telephony',
+    cancellation: order.productKey === 'cloud-telephony' ? { windowDays: paid.policy.windowDays, refundDays: paid.policy.refundDays } : null,
+  };
+}
 
 /** Sandbox checkout: simulates a successful Razorpay payment. Disabled when PAYMENT_MODE=razorpay. */
 export const sandboxPay = asyncHandler(async (req, res) => {
   if (isRazorpay()) throw ApiError.forbidden('Sandbox payments are disabled');
   const order = await loadPendingOrder(req);
-  await markPaid(order, { mode: 'sandbox' });
-  res.json(summary(order));
+  const paid = await markPaid(order, { mode: 'sandbox' });
+  res.json(paidSummary(order, paid));
 });
 
 export const verifyRazorpay = asyncHandler(async (req, res) => {
@@ -105,6 +137,29 @@ export const verifyRazorpay = asyncHandler(async (req, res) => {
     await Orders.markFailed(order.id);
     throw ApiError.badRequest('Payment verification failed');
   }
-  await markPaid(order, { mode: 'razorpay', razorpayPaymentId });
-  res.json(summary(order));
+  const paid = await markPaid(order, { mode: 'razorpay', razorpayPaymentId });
+  res.json(paidSummary(order, paid));
+});
+
+// ---------------------------------------------------------------- cancellation (Cloud Telephony)
+/** Right after checkout: the buyer holds the order's secret token, so an eligible order is cancelled immediately. */
+export const cancelOrder = asyncHandler(async (req, res) => {
+  const order = await Orders.findForPayment(req.params.orderId);
+  if (!order || !safeEqual(order.accessToken, String(req.body.accessToken || ''))) throw ApiError.notFound('Order not found');
+  const policy = await getCancellationPolicy();
+  if (order.status === 'cancelled') throw ApiError.conflict('This order has already been cancelled.');
+  if (!isCancellable(order, policy.windowDays)) {
+    throw ApiError.conflict(`Only paid Cloud Telephony orders can be cancelled online, within ${policy.windowDays} days of purchase. Please contact our team.`);
+  }
+  const result = await requestCancellation({ order, orderRef: order.orderId, email: order.customer.email, source: 'checkout', ip: req.ip, autoApprove: true });
+  res.json({ ok: true, orderId: order.orderId, refundAmount: order.total, refundDays: policy.refundDays, requestId: result.id });
+});
+
+/** The public "Request cancellation" form. Always answers the same way so order ids / emails can't be probed. */
+export const cancelRequest = asyncHandler(async (req, res) => {
+  const { orderId, email } = req.body;
+  const order = await Orders.findByRefAndEmail(orderId, email);
+  await requestCancellation({ order, orderRef: orderId, email: email.toLowerCase(), source: 'page', ip: req.ip });
+  const policy = await getCancellationPolicy();
+  res.status(201).json({ ok: true, windowDays: policy.windowDays, refundDays: policy.refundDays });
 });

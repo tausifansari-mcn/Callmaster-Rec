@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { useSite } from '../../context/SiteContext.jsx';
 import { useGoto } from '../../hooks/useGoto.jsx';
+import { usePurchase } from '../purchase/PurchaseContext.jsx';
 import { resolvePriceTokens } from '../../utils/tokens.js';
 
 /** Rule-based helpline bot. Rules, greeting and quick replies come from the admin panel (Chatbot). */
@@ -20,7 +22,7 @@ function findRule(text, rules) {
 }
 
 export default function ChatWidget() {
-  const { chatbot, pricing } = useSite();
+  const { chatbot, pricing, site } = useSite();
   const goto = useGoto();
   const [visible, setVisible] = useState(false);
   const [open, setOpen] = useState(false);
@@ -28,6 +30,40 @@ export default function ChatWidget() {
   const [input, setInput] = useState('');
   const bodyRef = useRef(null);
   const started = useRef(false);
+  const { isOpen: checkoutOpen } = usePurchase();
+  const { pathname } = useLocation();
+  const openRef = useRef(false);
+  const checkoutRef = useRef(false);
+  const nudged = useRef(false);
+  openRef.current = open;
+  checkoutRef.current = checkoutOpen;
+
+  // Proactive nudge: if someone has been idle on a page, gently offer help — once per page, never over the checkout or an open chat.
+  const nudge = chatbot.nudge;
+  useEffect(() => {
+    nudged.current = false; // a new page gets its own nudge
+    if (!nudge?.enabled || !nudge.messages?.length) return undefined;
+    let timer;
+    const schedule = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        if (checkoutRef.current || openRef.current || nudged.current) return schedule();
+        nudged.current = true;
+        started.current = true;
+        setVisible(true);
+        setOpen(true);
+        setMessages((m) => [...m, { who: 'bot', text: nudge.messages[Math.floor(Math.random() * nudge.messages.length)] }]);
+        return undefined;
+      }, Math.max(5, nudge.idleSeconds) * 1000);
+    };
+    const events = ['mousemove', 'keydown', 'scroll', 'touchstart', 'click'];
+    events.forEach((evt) => document.addEventListener(evt, schedule, { passive: true }));
+    schedule();
+    return () => {
+      clearTimeout(timer);
+      events.forEach((evt) => document.removeEventListener(evt, schedule));
+    };
+  }, [pathname, nudge]);
 
   useEffect(() => {
     const onScroll = () => { if (window.scrollY > 250) { setVisible(true); window.removeEventListener('scroll', onScroll); } };
@@ -59,7 +95,7 @@ export default function ChatWidget() {
       setMessages((m) => [
         ...m,
         rule
-          ? { who: 'bot', text: resolvePriceTokens(rule.reply, pricing), cta: rule.target ? { to: rule.target, anchor: rule.anchor, label: rule.label } : null }
+          ? { who: 'bot', text: resolvePriceTokens(rule.reply, { ...pricing, site }), cta: rule.target ? { to: rule.target, anchor: rule.anchor, label: rule.label } : null }
           : { who: 'bot', text: chatbot.fallback, cta: { to: 'contact', label: 'Go to Contact' } },
       ]);
     }, 350);

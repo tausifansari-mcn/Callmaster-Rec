@@ -15,6 +15,7 @@ const { buildToolSchema, auditTranscript, formatTranscript } = await import('../
 const { transcribe } = await import('../src/services/audit/deepgram.js');
 const { buildMockAudit } = await import('../src/services/audit/mock.js');
 
+const cfg = { deepgramKey: 'dg-test-key', deepgramModel: 'nova-3', deepgramLanguage: 'multi', anthropicKey: 'an-test-key', anthropicModel: 'claude-sonnet-5' };
 const realFetch = globalThis.fetch;
 const stubFetch = (handler) => { globalThis.fetch = handler; };
 const restoreFetch = () => { globalThis.fetch = realFetch; };
@@ -133,7 +134,7 @@ describe('Claude client (network stubbed)', () => {
       return json(200, { model: 'claude-sonnet-5', stop_reason: 'tool_use', usage: { input_tokens: 1, output_tokens: 1 }, content: [{ type: 'tool_use', name: 'submit_audit', input: { summary: 'ok' } }] });
     });
     try {
-      const out = await auditTranscript({ rubric: RUBRICS.Collections, turns, meta });
+      const out = await auditTranscript({ rubric: RUBRICS.Collections, turns, meta, cfg });
       assert.equal(out.audit.summary, 'ok');
       assert.equal(seen.url, 'https://api.anthropic.com/v1/messages');
       assert.equal(seen.headers['x-api-key'], 'an-test-key');
@@ -153,7 +154,7 @@ describe('Claude client (network stubbed)', () => {
       return json(200, { stop_reason: 'tool_use', content: [{ type: 'tool_use', name: 'submit_audit', input: { summary: 'auto' } }] });
     });
     try {
-      assert.equal((await auditTranscript({ rubric: RUBRICS.Retention, turns, meta })).audit.summary, 'auto');
+      assert.equal((await auditTranscript({ rubric: RUBRICS.Retention, turns, meta, cfg })).audit.summary, 'auto');
       assert.deepEqual(choices, ['tool', 'auto']);
     } finally { restoreFetch(); }
   });
@@ -161,7 +162,7 @@ describe('Claude client (network stubbed)', () => {
   test('provider errors become AuditErrors whose public message never leaks internals', async () => {
     stubFetch(async () => json(401, { error: { message: 'invalid x-api-key an-test-key' } }));
     try {
-      await assert.rejects(auditTranscript({ rubric: RUBRICS.Collections, turns, meta }), (err) => {
+      await assert.rejects(auditTranscript({ rubric: RUBRICS.Collections, turns, meta, cfg }), (err) => {
         assert.equal(err.code, 'CLAUDE_401');
         assert.ok(!err.publicMessage.includes('an-test-key') && !/anthropic|401/i.test(err.publicMessage));
         return true;
@@ -192,7 +193,7 @@ describe('Deepgram client (network stubbed)', () => {
       ]));
     });
     try {
-      const out = await transcribe(tmp);
+      const out = await transcribe(tmp, cfg);
       assert.equal(out.turns.length, 3);
       assert.equal(out.turns[0].text, 'Thank you for calling Shop Easy support. This is Priya speaking.');
       assert.equal(out.durationSec, 20);
@@ -207,7 +208,7 @@ describe('Deepgram client (network stubbed)', () => {
   test('a silent / unusable recording is reported as NO_SPEECH with a friendly message', async () => {
     stubFetch(async () => json(200, dgBody([utt(0, 0, 1, 'hello')])));
     try {
-      await assert.rejects(transcribe(tmp), (err) => err.code === 'NO_SPEECH' && /couldn't detect enough speech/i.test(err.publicMessage));
+      await assert.rejects(transcribe(tmp, cfg), (err) => err.code === 'NO_SPEECH' && /couldn't detect enough speech/i.test(err.publicMessage));
     } finally { restoreFetch(); }
   });
 
@@ -218,7 +219,7 @@ describe('Deepgram client (network stubbed)', () => {
       return urls.length === 1 ? json(400, { err_msg: 'multi not supported' }) : json(200, dgBody([utt(0, 0, 9, 'This is a long enough sentence to count as real speech from someone.'), utt(1, 9, 15, 'And here is the customer answering back with several more words too.')]));
     });
     try {
-      const out = await transcribe(tmp);
+      const out = await transcribe(tmp, cfg);
       assert.equal(out.turns.length, 2);
       assert.match(urls[0], /language=multi/);
       assert.match(urls[1], /detect_language=true/);
@@ -228,7 +229,7 @@ describe('Deepgram client (network stubbed)', () => {
   test('auth / billing failures are technical-only, with a generic public message', async () => {
     stubFetch(async () => json(401, { err_msg: 'INVALID_AUTH dg-test-key' }));
     try {
-      await assert.rejects(transcribe(tmp), (err) => err.code === 'DEEPGRAM_401' && !err.publicMessage.includes('dg-test-key'));
+      await assert.rejects(transcribe(tmp, cfg), (err) => err.code === 'DEEPGRAM_401' && !err.publicMessage.includes('dg-test-key'));
     } finally { restoreFetch(); }
   });
 });

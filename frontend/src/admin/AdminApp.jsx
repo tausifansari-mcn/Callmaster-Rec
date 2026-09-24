@@ -10,6 +10,10 @@ import PromosScreen from './pages/PromosScreen.jsx';
 import { ContactsScreen, DemosScreen, LeadsScreen, OrdersScreen } from './pages/ResourceScreens.jsx';
 import { ChatbotScreen, EmailScreen, FaqScreen, HomeScreen, PricingScreen, SiteScreen } from './pages/SettingsScreens.jsx';
 import UsersScreen from './pages/UsersScreen.jsx';
+import {
+  CancellationsScreen, CustomersScreen, InsightsContentScreen, WhitepaperLeadsScreen, WhitepapersScreen,
+} from './pages/CommerceScreens.jsx';
+import IntegrationsScreen from './pages/IntegrationsScreen.jsx';
 
 export default function AdminApp() {
   return (
@@ -22,7 +26,13 @@ export default function AdminApp() {
           <Route path="leads" element={<LeadsScreen />} />
           <Route path="contacts" element={<ContactsScreen />} />
           <Route path="email" element={<EmailScreen />} />
+          <Route path="integrations" element={<IntegrationsScreen />} />
           <Route path="demos" element={<DemosScreen />} />
+          <Route path="cancellations" element={<CancellationsScreen />} />
+          <Route path="whitepaper-leads" element={<WhitepaperLeadsScreen />} />
+          <Route path="customers" element={<CustomersScreen />} />
+          <Route path="insights" element={<InsightsContentScreen />} />
+          <Route path="whitepapers" element={<WhitepapersScreen />} />
           <Route path="pricing" element={<PricingScreen />} />
           <Route path="home" element={<HomeScreen />} />
           <Route path="faqs" element={<FaqScreen />} />

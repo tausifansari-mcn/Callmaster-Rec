@@ -1,4 +1,3 @@
-import { env } from '../../config/env.js';
 import { AuditError } from './errors.js';
 import { MAGIC_STAGES, TAGS } from './rubrics.js';
 
@@ -216,21 +215,21 @@ Return your audit by calling the submit_audit tool exactly once.`;
 }
 
 // ---------------------------------------------------------------- API call
-async function post(body) {
+async function post(cfg, body) {
   return fetch(API, {
     method: 'POST',
-    headers: { 'x-api-key': env.audit.anthropicKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
+    headers: { 'x-api-key': cfg.anthropicKey, 'anthropic-version': '2023-06-01', 'content-type': 'application/json' },
     body: JSON.stringify(body),
     signal: AbortSignal.timeout(240000),
   });
 }
 
 /** Returns the raw submit_audit tool input. Retries once on overload / rate limits. */
-export async function auditTranscript({ rubric, turns, meta }) {
+export async function auditTranscript({ rubric, turns, meta, cfg }) {
   const tool = buildToolSchema(rubric);
   const userText = `Call metadata: duration ${fmtTime(meta.durationSec)}; detected languages: ${meta.languages.join(', ') || 'unknown'}; selected line of business: ${rubric.lob}.\n\nTRANSCRIPT\n${formatTranscript(turns)}`;
   const base = {
-    model: env.audit.anthropicModel,
+    model: cfg.anthropicModel,
     max_tokens: 9000,
     system: buildSystemPrompt(rubric),
     tools: [tool],
@@ -240,11 +239,11 @@ export async function auditTranscript({ rubric, turns, meta }) {
   let res;
   for (let attempt = 0; attempt < 2; attempt += 1) {
     try {
-      res = await post({ ...base, tool_choice: { type: 'tool', name: tool.name } });
+      res = await post(cfg, { ...base, tool_choice: { type: 'tool', name: tool.name } });
       // Some models don't accept a forced tool choice — let them choose (the prompt tells them to call the tool).
       if (res.status === 400) {
         const peek = await res.clone().text();
-        if (/tool_choice/i.test(peek)) res = await post({ ...base, tool_choice: { type: 'auto' } });
+        if (/tool_choice/i.test(peek)) res = await post(cfg, { ...base, tool_choice: { type: 'auto' } });
       }
     } catch (err) {
       if (attempt === 1) throw new AuditError('CLAUDE_NETWORK', `Anthropic request failed: ${err.message}`, 'The audit service did not respond in time. Please try again.');

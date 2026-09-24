@@ -3,7 +3,9 @@ import { Pages, RESERVED_SLUGS } from '../repositories/pages.js';
 import { Promos } from '../repositories/promos.js';
 import { ApiError, asyncHandler } from '../utils/ApiError.js';
 import { hashPassword } from '../services/password.js';
-import { getAdminSettings, resetSetting, saveSetting, SETTING_KEYS } from '../services/settings.service.js';
+import { getAdminSettings, getSetting, resetSetting, saveSetting, SETTING_KEYS, SUPERADMIN_ONLY_KEYS } from '../services/settings.service.js';
+import { getAuditConfig, getKeyStatus } from '../services/audit/config.js';
+import { testAnthropic, testDeepgram } from '../services/audit/connectionTest.js';
 import { getMailConfig, sendTestEmail } from '../services/mail.service.js';
 import { isEmail } from '../utils/helpers.js';
 import { checkPricingSemantics, settingsSchemas } from '../validators/settingsSchemas.js';
@@ -27,9 +29,25 @@ export const testEmail = asyncHandler(async (req, res) => {
   res.json({ ok: true, to, source: result.source });
 });
 
+const assertMayEdit = (req, key) => {
+  if (SUPERADMIN_ONLY_KEYS.includes(key) && req.admin.role !== 'superadmin') throw ApiError.forbidden('Only a super admin can change API keys');
+};
+
+/** Which Deepgram / Anthropic key is active and where it comes from (never the key itself). */
+export const integrationStatus = asyncHandler(async (_req, res) => res.json(await getKeyStatus()));
+
+/** Checks the SAVED key for one service against the provider, without running (or paying for) an audit. */
+export const testIntegration = asyncHandler(async (req, res) => {
+  const cfg = await getAuditConfig({ fresh: true });
+  const service = req.body.service;
+  if (!['deepgram', 'anthropic'].includes(service)) throw ApiError.badRequest('Unknown service');
+  res.json(service === 'deepgram' ? await testDeepgram(cfg) : await testAnthropic(cfg));
+});
+
 export const updateSetting = asyncHandler(async (req, res) => {
   const { key } = req.params;
   if (!SETTING_KEYS.includes(key)) throw ApiError.notFound('Unknown setting');
+  assertMayEdit(req, key);
   const parsed = settingsSchemas[key].safeParse(req.body);
   if (!parsed.success) {
     const issue = parsed.error.issues[0];
@@ -39,12 +57,21 @@ export const updateSetting = asyncHandler(async (req, res) => {
     const problem = checkPricingSemantics(parsed.data);
     if (problem) throw ApiError.badRequest(problem);
   }
+  // The logo is managed only through its own upload endpoint, so a stale Site-settings form can never bring back an old one.
+  if (key === 'site') parsed.data.logoFile = (await getSetting('site')).logoFile;
   res.json(await saveSetting(key, parsed.data, req.admin.email));
 });
 
 export const resetSettingToDefault = asyncHandler(async (req, res) => {
   if (!SETTING_KEYS.includes(req.params.key)) throw ApiError.notFound('Unknown setting');
-  res.json(await resetSetting(req.params.key));
+  assertMayEdit(req, req.params.key);
+  if (req.params.key === 'site') {
+    // "Reset to defaults" restores the text, not the uploaded logo.
+    const { logoFile } = await getSetting('site');
+    await resetSetting('site');
+    return res.json(await saveSetting('site', { ...(await getSetting('site')), logoFile }, req.admin.email));
+  }
+  return res.json(await resetSetting(req.params.key));
 });
 
 // ---------------------------------------------------------------- pages

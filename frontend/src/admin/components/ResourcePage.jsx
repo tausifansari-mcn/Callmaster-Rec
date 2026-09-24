@@ -7,7 +7,7 @@ import { ErrorNote, Loading, PageHeader } from './ui.jsx';
  * Searchable, filterable, paginated table for a collection (orders, leads, contacts, demos)
  * with CSV export and a detail modal.
  */
-export default function ResourcePage({ resource, title, subtitle, columns, filters = [], Detail, searchPlaceholder = 'Search…' }) {
+export default function ResourcePage({ resource, title, subtitle, columns, filters = [], Detail, searchPlaceholder = 'Search…', exportable = true }) {
   const toast = useToast();
   const [q, setQ] = useState('');
   const [debouncedQ, setDebouncedQ] = useState('');
@@ -52,7 +52,7 @@ export default function ResourcePage({ resource, title, subtitle, columns, filte
       <PageHeader
         title={title}
         subtitle={subtitle}
-        actions={<button type="button" className="adm-btn" onClick={exportCsv}>Export CSV</button>}
+        actions={exportable ? <button type="button" className="adm-btn" onClick={exportCsv}>Export CSV</button> : undefined}
       />
       <div className="adm-toolbar">
         <input className="adm-input search" type="search" placeholder={searchPlaceholder} value={q} onChange={(e) => setQ(e.target.value)} />

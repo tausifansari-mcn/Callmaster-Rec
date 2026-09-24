@@ -56,7 +56,7 @@ function Scalar({ spec, value, onChange }) {
         </label>
       );
     case 'password':
-      return <input className="adm-input" type="password" autoComplete="new-password" placeholder={spec.placeholder} value={v} onFocus={(e) => { if (v === '********') e.target.select(); }} onChange={(e) => onChange(e.target.value)} />;
+      return <input className="adm-input" type="password" autoComplete="new-password" placeholder={spec.placeholder} value={v} onFocus={(e) => { if (String(v).startsWith('********')) e.target.select(); }} onChange={(e) => onChange(e.target.value)} />;
     case 'csv':
       return (
         <input

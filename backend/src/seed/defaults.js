@@ -16,6 +16,10 @@ export const DEFAULT_SITE = {
   footerNote: 'CallMaster — sandbox build for internal testing only. Not a production site.',
   emails: { hello: '', sales: '', support: '', privacy: '' }, // full addresses; blank = derive from domain
   phoneAddress: '', // blank = "pending decision on public disclosure" placeholder
+  promoCodeExample: 'MCN247X', // shown in "Have a discount code, e.g. …?" hints and in the chatbot
+  cancellationWindowDays: 3, // Cloud Telephony: full refund if cancelled within this many days of purchase
+  refundWorkingDays: 7, // …processed to the original payment method within this many working days
+  logoFile: '', // set by uploading a logo in Admin → Site settings (empty = text brand)
 };
 
 export const DEFAULT_HOME = {
@@ -131,6 +135,15 @@ export const DEFAULT_CHATBOT = {
   greeting: 'Hi! I\'m the CallMaster helpline bot. Ask me about our products, pricing, demos, refunds, or anything else — or tap a quick question below.',
   fallback: 'I couldn\'t quite match that to something specific — let me connect you with our team instead.',
   quickReplies: ['What products do you offer?', 'How does pricing work?', 'How do I get support?', 'Can I try a demo?'],
+  // Opens the chat by itself when a visitor has been idle on a page for a while.
+  nudge: {
+    enabled: true,
+    idleSeconds: 45,
+    messages: [
+      'Still there? Happy to help you find pricing, book a demo, or answer a quick question — just ask.',
+      'Looks like you\'ve been on this page a bit — need a hand finding something? I can point you to pricing, a live demo, or the right product.',
+    ],
+  },
   // Rules are checked top to bottom; the first match wins. A rule matches when the message contains any keyword,
   // or matches `pattern` (a regular expression) and does not match `excludePattern`.
   rules: [
@@ -143,13 +156,13 @@ export const DEFAULT_CHATBOT = {
     { keywords: ['email automation', 'email sequence', 'drip'], pattern: '', excludePattern: '', reply: 'Email Automation covers drip sequences, deliverability monitoring and CRM sync, from {{emailAutomation.plans.0.price}}/month.', target: 'email-automation', anchor: 'email-pricing', label: 'Open Email Automation pricing' },
     { keywords: ['insight', 'audit', 'call scoring', 'clap', 'magic script', 'reso'], pattern: '', excludePattern: '', reply: 'Deep Customer Insights scores every call with the right framework — CLAP for service, MAGIC Script/CRT/CST for sales, RESO for collections. You can try it free on your own call.', target: 'audit', anchor: 'audit-pricing', label: 'Try Deep Customer Insights' },
     { keywords: ['pricing', 'price', 'cost', 'how much'], pattern: '', excludePattern: '', reply: 'Most products are self-serve — pick a plan and pay online instantly. Deep Customer Insights is volume-based, so we email you exact rates. Head to the Pricing page for a full breakdown by product.', target: 'pricing', anchor: '', label: 'See all pricing' },
-    { keywords: ['refund', 'cancel', 'cancellation'], pattern: '', excludePattern: '', reply: 'You can cancel a subscription any time — it stays active till the end of the current billing cycle. One-time setup fees are refundable in full if work hasn\'t started yet. Full details are in our Refund & Cancellation Policy.', target: 'refund', anchor: '', label: 'Read the Refund Policy' },
+    { keywords: ['refund', 'cancel', 'cancellation'], pattern: '', excludePattern: '', reply: 'You can cancel a subscription any time — it stays active till the end of the current billing cycle. One-time setup fees are refundable in full if work hasn\'t started yet. Full details are in our Refund & Cancellation Policy.', target: 'refund-policy', anchor: '', label: 'Read the Refund Policy' },
     { keywords: ['contact', 'talk to sales', 'human', 'agent', 'callback'], pattern: '', excludePattern: '', reply: 'Happy to connect you with our team — leave your details on the Contact page and we\'ll get back within one business day.', target: 'contact', anchor: '', label: 'Go to Contact' },
     { keywords: ['demo', 'trial', 'try it', 'free'], pattern: '', excludePattern: '', reply: 'You can try Deep Customer Insights on your own call, or have our Voice Bot call your own phone — both are free, no card required. Which would you like to try?', target: 'audit', anchor: '', label: 'Try a live demo' },
     { keywords: ['gst', 'tax', 'invoice'], pattern: '', excludePattern: '', reply: 'GST is charged at {{gstRate}}% on top of the subtotal at checkout, after any discount code is applied. Your invoice reflects the GST number you provide during checkout.', target: '', anchor: '', label: '' },
     { keywords: ['otp', 'verification', 'verify email'], pattern: '', excludePattern: '', reply: 'We verify every checkout with a one-time code sent to your official business email — this confirms it\'s really you before payment, and we don\'t accept personal addresses like Gmail or Yahoo for billing.', target: '', anchor: '', label: '' },
     { keywords: ['payment', 'razorpay', 'checkout', 'pay'], pattern: '', excludePattern: '', reply: 'Checkout runs through Razorpay. You\'ll see requirement → company details → email OTP → payment, with the final amount (incl. GST, minus any discount code) confirmed before you pay.', target: '', anchor: '', label: '' },
-    { keywords: ['discount', 'promo', 'coupon', 'code'], pattern: '', excludePattern: '', reply: 'Discount codes are applied on the payment step of checkout, across every product — try CALLMASTER10 for 10% off, subtracted before GST.', target: '', anchor: '', label: '' },
+    { keywords: ['discount', 'promo', 'coupon', 'code'], pattern: '', excludePattern: '', reply: 'Discount codes are applied on the payment step of checkout, across every product — try {{site.promoCodeExample}} for 10% off, subtracted before GST.', target: '', anchor: '', label: '' },
     { keywords: ['support', 'help'], pattern: '', excludePattern: '', reply: 'For account or product support, reach out via the Contact page and our team replies within one business day — or keep chatting here for quick answers.', target: 'contact', anchor: '', label: 'Go to Contact' },
   ],
 };
@@ -172,8 +185,52 @@ export const DEFAULT_EMAIL = {
   },
 };
 
+/**
+ * API keys for the call-audit engine, managed in the admin panel (API keys). A blank key means
+ * "use the value from backend/.env"; a key saved here takes priority and applies to the next audit
+ * with no restart. Keys are encrypted at rest and never sent to the browser.
+ */
+export const DEFAULT_INTEGRATIONS = {
+  deepgram: { apiKey: '', model: 'nova-3', language: 'multi' },
+  anthropic: { apiKey: '', model: 'claude-sonnet-5' },
+};
+
+export const DEFAULT_INSIGHTS = {
+  eyebrow: 'From the floor, not from a product meeting',
+  title: 'Insights & Resources',
+  sub: 'Notes on running contact center operations at scale — what actually moves answer rates, conversion and call quality — plus a couple of short papers you can keep.',
+  articlesHeading: 'Latest thinking',
+  articles: [
+    {
+      tag: 'OPERATIONS',
+      title: 'Why answer rates are really a number-formatting problem',
+      body: 'Most teams try to fix falling answer rates with a better script, a better dialer strategy, or a better time-of-day model. All of those help — none of them are the biggest lever. The single change with the largest measurable effect we\'ve found in 23 years of running contact center floors is simpler than any of that: what number the call appears to come from. A 1800 or 0XX pattern is filtered before the phone finishes ringing. A number formatted like a standard 10-digit mobile gets answered like one. Same infrastructure, same call quality — dramatically different pickup.',
+    },
+    {
+      tag: 'QUALITY',
+      title: 'Stop scoring every call the same way',
+      body: 'A service call, a sales call and a collections call fail for completely different reasons — so scoring all three against one generic quality model tells you very little about what to actually fix. This is the reasoning behind CLAP, MAGIC Script and RESO: three frameworks, each built for what the call is actually for, applied automatically depending on the line of business. Read the full breakdown in our frameworks white paper below.',
+    },
+    {
+      tag: 'SALES',
+      title: 'Your best script is never the one in the training deck',
+      body: 'Every sales call has a skeleton: opening, context, offer, objection, rebuttal, outcome. The version of that skeleton that\'s actually converting right now is rarely the one written down six months ago. MAGIC Script\'s CRT and CST trajectories track — continuously, across your live portfolio — which opening, offer and rebuttal are closing deals today, and feed that back to every agent automatically. The script in front of your team should never be stale.',
+    },
+  ],
+  whitepapersHeading: 'White papers',
+  whitepapersSub: 'Two short, practical papers — leave your work email and we\'ll unlock the PDF instantly. No spam list, just the document.',
+  gateNote: 'We save the name and work email you enter here so our team can follow up about the paper — we don\'t add you to any mailing list. See our Privacy Policy.',
+};
+
+export const DEFAULT_WHITEPAPERS = [
+  { slug: 'mobile-look-alike-number', title: 'The Mobile Look-Alike Number', description: 'Why the number you call from decides whether your customer picks up. One page, no fluff.', order: 10 },
+  { slug: 'clap-magic-script-reso', title: 'CLAP, MAGIC Script & RESO', description: 'The three frameworks behind Deep Customer Insights, explained in full — and why a software company alone couldn\'t have built them.', order: 20 },
+];
+
 export const DEFAULT_SETTINGS = {
+  insights: DEFAULT_INSIGHTS,
   email: DEFAULT_EMAIL,
+  integrations: DEFAULT_INTEGRATIONS,
   site: DEFAULT_SITE,
   home: DEFAULT_HOME,
   pricing: DEFAULT_PRICING,
@@ -182,5 +239,5 @@ export const DEFAULT_SETTINGS = {
 };
 
 export const DEFAULT_PROMOS = [
-  { code: 'CALLMASTER10', percent: 10, description: 'Launch discount — 10% off, subtracted before GST', active: true },
+  { code: 'MCN247X', percent: 10, description: 'Launch discount — 10% off, subtracted before GST', active: true },
 ];

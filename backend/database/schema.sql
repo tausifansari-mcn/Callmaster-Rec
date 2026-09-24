@@ -100,6 +100,10 @@ CREATE TABLE IF NOT EXISTS orders (
   razorpay_order_id    VARCHAR(64)   NULL,
   razorpay_payment_id  VARCHAR(64)   NULL,
   paid_at              DATETIME(3)   NULL,
+  customer_account_id  BIGINT UNSIGNED NULL,                -- the dashboard account created at purchase
+  dpdp_consent_at      DATETIME(3)   NULL,                  -- when the buyer ticked the DPDP consent box
+  welcome_offer        TINYINT(1)    NOT NULL DEFAULT 0,    -- Cloud Telephony: first-month 2% audit offer
+  cancelled_at         DATETIME(3)   NULL,
   notes                TEXT          NULL,
   ip                   VARCHAR(64)   NULL,
   created_at           DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
@@ -128,7 +132,7 @@ CREATE TABLE IF NOT EXISTS order_items (
 CREATE TABLE IF NOT EXISTS otps (
   id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   target      VARCHAR(190)  NOT NULL,                       -- lowercase email or 10-digit phone
-  purpose     ENUM('checkout','voice-demo') NOT NULL,
+  purpose     ENUM('checkout','voice-demo','audit-demo') NOT NULL,
   code_hash   CHAR(64)      NOT NULL,
   attempts    TINYINT UNSIGNED NOT NULL DEFAULT 0,
   expires_at  DATETIME(3)   NOT NULL,
@@ -214,4 +218,80 @@ CREATE TABLE IF NOT EXISTS pages (
   updated_at     DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
   PRIMARY KEY (id),
   UNIQUE KEY uq_pages_slug (slug)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- White papers offered on the Insights page (PDF uploaded from the admin panel) ---
+CREATE TABLE IF NOT EXISTS whitepapers (
+  id                  BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  slug                VARCHAR(80)   NOT NULL,
+  title               VARCHAR(190)  NOT NULL,
+  description         VARCHAR(500)  NOT NULL DEFAULT '',
+  file_original_name  VARCHAR(255)  NULL,
+  file_stored_name    VARCHAR(255)  NULL,
+  file_size           BIGINT UNSIGNED NULL,
+  active              TINYINT(1)    NOT NULL DEFAULT 1,
+  sort_order          INT           NOT NULL DEFAULT 100,
+  download_count      INT UNSIGNED  NOT NULL DEFAULT 0,
+  created_at          DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at          DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_whitepapers_slug (slug)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Everyone who unlocked a white paper with their name + work email ----------------
+CREATE TABLE IF NOT EXISTS whitepaper_leads (
+  id               BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  whitepaper_id    BIGINT UNSIGNED NULL,
+  whitepaper_title VARCHAR(190)  NOT NULL,
+  name             VARCHAR(160)  NOT NULL,
+  email            VARCHAR(190)  NOT NULL,
+  delivered        TINYINT(1)    NOT NULL DEFAULT 0,            -- 1 = a download link was issued
+  status           ENUM('new','contacted','closed') NOT NULL DEFAULT 'new',
+  notes            TEXT          NULL,
+  ip               VARCHAR(64)   NULL,
+  created_at       DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at       DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  KEY idx_wpl_created (created_at),
+  KEY idx_wpl_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Customer accounts created at purchase (username + temporary password in the welcome email)
+CREATE TABLE IF NOT EXISTS customer_accounts (
+  id                    BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  username              VARCHAR(190)  NOT NULL,
+  email                 VARCHAR(190)  NOT NULL,
+  company               VARCHAR(190)  NOT NULL,
+  contact_name          VARCHAR(160)  NOT NULL,
+  phone                 VARCHAR(30)   NULL,
+  password_hash         VARCHAR(255)  NOT NULL,
+  must_change_password  TINYINT(1)    NOT NULL DEFAULT 1,
+  active                TINYINT(1)    NOT NULL DEFAULT 1,
+  last_login_at         DATETIME(3)   NULL,
+  created_at            DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at            DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_customer_username (username),
+  UNIQUE KEY uq_customer_email (email)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Cloud Telephony cancellation / refund requests (from checkout, the pricing page or the customer dashboard)
+CREATE TABLE IF NOT EXISTS cancellation_requests (
+  id             BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  order_pk       BIGINT UNSIGNED NULL,                          -- set when the order id + email matched an order
+  order_ref      VARCHAR(40)   NOT NULL,                        -- the order id exactly as the customer typed it
+  email          VARCHAR(190)  NOT NULL,
+  source         ENUM('checkout','page','dashboard') NOT NULL DEFAULT 'page',
+  matched        TINYINT(1)    NOT NULL DEFAULT 0,
+  eligible       TINYINT(1)    NOT NULL DEFAULT 0,              -- inside the cancellation window
+  refund_amount  DECIMAL(12,2) NULL,
+  status         ENUM('requested','approved','refunded','rejected') NOT NULL DEFAULT 'requested',
+  notes          TEXT          NULL,
+  ip             VARCHAR(64)   NULL,
+  created_at     DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at     DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  KEY idx_cancel_status (status),
+  KEY idx_cancel_order (order_pk),
+  KEY idx_cancel_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

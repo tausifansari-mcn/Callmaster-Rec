@@ -47,6 +47,9 @@ export const Promos = {
   async insertIfMissing(p) {
     await exec('INSERT IGNORE INTO promo_codes (code, percent, description, active, valid_from, valid_until, max_uses) VALUES (?, ?, ?, ?, ?, ?, ?)', fields({ active: true, ...p }));
   },
+  async setActiveByCode(code, active) {
+    await exec('UPDATE promo_codes SET active = ? WHERE code = ?', [bit(active), String(code).toUpperCase()]);
+  },
   async incrementUsed(code) {
     await exec('UPDATE promo_codes SET used_count = used_count + 1 WHERE code = ?', [code]);
   },

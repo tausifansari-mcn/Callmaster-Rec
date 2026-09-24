@@ -7,7 +7,9 @@ const money = z.coerce.number().min(0).max(100000000);
 
 export const PAGE_KEYS = [
   '', 'home', 'audit', 'voice', 'dialers', 'email-automation', 'whatsapp-api', 'telephony', 'pricing', 'about', 'contact',
-  'terms', 'privacy', 'cookie-policy', 'data-retention', 'refund-policy',
+  'terms', 'privacy', 'cookie-policy', 'data-retention', 'refund-policy', 'insights', 'account',
+  // legacy ids from the original single-file site, still present in older stored chatbot rules
+  'cookie', 'retention', 'refund',
 ];
 
 const plan = z.object({
@@ -33,7 +35,14 @@ const rule = z.object({
   label: str(80),
 });
 
+// A pasted key must be one token: reject spaces/newlines inside it (a common copy-paste slip).
+const apiKey = z.string().trim().max(400).refine((k) => !/\s/.test(k), 'The key must not contain spaces or line breaks');
+
 export const settingsSchemas = {
+  integrations: z.object({
+    deepgram: z.object({ apiKey, model: str(60).min(1, 'Enter a model, e.g. nova-3'), language: str(20).min(1, 'Enter a language, e.g. multi') }),
+    anthropic: z.object({ apiKey, model: str(80).min(1, 'Enter a model, e.g. claude-sonnet-5') }),
+  }),
   email: z.object({
     smtp: z.object({
       host: str(190),
@@ -62,6 +71,21 @@ export const settingsSchemas = {
     footerNote: str(300),
     emails: z.object({ hello: str(160), sales: str(160), support: str(160), privacy: str(160) }),
     phoneAddress: str(400),
+    promoCodeExample: str(40),
+    cancellationWindowDays: z.coerce.number().int().min(1).max(60),
+    refundWorkingDays: z.coerce.number().int().min(1).max(60),
+    logoFile: str(160),
+  }),
+
+  insights: z.object({
+    eyebrow: str(160),
+    title: str(160).min(1),
+    sub: longStr(1000),
+    articlesHeading: str(120),
+    articles: z.array(z.object({ tag: str(40), title: str(200).min(1), body: longStr(6000) })).max(12),
+    whitepapersHeading: str(120),
+    whitepapersSub: longStr(600),
+    gateNote: longStr(600),
   }),
 
   home: z.object({
@@ -106,6 +130,7 @@ export const settingsSchemas = {
     greeting: longStr(600),
     fallback: longStr(600),
     quickReplies: z.array(str(80).min(1)).max(8),
+    nudge: z.object({ enabled: z.boolean(), idleSeconds: z.coerce.number().int().min(10).max(600), messages: z.array(str(300).min(1)).max(10) }),
     rules: z.array(rule).max(80),
   }),
 };
