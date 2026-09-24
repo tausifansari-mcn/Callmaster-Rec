@@ -1,28 +1,110 @@
-# CallMaster Website — Sandbox Build
+# CallMaster Website
 
-Single self-contained HTML file (`index.html`) — no build step, no external dependencies beyond Google Fonts (loaded via `<link>` tags in `<head>`). Open directly in a browser, or serve with any static file server:
+A React website with a Node.js/Express API, a MySQL database and a built-in admin panel.
+It is a full rebuild of the original single-file `index.html` (kept for reference in
+[`reference/original-index.html`](reference/original-index.html)) — the design is unchanged, but everything
+that used to be simulated in the browser is now stored in the database.
 
-    python3 -m http.server 8000
+```
+callmaster-website-code/
+├── frontend/            React 19 + Vite + React Router — the public site and the admin panel (/admin)
+│   └── src/
+│       ├── pages/         Home, product pages, pricing, about, contact, dynamic (legal/custom) pages
+│       ├── components/    layout, chat widget, purchase (checkout) modal, calculators, demo wizards, ui
+│       ├── admin/         admin panel (dashboard, inbox, content editors, users)
+│       ├── api/           fetch clients for the public and admin APIs
+│       └── styles/        site.css (ported 1:1 from the original) and admin.css
+├── backend/             Node.js + Express + MySQL (mysql2) API
+│   ├── database/        schema.sql — every table for db_masmin (applied automatically on start-up)
+│   ├── src/
+│   │   ├── config/        env + MySQL connection pool + auto-migration
+│   │   ├── repositories/  one data-access module per table (admins, leads, contacts, orders, demos, otps, promos, pages, settings)
+│   │   ├── routes/        route table (public + /api/admin)
+│   │   ├── controllers/   request handlers
+│   │   ├── services/      pricing/quotes, OTP, payments (Razorpay), mail, SMS/voice webhooks, retention job
+│   │   ├── validators/    zod schemas
+│   │   ├── seed/          default content copied from the original site
+│   │   └── scripts/       create-admin CLI
+│   ├── tests/           API integration tests (run against a throwaway MySQL server)
+│   └── uploads/         scope-of-work files and demo recordings (git-ignored)
+└── reference/           the original index.html
+```
 
-## What's inside
-- All markup, CSS and JavaScript live in this one file, organized by page section (`<!-- ============ SECTION ============ -->` comments mark each page).
-- Client-side page router (`goto()`) swaps `.page` sections in/out — no page reloads.
-- Self-serve purchase modal (`CMPurchase.open` / `CMPurchase.openCart`) with a sandboxed OTP + Razorpay-style checkout flow (no real payment gateway wired up — see below).
-- Per-product pricing calculators: Cloud Telephony (license/channel/DID stepper), Voice Bot (setup + regional language add-ons), Dialers (tiered seat-count calculator).
-- Rule-based helpline chatbot (`KEYWORD_RULES` array), fully client-side, no external AI service.
-- Deep Customer Insights and Voice Bot demo wizards with simulated processing/results (mock data, for UI/UX demonstration only).
+## Quick start
 
-## What's NOT real (needs engineering before production)
-- **Payment**: the checkout simulates Razorpay — no real `Checkout.js`, no order creation, no signature verification. Needs real Razorpay integration with server-side order creation + payment verification.
-- **OTP**: email OTP is generated and shown directly in the UI (sandbox convenience) — needs a real email-send + server-side verification.
-- **Forms**: lead-capture and contact forms show a success state locally; nothing is actually submitted to a CRM or backend.
-- **Audio upload / call scoring**: the Deep Customer Insights wizard shows randomized mock scores — no real transcription or scoring pipeline.
-- **Legal pages**: contain `[domain]` / `[operating entity name]` placeholders pending final decisions.
-- **No favicon**: flagged, pending a design decision on what mark to use.
+Requirements: Node.js 18+ and a MySQL 5.7+/8.x (or MariaDB 10.3+) server.
 
-## Recommended next steps for engineering
-1. Split into templates/components if moving off a single static file (e.g. for a CMS or app framework).
-2. Wire real Razorpay order creation + webhook verification server-side.
-3. Replace client-side OTP generation with a real send/verify flow.
-4. Connect lead-capture and contact forms to a CRM/backend.
-5. Replace legal-page placeholders with final entity name and domain.
+```bash
+npm run install:all            # installs root, backend and frontend dependencies
+```
+
+1. **Configure the database** — open `backend/.env` and fill in `DB_HOST`, `DB_PORT`, `DB_USER` and `DB_PASSWORD`
+   (`DB_NAME` is already `db_masmin`). On start-up the API creates the database (if your MySQL user is allowed to)
+   and **all tables** from [`backend/database/schema.sql`](backend/database/schema.sql); it only adds what's missing.
+   The file already contains a generated `JWT_SECRET` and the first admin login (`ADMIN_EMAIL` / `ADMIN_PASSWORD`).
+   `backend/.env.example` documents every available setting.
+2. **Run it**
+
+   ```bash
+   npm run dev                  # API on http://localhost:5100, site on http://localhost:5173
+   ```
+
+3. Open <http://localhost:5173> for the site and <http://localhost:5173/admin> for the admin panel.
+   On first start the database is seeded with the original site's content, pricing, FAQs, chatbot rules,
+   legal pages and the `CALLMASTER10` promo code. Nothing is overwritten on later starts.
+
+## Admin panel (`/admin`)
+
+| Area | What you can do |
+|---|---|
+| **Dashboard** | Revenue, orders, leads, messages, demo activity, 14-day chart |
+| **Orders** | Every checkout — customer, GST number, uploaded scope of work, payment info; set status, add notes, export CSV |
+| **Pricing requests** | Leads from the Insights pricing form — status, notes, export |
+| **Contact messages** | Contact-form submissions — status, notes, export |
+| **Email & notifications** | Connect your mailbox (SMTP) from the panel — no `.env` edit needed. Get an email for every new message / pricing request / order / demo, optional auto-reply to visitors, a “Send test email” button, and **reply to a contact message straight from the panel**. The SMTP password is stored encrypted and never shown again |
+| **Demo activity** | Insights uploads (with the recording) and Voice Bot demo calls; delete a record to reset a number's free trial |
+| **Pricing** | Every price: Telephony rates, Dialer tiers, Voice Bot fees & languages, Email/WhatsApp plans (add, remove, reorder), Meta rates, GST |
+| **Home page / FAQs / Chatbot** | Hero copy, stats, per-product FAQs, chatbot greeting, quick replies and reply rules |
+| **Pages & legal** | Edit the five legal pages and **add any new page** (served at `/your-url`, optional footer link) |
+| **Promo codes** | Create codes with %, validity dates and usage limits |
+| **Site settings** | Brand, domain and company name (replace the `[domain]` / `[operating entity name]` placeholders everywhere), contact emails, sandbox badge, footer note |
+| **Admin users** | Add/disable admins, roles (super admin / admin), password reset |
+
+Prices are used by the product pages, calculators, chatbot replies and the checkout. **Checkout totals are always
+recomputed on the server**, so the browser can never set its own price.
+
+## What is real now vs. the sandbox original
+
+| Feature | Behaviour |
+|---|---|
+| Forms (contact, pricing request) | Saved to MySQL and shown in the admin panel; emailed to your inbox once SMTP is set up under **Email & notifications** (or `SMTP_*` / `NOTIFY_EMAIL` in `.env`) |
+| Checkout | Server-side quote → email OTP → order saved → payment → receipt email. Order IDs `CM-XX-XXXXXX` |
+| Payment | `PAYMENT_MODE=sandbox` simulates Razorpay (default). Set `PAYMENT_MODE=razorpay` + keys for real Razorpay orders with signature verification |
+| OTP | Real email OTP via SMTP; with `SANDBOX_MODE=true` the code is also shown on screen so you can test without SMTP |
+| Voice Bot demo | Recorded in the database, one trial per number enforced server-side. Forward the call request to your voice platform with `VOICE_DEMO_WEBHOOK_URL`; phone OTP via `SMS_WEBHOOK_URL` |
+| Insights demo (**real call audit**) | The recording is uploaded, **Deepgram** transcribes it with speaker separation (English/Hindi/Hinglish), then **Claude** audits the transcript against the rubric for the selected line of business — Inbound Support (CLAP), Outbound Sales & Retention (MAGIC Script CRT/CST), Collections (RESO). The visitor gets a full report: weighted scorecard with quoted evidence, framework read, compliance checks, coaching plan, key moments and transcript. Rubrics live in `backend/src/services/audit/rubrics.js`. Set `DEEPGRAM_API_KEY` and `ANTHROPIC_API_KEY` in `backend/.env`; without them the demo falls back to a clearly-labelled randomised sample. Uploads are capped per IP (6/h) and per email (`AUDIT_MAX_PER_EMAIL_DAY`, default 3/day) because every audit spends API credits. Recordings are auto-deleted after `DATA_RETENTION_DAYS` |
+| Scope-of-work upload | Stored on disk, downloadable from the order in the admin panel |
+
+### Before going live
+- `SANDBOX_MODE=false` and a working SMTP (`SMTP_*`) so OTPs are emailed instead of shown on screen.
+- `PAYMENT_MODE=razorpay` with your live keys.
+- Change the admin password (Admin → My account) and set `CORS_ORIGINS` if the site and API are on different domains.
+- Fill in Site settings (domain, company name) and turn off the “sandbox build” badge/footer note.
+- Serve everything from one server: `npm run build`, set `SERVE_FRONTEND=true` in `backend/.env`, then `npm start`.
+  (Or host `frontend/dist` on a static host and set `VITE_API_BASE_URL` to the API's URL before building.)
+
+## Scripts
+
+| Command | |
+|---|---|
+| `npm run dev` | API + site with hot reload |
+| `npm run build` | Production build of the frontend → `frontend/dist` |
+| `npm start` | Start the API (and the built site when `SERVE_FRONTEND=true`) |
+| `npm test` | Backend integration tests |
+| `npm --prefix backend run create-admin -- you@co.com "Name" "password"` | Create an admin / reset a password |
+
+## Notes
+- Public site URLs: `/`, `/deep-customer-insights`, `/voice-bot`, `/dialers`, `/email-automation`, `/whatsapp-api`,
+  `/cloud-telephony`, `/pricing`, `/about`, `/contact`, plus `/terms`, `/privacy`, `/cookie-policy`,
+  `/data-retention`, `/refund-policy` and any page you add.
+- Page text in the admin supports `**bold**`, `[link text](/contact)` and blank-line paragraphs; it is never rendered as raw HTML.
