@@ -23,8 +23,8 @@ const truthy = z.union([z.boolean(), z.string()]).transform((v) => v === true ||
 export const contactSchema = z.object({
   name: text('your name'),
   organization: text('your organization'),
-  email,
-  phone: z.string().trim().max(20).optional().default(''),
+  email: officialEmail,
+  phone,
   interest: z.enum(CONTACT_INTERESTS).optional().default('Deep Customer Insights'),
   message: z.string().trim().max(5000).optional().default(''),
 });
@@ -142,6 +142,17 @@ export const pageSchema = z.object({
   showInFooter: z.boolean().default(true),
   footerColumn: z.enum(['product', 'company', 'legal']).default('company'),
   order: z.coerce.number().int().min(0).max(1000).default(100),
+});
+
+/** Public: "Book a call" — the day and time must be one of the slots offered by GET /public/appointments/slots. */
+export const appointmentSchema = z.object({
+  name: text('your name'),
+  organization: text('your organization'),
+  email: officialEmail,
+  phone,
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Pick a day'),
+  time: z.string().trim().min(1, 'Pick a time').max(12),
+  source: z.enum(['home', 'contact']).default('contact'),
 });
 
 /** Public: cancellation request form (Cloud Telephony) */

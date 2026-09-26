@@ -14,8 +14,11 @@ export const DEFAULT_SITE = {
   navCtaLabel: 'Try Live Demo',
   sandboxBanner: { show: true, text: 'SANDBOX BUILD · FOR INTERNAL TESTING' },
   footerNote: 'CallMaster — sandbox build for internal testing only. Not a production site.',
-  emails: { hello: '', sales: '', support: '', privacy: '' }, // full addresses; blank = derive from domain
-  phoneAddress: '', // blank = "pending decision on public disclosure" placeholder
+  emails: { care: 'care@callmaster.ai', hello: '', sales: '', support: '', privacy: '' }, // full addresses; blank = derive from domain
+  phoneAddress: '+91 96671 95550\nTrapezoid IT Park, 1st Floor, C-27, C Block, Phase 2, Sector 62, Noida – 201309', // shown under "Direct contact"
+  bookingTimes: ['10:00 AM', '11:30 AM', '1:00 PM', '2:30 PM', '4:00 PM', '5:30 PM'], // "Book a call" slots (IST)
+  bookingDaysAhead: 5, // working days offered, starting tomorrow
+  bookingCapacity: 1, // bookings allowed per slot
   promoCodeExample: 'MCN247X', // shown in "Have a discount code, e.g. …?" hints and in the chatbot
   cancellationWindowDays: 3, // Cloud Telephony: full refund if cancelled within this many days of purchase
   refundWorkingDays: 7, // …processed to the original payment method within this many working days
@@ -23,10 +26,11 @@ export const DEFAULT_SITE = {
 };
 
 export const DEFAULT_HOME = {
-  eyebrow: 'One stack for every way you reach a customer',
-  title: 'Every Customer Conversation. One Platform. Zero Guesswork.',
-  sub: 'Voice Bots, Cloud Telephony, WhatsApp, Email Automation and Dialers to run every conversation — and Deep Customer Insights to score, audit and improve every single one of them, automatically. Most vendors sell you a channel. We built the floor operations behind 250+ enterprise contact centers for 23 years, then built the platform that runs it — so what you get isn\'t six disconnected tools, it\'s one system where every call, chat and message makes the next one better. Set up online in minutes. No sales call required.',
-  primaryCta: 'Try Deep Customer Insights Live',
+  heroVideoFile: '', // set by uploading a video in Admin → Home page (empty = a plain dark hero)
+  eyebrow: 'One platform. Every customer conversation.',
+  title: 'Sell More. Serve Better. On Every Call.',
+  sub: 'Voice, WhatsApp, email and calls — all in one place, with AI listening to every conversation and telling you exactly what\'s working. Built by a team that has run contact centers for 23 years. Live in minutes. No sales call needed.',
+  primaryCta: 'See It Work — Free',
   secondaryCta: 'Talk to Us',
   trustQuote: '"Built by people who have run the floor for 23 years — not people who have read about it."',
   stats: [
@@ -99,7 +103,7 @@ export const DEFAULT_PRICING = {
 export const DEFAULT_FAQS = {
   audit: [
     { q: 'What audio formats are supported?', a: 'MP3, WAV, and most common call-recording formats.' },
-    { q: 'How do you decide which framework applies?', a: 'By the line of business you select — Inbound/Retention maps to CLAP, Outbound Sales maps to MAGIC Script\'s CRT/CST, Collections maps to RESO.' },
+    { q: 'How do you decide which framework applies?', a: 'By the line of business you select — Inbound/Retention gets CLAP (service quality), Outbound Sales gets MAGIC Script (best-pitch finder), Collections gets RESO (promise-to-pay scoring).' },
     { q: 'Is my uploaded data stored?', a: 'No — uploaded audio and the resulting transcript are deleted after your session, per our Data Retention Policy.' },
     { q: 'Can this integrate with our existing QA workflow?', a: 'Yes — it\'s built to plug into your existing QA workflow, not replace it. It runs alongside whatever process you have today and adds the scoring, without a rip-and-replace project.' },
   ],
@@ -154,7 +158,7 @@ export const DEFAULT_CHATBOT = {
     { keywords: ['cloud telephony', 'telephony', 'phone number', 'did'], pattern: '', excludePattern: '', reply: 'Cloud Telephony gives you the mobile look-alike number — formatted to get answered like a normal 10-digit mobile, not screened like a landline or 1800 number. Configure licenses, channels and DIDs and pay online.', target: 'telephony', anchor: 'telephony-pricing', label: 'Configure Cloud Telephony' },
     { keywords: ['dialer', 'predictive', 'power dialer'], pattern: '', excludePattern: '', reply: 'Our Dialers support predictive, power and preview modes with DNC scrubbing built in. Pricing is tiered by seat count: {{dialers.tiers.0.rate}}/agent/month for 1–5 seats, {{dialers.tiers.1.rate}} for 6–10, {{dialers.tiers.2.rate}} for 11–20 — above 20 seats, talk to sales.', target: 'dialers', anchor: 'dialers-pricing', label: 'Open Dialer pricing' },
     { keywords: ['email automation', 'email sequence', 'drip'], pattern: '', excludePattern: '', reply: 'Email Automation covers drip sequences, deliverability monitoring and CRM sync, from {{emailAutomation.plans.0.price}}/month.', target: 'email-automation', anchor: 'email-pricing', label: 'Open Email Automation pricing' },
-    { keywords: ['insight', 'audit', 'call scoring', 'clap', 'magic script', 'reso'], pattern: '', excludePattern: '', reply: 'Deep Customer Insights scores every call with the right framework — CLAP for service, MAGIC Script/CRT/CST for sales, RESO for collections. You can try it free on your own call.', target: 'audit', anchor: 'audit-pricing', label: 'Try Deep Customer Insights' },
+    { keywords: ['insight', 'audit', 'call scoring', 'clap', 'magic script', 'reso'], pattern: '', excludePattern: '', reply: 'Deep Customer Insights scores every call the right way — quality for service, best-pitch finder for sales, promise-to-pay scoring for collections. You can try it free on your own call.', target: 'audit', anchor: 'audit-pricing', label: 'Try Deep Customer Insights' },
     { keywords: ['pricing', 'price', 'cost', 'how much'], pattern: '', excludePattern: '', reply: 'Most products are self-serve — pick a plan and pay online instantly. Deep Customer Insights is volume-based, so we email you exact rates. Head to the Pricing page for a full breakdown by product.', target: 'pricing', anchor: '', label: 'See all pricing' },
     { keywords: ['refund', 'cancel', 'cancellation'], pattern: '', excludePattern: '', reply: 'You can cancel a subscription any time — it stays active till the end of the current billing cycle. One-time setup fees are refundable in full if work hasn\'t started yet. Full details are in our Refund & Cancellation Policy.', target: 'refund-policy', anchor: '', label: 'Read the Refund Policy' },
     { keywords: ['contact', 'talk to sales', 'human', 'agent', 'callback'], pattern: '', excludePattern: '', reply: 'Happy to connect you with our team — leave your details on the Contact page and we\'ll get back within one business day.', target: 'contact', anchor: '', label: 'Go to Contact' },
@@ -214,7 +218,7 @@ export const DEFAULT_INSIGHTS = {
     {
       tag: 'SALES',
       title: 'Your best script is never the one in the training deck',
-      body: 'Every sales call has a skeleton: opening, context, offer, objection, rebuttal, outcome. The version of that skeleton that\'s actually converting right now is rarely the one written down six months ago. MAGIC Script\'s CRT and CST trajectories track — continuously, across your live portfolio — which opening, offer and rebuttal are closing deals today, and feed that back to every agent automatically. The script in front of your team should never be stale.',
+      body: 'Every sales call follows a pattern — opening, offer, objection, close. The pattern that\'s actually working right now is rarely the one written down six months ago. MAGIC Script tracks every live call, finds the opening and pitch closing deals today, and pushes it to every agent automatically. Your team should never be pitching from a stale script.',
     },
   ],
   whitepapersHeading: 'White papers',

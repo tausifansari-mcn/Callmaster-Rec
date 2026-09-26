@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { publicApi } from '../api/public.js';
 import { useSite } from '../context/SiteContext.jsx';
-import { BulletList, FaqSection, PageHero, Section } from '../components/ui/Blocks.jsx';
+import { FaqSection, HowSteps, PageHero, Section } from '../components/ui/Blocks.jsx';
 import Field from '../components/ui/Field.jsx';
 import InsightsWizard from '../components/wizards/InsightsWizard.jsx';
 import { ERR, PHONE_RE, isOfficialEmail } from '../utils/validators.js';
@@ -91,16 +91,16 @@ export default function InsightsPage() {
   return (
     <section className="page active">
       <div className="container">
-        <PageHero icon="audit" eyebrow={'Formerly "call audit" — this is bigger than that'} title="Deep Customer Insights">
-          Every call is scored by the framework built for what it actually is — <b>CLAP</b> for service, <b>MAGIC Script's CRT/CST</b> for sales, <b>RESO</b> for collections. Upload a call. Get a transcript, a quality score, and a clear list of what to fix — before your QA team even opens the file. For sales, it goes further: MAGIC Script continuously identifies the best-converting script from actual outcomes across your live portfolio, and keeps every agent on the version that's winning right now. Plug-and-play by design: no rip-and-replace, no lengthy integration project — it sits alongside your existing QA workflow from day one.
+        <PageHero icon="audit" illo="audit" eyebrow="Know why every call won or lost — automatically" title="Deep Customer Insights">
+          Upload a call. Get the transcript, the score, and exactly what to fix — in seconds, not after a QA review. For sales calls, it goes further: it finds your best-performing pitch from real calls and pushes it to your whole team, so everyone's using what's actually working today. No rip-and-replace — it runs alongside your existing QA process from day one.
         </PageHero>
 
         <Section style={{ paddingTop: 0 }}>
           <h2>How it works</h2>
-          <BulletList items={[
-            'Upload your call recording (MP3, MPEG, and other common audio formats)',
-            'Select the line of business — Inbound Support, Outbound Sales, Collections, Retention',
-            'We apply the matching framework and return a transcript, scorecard, and improvement areas — automatically',
+          <HowSteps steps={[
+            { art: 'clock', title: 'Upload your call', text: 'MP3, MPEG and other common audio formats — no special export needed.' },
+            { art: 'lines-a', title: 'Select the line of business', text: 'Inbound Support, Outbound Sales, Collections, or Retention.' },
+            { art: 'check', title: 'Get scored, automatically', text: 'Transcript, scorecard and exact improvement areas — in seconds.' },
           ]} />
         </Section>
 

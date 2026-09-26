@@ -59,12 +59,18 @@ export const updateSetting = asyncHandler(async (req, res) => {
   }
   // The logo is managed only through its own upload endpoint, so a stale Site-settings form can never bring back an old one.
   if (key === 'site') parsed.data.logoFile = (await getSetting('site')).logoFile;
+  if (key === 'home') parsed.data.heroVideoFile = (await getSetting('home')).heroVideoFile;
   res.json(await saveSetting(key, parsed.data, req.admin.email));
 });
 
 export const resetSettingToDefault = asyncHandler(async (req, res) => {
   if (!SETTING_KEYS.includes(req.params.key)) throw ApiError.notFound('Unknown setting');
   assertMayEdit(req, req.params.key);
+  if (req.params.key === 'home') {
+    const { heroVideoFile } = await getSetting('home');
+    await resetSetting('home');
+    return res.json(await saveSetting('home', { ...(await getSetting('home')), heroVideoFile }, req.admin.email));
+  }
   if (req.params.key === 'site') {
     // "Reset to defaults" restores the text, not the uploaded logo.
     const { logoFile } = await getSetting('site');

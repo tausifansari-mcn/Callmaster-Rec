@@ -1,5 +1,5 @@
 import { useSite } from '../context/SiteContext.jsx';
-import { BulletList, FaqSection, PageHero, Section } from '../components/ui/Blocks.jsx';
+import { BenefitGrid, FaqSection, PageHero, Section } from '../components/ui/Blocks.jsx';
 import DialersCalculator from '../components/calculators/DialersCalculator.jsx';
 import { money } from '../utils/format.js';
 
@@ -10,17 +10,17 @@ export default function DialersPage() {
   return (
     <section className="page active">
       <div className="container">
-        <PageHero icon="dialers" title="Predictive & Power Dialers That Keep Agents Talking, Not Dialing.">
+        <PageHero icon="dialers" illo="dialers" title="Predictive & Power Dialers That Keep Agents Talking, Not Dialing.">
           Predictive, power and preview dialing modes with built-in DNC scrubbing and call pacing — every connected call flows straight into Deep Customer Insights scoring.
         </PageHero>
         <Section style={{ paddingTop: 0 }}>
           <h2>What you get</h2>
-          <BulletList items={[
-            'Predictive, power and preview dialing modes',
-            'Automatic DNC (Do-Not-Call) list scrubbing and call pacing',
-            'Local presence / caller ID management',
-            'Real-time agent dashboard with live-call barge/whisper',
-            'Every connected call feeds straight into Deep Customer Insights scoring',
+          <BenefitGrid items={[
+            { icon: 'dialers', title: 'Predictive, power & preview dialing', text: 'Pick the pacing mode that fits how your floor works.' },
+            { icon: 'clap', title: 'Automatic DNC scrubbing', text: 'Do-Not-Call lists and pacing handled for you, out of the box.' },
+            { icon: 'cloud', title: 'Local presence & caller ID', text: "Numbers that match the area you're calling into." },
+            { icon: 'monitor', title: 'Live barge/whisper dashboard', text: 'See every call in real time and step in when it matters.' },
+            { icon: 'audit', title: 'Feeds Deep Customer Insights', text: 'Every connected call is automatically scored — no extra setup.' },
           ]} />
         </Section>
         <Section id="dialers-pricing">

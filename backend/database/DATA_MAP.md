@@ -11,7 +11,8 @@ Schema: [`schema.sql`](schema.sql) (applied automatically on start-up). Times ar
 | **Audit finished** | `demo_sessions` (same row) | Deepgram transcript → `transcript`; Claude audit → `results`; `audit_status = completed`. On failure: `audit_status = failed` + `audit_error` |
 | **Voice Bot demo, step 5** — name, organization, email + bot choices → **Continue** | `demo_sessions` (`type='voice'`) | **Immediately** on Continue. `call_status = registered`, with industry / call type / gender / language |
 | **Voice Bot demo, last step** — verified phone + consent → **Call me now** | `demo_sessions` (same row) | `phone`, `consent`, `call_status = simulated / requested / failed` |
-| **Contact page** form | `contacts` | On submit |
+| **Contact page** form (work email + 10-digit phone required) | `contacts` | On submit |
+| **Book a call** (Home and Contact pages) | `appointments` | On submit — one row per booked slot (`slot_start` in UTC, `slot_label` in IST). A cancelled row frees the slot. The offered slots come from Site settings (`bookingTimes`, `bookingDaysAhead`, `bookingCapacity`) |
 | **Insights pricing request** form | `leads` | On submit |
 | **Checkout** (buy a plan / configure & buy) | `orders` + `order_items` | Order row when the customer reaches the payment step (`status = pending`); becomes `paid` after payment. Line items (licenses, channels, languages…) go to `order_items`. Scope-of-work file → `backend/uploads/sow/` |
 | **Checkout consent** (DPDP tick-box) | `orders.dpdp_consent_at` | Stored with the order; the server refuses an order without it |
@@ -30,6 +31,8 @@ Schema: [`schema.sql`](schema.sql) (applied automatically on start-up). Times ar
 | Legal pages and custom pages | `pages` |
 | Promo codes | `promo_codes` (`used_count` goes up when an order is paid) |
 | White papers + their PDFs | `whitepapers` (PDF file in `backend/uploads/whitepapers/`) |
+| Home hero video | `settings` → `home.heroVideoFile` (video in `backend/uploads/branding/`) |
+| Booked-call status / notes | `appointments` |
 | Logo | `settings` → `site.logoFile` (image in `backend/uploads/branding/`) |
 | Insights page copy, chat nudge, cancellation window, example promo code | `settings` (`insights`, `chatbot`, `site`) |
 | Cancellation status / notes, white-paper lead status / notes | `cancellation_requests`, `whitepaper_leads` |

@@ -11,7 +11,7 @@ export default function PricingPage() {
   const cheapest = (plans) => Math.min(...plans.filter((p) => !p.contactOnly).map((p) => p.price));
 
   const cards = [
-    { icon: 'audit', title: 'Deep Customer Insights', text: 'CLAP, MAGIC Script/CRT/CST and RESO — priced per minute audited, by call type and volume.', to: 'audit', anchor: 'audit-pricing', cta: 'Get Insights pricing' },
+    { icon: 'audit', title: 'Deep Customer Insights', text: 'Priced per minute audited, by call type and volume.', to: 'audit', anchor: 'audit-pricing', cta: 'Get Insights pricing' },
     { icon: 'voice', title: 'Voice Bot', text: `Setup from ${money(voiceBot.setupFee)} one-time, then ₹${rate(voiceBot.perMinuteRate)}/minute — buy online in minutes, or request a callback instead.`, to: 'voice', anchor: 'voice-pricing', cta: 'Get Voice Bot pricing' },
     { icon: 'dialers', title: 'Dialers', text: `Predictive & power dialers from ${money(lastTier.rate)}/agent/month at ${lastTier.min}–${lastTier.max} seats, self-serve checkout.`, to: 'dialers', anchor: 'dialers-pricing', cta: 'Get Dialer pricing' },
     { icon: 'email-automation', title: 'Email Automation', text: `Sequences & deliverability monitoring from ${money(cheapest(emailAutomation.plans))}/month, self-serve checkout.`, to: 'email-automation', anchor: 'email-pricing', cta: 'Get Email Automation pricing' },

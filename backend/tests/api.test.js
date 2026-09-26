@@ -34,6 +34,8 @@ before(async () => {
   process.env.DEEPGRAM_API_KEY = ''; // API tests use the sandbox scorecard — never spend real credits
   process.env.ANTHROPIC_API_KEY = '';
   process.env.SANDBOX_MODE = 'true';
+  // The suite must never send real email, whatever backend/.env holds.
+  Object.assign(process.env, { SMTP_HOST: '', SMTP_USER: '', SMTP_PASS: '', NOTIFY_EMAIL: '' });
   process.env.PAYMENT_MODE = 'sandbox';
   process.env.UPLOAD_DIR = fs.mkdtempSync(path.join(os.tmpdir(), 'cm-uploads-'));
 
@@ -79,7 +81,7 @@ describe('forms', () => {
   test('contact form persists and validates', async () => {
     const bad = await call('POST', '/public/contact', { body: { name: '', organization: 'x', email: 'nope' } });
     assert.equal(bad.status, 400);
-    const ok = await call('POST', '/public/contact', { body: { name: 'Asha', organization: 'Acme', email: 'asha@acme.in', message: 'hi' } });
+    const ok = await call('POST', '/public/contact', { body: { name: 'Asha', organization: 'Acme', email: 'asha@acme.in', phone: '9876543210', message: 'hi' } });
     assert.equal(ok.status, 201);
   });
 
@@ -646,5 +648,91 @@ describe('settings screens added for the redesign', () => {
     assert.equal((await call('PUT', '/admin/settings/insights', { token: adminToken, body: insights })).status, 200);
     assert.equal((await call('GET', '/public/config')).body.insights.title, 'Field Notes');
     await call('POST', '/admin/settings/insights/reset', { token: adminToken });
+  });
+});
+
+describe('book a call, contact rules and hero video (v3 redesign)', () => {
+  const person = { name: 'Priya Nair', organization: 'Zenith BPO', email: 'priya@zenithbpo.in', phone: '9876543210' };
+
+  test('the contact form now needs a work email and a 10-digit phone', async () => {
+    const base = { name: 'Asha', organization: 'Acme', message: 'hi' };
+    assert.equal((await call('POST', '/public/contact', { body: { ...base, email: 'asha@gmail.com', phone: '9876543210' } })).status, 400);
+    assert.equal((await call('POST', '/public/contact', { body: { ...base, email: 'asha@acme.in', phone: '12345' } })).status, 400);
+    assert.equal((await call('POST', '/public/contact', { body: { ...base, email: 'asha@acme.in', phone: '9876543210' } })).status, 201);
+  });
+
+  test('offered slots are weekdays in IST starting tomorrow, and a booked slot is taken', async () => {
+    const { body } = await call('GET', '/public/appointments/slots');
+    assert.equal(body.timezone, 'IST');
+    assert.equal(body.days.length, 5);
+    assert.deepEqual(body.days[0].times.map((t) => t.time), ['10:00 AM', '11:30 AM', '1:00 PM', '2:30 PM', '4:00 PM', '5:30 PM']);
+    for (const d of body.days) { const dow = new Date(`${d.date}T00:00:00Z`).getUTCDay(); assert.ok(dow >= 1 && dow <= 5, `${d.date} is a weekday`); }
+    const todayIst = new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
+    assert.ok(body.days[0].date > todayIst, 'never offers today');
+
+    const { date } = body.days[0];
+    const bad = await call('POST', '/public/appointments', { body: { ...person, email: 'priya@gmail.com', date, time: '10:00 AM', source: 'home' } });
+    assert.equal(bad.status, 400);
+    assert.equal((await call('POST', '/public/appointments', { body: { ...person, date, time: '3:17 PM', source: 'home' } })).status, 400, 'not an offered time');
+    assert.equal((await call('POST', '/public/appointments', { body: { ...person, date: '2020-01-06', time: '10:00 AM', source: 'home' } })).status, 400, 'not an offered day');
+
+    const ok = await call('POST', '/public/appointments', { body: { ...person, date, time: '10:00 AM', source: 'home' } });
+    assert.equal(ok.status, 201, JSON.stringify(ok.body));
+    assert.match(ok.body.label, /at 10:00 AM IST$/);
+    const again = await call('POST', '/public/appointments', { body: { ...person, name: 'Someone Else', email: 'other@zenithbpo.in', date, time: '10:00 AM', source: 'contact' } });
+    assert.equal(again.status, 409);
+    const after = (await call('GET', '/public/appointments/slots')).body.days[0].times;
+    assert.equal(after.find((t) => t.time === '10:00 AM').available, false);
+    assert.equal(after.find((t) => t.time === '11:30 AM').available, true);
+  });
+
+  test('admin sees the booking, can update it, and a cancelled slot is bookable again', async () => {
+    const list = (await call('GET', '/admin/appointments', { token: adminToken })).body;
+    assert.equal(list.total, 1);
+    const a = list.items[0];
+    assert.equal(a.source, 'home');
+    assert.equal(a.status, 'booked');
+    assert.equal((await call('GET', '/admin/appointments')).status, 401);
+    assert.equal((await call('PATCH', `/admin/appointments/${a.id}`, { token: adminToken, body: { status: 'nope' } })).status, 400);
+    const confirmed = await call('PATCH', `/admin/appointments/${a.id}`, { token: adminToken, body: { status: 'confirmed', notes: 'called back' } });
+    assert.equal(confirmed.body.status, 'confirmed');
+    assert.equal((await call('GET', '/admin/appointments/export.csv', { token: adminToken })).status, 200);
+
+    await call('PATCH', `/admin/appointments/${a.id}`, { token: adminToken, body: { status: 'cancelled' } });
+    const day = (await call('GET', '/public/appointments/slots')).body.days[0];
+    assert.equal(day.times.find((t) => t.time === '10:00 AM').available, true);
+  });
+
+  test('booking hours and capacity come from Site settings', async () => {
+    const site = (await call('GET', '/admin/settings', { token: adminToken })).body.site;
+    assert.equal(site.emails.care, 'care@callmaster.ai');
+    const put = await call('PUT', '/admin/settings/site', { token: adminToken, body: { ...site, bookingTimes: ['9:00 AM', '4:30 PM'], bookingDaysAhead: 3 } });
+    assert.equal(put.status, 200, JSON.stringify(put.body));
+    const { days } = (await call('GET', '/public/appointments/slots')).body;
+    assert.equal(days.length, 3);
+    assert.deepEqual(days[0].times.map((t) => t.time), ['9:00 AM', '4:30 PM']);
+    assert.equal((await call('PUT', '/admin/settings/site', { token: adminToken, body: { ...site, bookingTimes: ['noon'] } })).status, 400);
+    await call('POST', '/admin/settings/site/reset', { token: adminToken });
+  });
+
+  test('hero video: upload, stream publicly, survive a Home settings save, remove', async () => {
+    assert.equal((await call('GET', '/public/branding/hero-video')).status, 404);
+    const up = (name, type) => { const form = new FormData(); form.append('file', new Blob(['not-really-a-video'], { type }), name); return call('POST', '/admin/branding/hero-video', { token: adminToken, form }); };
+    assert.equal((await up('clip.exe', 'application/octet-stream')).status, 400);
+    const ok = await up('clip.mp4', 'video/mp4');
+    assert.equal(ok.status, 200, JSON.stringify(ok.body));
+    assert.equal((await call('GET', '/public/config')).body.home.heroVideoFile, ok.body.heroVideoFile);
+    const res = await fetch(`${base}/api/public/branding/hero-video`, { headers: { Range: 'bytes=0-3' } });
+    assert.equal(res.status, 206, 'range requests are honoured so the video can stream/seek');
+
+    const home = (await call('GET', '/admin/settings', { token: adminToken })).body.home;
+    const saved = await call('PUT', '/admin/settings/home', { token: adminToken, body: { ...home, heroVideoFile: 'sneaky.mp4', title: 'A new headline' } });
+    assert.equal(saved.status, 200);
+    assert.equal(saved.body.heroVideoFile, ok.body.heroVideoFile, 'the form cannot change the video');
+    assert.equal(saved.body.title, 'A new headline');
+    await call('POST', '/admin/settings/home/reset', { token: adminToken });
+    assert.equal((await call('GET', '/public/config')).body.home.heroVideoFile, ok.body.heroVideoFile, 'reset keeps the video');
+    assert.equal((await call('DELETE', '/admin/branding/hero-video', { token: adminToken })).status, 200);
+    assert.equal((await call('GET', '/public/branding/hero-video')).status, 404);
   });
 });

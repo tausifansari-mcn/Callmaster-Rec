@@ -42,7 +42,7 @@ function transporterFor(smtp) {
 }
 
 /** Never throws: callers decide whether a failed send matters. `reason` carries the SMTP error for the admin UI. */
-export async function sendMail({ to, subject, html, text, replyTo }) {
+export async function sendMail({ to, subject, html, text, replyTo, icalEvent }) {
   if (!to || (Array.isArray(to) && !to.length)) return { sent: false, reason: 'no-recipient' };
   const cfg = await getMailConfig();
   if (!cfg.configured) {
@@ -50,7 +50,7 @@ export async function sendMail({ to, subject, html, text, replyTo }) {
     return { sent: false, reason: 'SMTP is not configured yet' };
   }
   try {
-    await transporterFor(cfg.smtp).sendMail({ from: cfg.from, to, subject, html, text, replyTo });
+    await transporterFor(cfg.smtp).sendMail({ from: cfg.from, to, subject, html, text, replyTo, icalEvent });
     return { sent: true };
   } catch (err) {
     console.error('[mail] send failed:', err.message);
@@ -133,6 +133,30 @@ export function sendCancellationEmail({ order, eligible, approved, policy }) {
     subject: approved ? `Order ${order.orderId} cancelled` : `Cancellation request received — order ${order.orderId}`,
     text: approved ? `Order ${order.orderId} has been cancelled. A refund of ${amount} will reach your original payment method within ${policy.refundDays} working days.` : `We've received your cancellation request for order ${order.orderId}.`,
     html: shell(approved ? 'Cancellation confirmed' : 'Cancellation request received', body),
+  });
+}
+
+/** A calendar invite (.ics) for a booked call — 30 minutes from the slot start. */
+function inviteFor(appt) {
+  const stamp = (d) => new Date(d).toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const start = new Date(appt.slotStart);
+  const end = new Date(start.getTime() + 30 * 60000);
+  return [
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//CallMaster//Call booking//EN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
+    `UID:appointment-${appt.id}@callmaster`, `DTSTAMP:${stamp(new Date())}`, `DTSTART:${stamp(start)}`, `DTEND:${stamp(end)}`,
+    'SUMMARY:Call with the CallMaster team', `DESCRIPTION:Booked by ${appt.name} (${appt.organization}).`, 'END:VEVENT', 'END:VCALENDAR',
+  ].join('\r\n');
+}
+
+/** Confirmation to the person who booked a call, with a calendar invite attached. */
+export function sendAppointmentConfirmation(appt) {
+  const body = `Hi ${appt.name},\n\nYour call with the CallMaster team is booked for ${appt.slotLabel}. A calendar invite is attached — our team will call you on ${appt.phone}.\n\nNeed to change the time? Just reply to this email.\n\nRegards,\nTeam CallMaster`;
+  return sendMail({
+    to: appt.email,
+    subject: `Your CallMaster call is booked — ${appt.slotLabel}`,
+    text: body,
+    html: shell('Your call is booked', textToHtml(body)),
+    icalEvent: { method: 'PUBLISH', content: inviteFor(appt) },
   });
 }
 

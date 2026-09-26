@@ -69,12 +69,15 @@ export const settingsSchemas = {
     navCtaLabel: str(40).min(1),
     sandboxBanner: z.object({ show: z.boolean(), text: str(120) }),
     footerNote: str(300),
-    emails: z.object({ hello: str(160), sales: str(160), support: str(160), privacy: str(160) }),
+    emails: z.object({ care: str(160), hello: str(160), sales: str(160), support: str(160), privacy: str(160) }),
     phoneAddress: str(400),
     promoCodeExample: str(40),
     cancellationWindowDays: z.coerce.number().int().min(1).max(60),
     refundWorkingDays: z.coerce.number().int().min(1).max(60),
     logoFile: str(160),
+    bookingTimes: z.array(z.string().trim().regex(/^(1[0-2]|0?[1-9]):[0-5]\d\s?(AM|PM)$/i, 'Use times like 10:00 AM or 2:30 PM')).min(1).max(12),
+    bookingDaysAhead: z.coerce.number().int().min(1).max(14),
+    bookingCapacity: z.coerce.number().int().min(1).max(20),
   }),
 
   insights: z.object({
@@ -89,6 +92,7 @@ export const settingsSchemas = {
   }),
 
   home: z.object({
+    heroVideoFile: str(160),
     eyebrow: str(160),
     title: str(200).min(1),
     sub: longStr(2000),

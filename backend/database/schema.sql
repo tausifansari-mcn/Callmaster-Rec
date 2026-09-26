@@ -295,3 +295,25 @@ CREATE TABLE IF NOT EXISTS cancellation_requests (
   KEY idx_cancel_order (order_pk),
   KEY idx_cancel_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- "Book a call" requests from the Home and Contact pages (one row per booked slot)
+CREATE TABLE IF NOT EXISTS appointments (
+  id            BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  name          VARCHAR(160)  NOT NULL,
+  organization  VARCHAR(190)  NOT NULL,
+  email         VARCHAR(190)  NOT NULL,
+  phone         VARCHAR(20)   NOT NULL,
+  slot_start    DATETIME(3)   NOT NULL,                         -- the call time, stored in UTC (the site shows it in IST)
+  slot_label    VARCHAR(90)   NOT NULL,                         -- e.g. "Mon, 28 Sep at 10:00 AM IST"
+  source        ENUM('home','contact') NOT NULL DEFAULT 'contact',
+  status        ENUM('booked','confirmed','completed','cancelled','no_show') NOT NULL DEFAULT 'booked',
+  notes         TEXT          NULL,
+  ip            VARCHAR(64)   NULL,
+  created_at    DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at    DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  KEY idx_appt_slot (slot_start, status),
+  KEY idx_appt_status (status),
+  KEY idx_appt_email (email),
+  KEY idx_appt_created (created_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

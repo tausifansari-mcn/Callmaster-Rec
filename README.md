@@ -53,6 +53,10 @@ npm run install:all            # installs root, backend and frontend dependencie
    On first start the database is seeded with the original site's content, pricing, FAQs, chatbot rules,
    legal pages, the two white-paper entries and the `MCN247X` promo code. Nothing is overwritten on later starts.
 
+## Light and dark mode
+
+A sun / moon button in the header (and in the admin sidebar) switches the whole site between the new **light** design (default, blue accent) and the original **dark** design (amber accent). The choice is remembered per browser.
+
 ## Admin panel (`/admin`)
 
 | Area | What you can do |
@@ -63,12 +67,13 @@ npm run install:all            # installs root, backend and frontend dependencie
 | **Contact messages** | Contact-form submissions — status, notes, export |
 | **API keys (Deepgram & Claude)** | Change the Deepgram and Anthropic keys (and models) used by the call audit, with no `.env` edit, code change or restart — the next audit uses the new key. Keys are stored encrypted, only the last 4 characters are ever shown, each has a free **Test connection** button, and only a super admin can change them. A key left blank falls back to `DEEPGRAM_API_KEY` / `ANTHROPIC_API_KEY` in `backend/.env` |
 | **Email & notifications** | Connect your mailbox (SMTP) from the panel — no `.env` edit needed. Get an email for every new message / pricing request / order / demo, optional auto-reply to visitors, a “Send test email” button, and **reply to a contact message straight from the panel**. The SMTP password is stored encrypted and never shown again |
+| **Booked calls** | Calls booked from the “Book a call directly” widget on the Home and Contact pages (IST). Each booking emails the visitor a confirmation with a calendar invite (.ics) and notifies your team; set the status to *cancelled* to free the slot. Which times / how many days / how many bookings per slot are offered is set under Site settings |
 | **Cancellations & refunds** | Cloud Telephony cancellation requests (from the site form, the checkout success screen or a customer dashboard). *Approved* cancels the order, *Refunded* marks the refund as paid and closes it — the money itself is returned from your Razorpay dashboard |
 | **White paper downloads** | Everyone who left their name + work email to unlock a white paper (and whether they got the PDF) |
 | **Customer accounts** | The dashboard logins created automatically when someone buys. Passwords are never visible — you can issue a new temporary one, or disable an account |
 | **Demo activity** | Insights audits — click a row for the call details (file, length, languages, speakers, talk share), an **in-panel player for the recording**, the transcript, the full audit report and the **raw audit data (JSON, downloadable)** — plus Voice Bot demo calls; delete a record to reset a number's free trial |
 | **Pricing** | Every price: Telephony rates, Dialer tiers, Voice Bot fees & languages, Email/WhatsApp plans (add, remove, reorder), Meta rates, GST |
-| **Home page / FAQs / Chatbot** | Hero copy, stats, per-product FAQs, chatbot greeting, quick replies, reply rules and the idle-visitor **nudge** |
+| **Home page / FAQs / Chatbot** | **Hero background video** (upload an MP4 — it plays muted behind the headline), hero copy, stats, per-product FAQs, chatbot greeting, quick replies, reply rules and the idle-visitor **nudge** |
 | **Insights page / White papers** | The articles and copy on `/insights`, and the white papers themselves — add/edit/hide a paper and **upload its PDF**. Until a PDF is uploaded, visitors who request the paper are saved as leads and told it is being finalised |
 | **Pages & legal** | Edit the five legal pages and **add any new page** (served at `/your-url`, optional footer link) |
 | **Promo codes** | Create codes with %, validity dates and usage limits |

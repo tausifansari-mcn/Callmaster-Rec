@@ -1,5 +1,5 @@
 import { useSite } from '../context/SiteContext.jsx';
-import { PageHero, Placeholder, Section } from '../components/ui/Blocks.jsx';
+import { BenefitGrid, PageHero, Placeholder, Section } from '../components/ui/Blocks.jsx';
 import { emailFor } from '../utils/tokens.js';
 
 export default function AboutPage() {
@@ -8,8 +8,15 @@ export default function AboutPage() {
     <section className="page active">
       <div className="container">
         <PageHero eyebrow="Not a software vendor" title="Operators First. Software Second.">
-          CallMaster was built inside a live contact center running 23+ years of operations for 250+ enterprise clients — not designed in a product meeting and sold to operators afterward. CLAP, MAGIC Script and RESO exist because we had to run these floors ourselves first. We don't compete on a features grid; the frameworks are the reason a features grid wouldn't tell you anything useful anyway.
+          CallMaster was built inside a live contact center — not designed in a product meeting and sold to operators afterward. CLAP, MAGIC Script and RESO exist because we had to run these floors ourselves first.
         </PageHero>
+        <Section style={{ paddingTop: 0, paddingBottom: 0 }}>
+          <BenefitGrid items={[
+            { icon: 'clock', title: '23+ years on the floor', text: 'Not a product built in a meeting room — built running live contact-center operations.' },
+            { icon: 'users', title: '250+ enterprise clients', text: 'The frameworks were built and proven on their floors, not a demo environment.' },
+            { icon: 'audit', title: 'No feature grid', text: "CLAP, MAGIC Script and RESO are the reason a features list wouldn't tell you much anyway." },
+          ]} />
+        </Section>
         <Section style={{ paddingTop: 0 }}>
           <h2>Security &amp; Compliance</h2>
           <ul className="bullet-list">

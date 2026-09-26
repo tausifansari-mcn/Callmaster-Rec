@@ -396,3 +396,101 @@ export function LogoCard() {
     </div>
   );
 }
+
+// ---------------------------------------------------------------- booked calls
+const APPT_STATUSES = ['booked', 'confirmed', 'completed', 'cancelled', 'no_show'];
+
+function AppointmentDetail({ item: a, onClose, onChanged, onDeleted }) {
+  return (
+    <Modal title={`Call with ${a.name}`} onClose={onClose}>
+      <dl className="adm-kvs">
+        <KV label="Call time">{a.slotLabel}</KV>
+        <KV label="Name">{a.name}</KV>
+        <KV label="Organization">{a.organization}</KV>
+        <KV label="Email"><a href={`mailto:${a.email}`}>{a.email}</a></KV>
+        <KV label="Phone"><a href={`tel:${a.phone}`}>{a.phone}</a></KV>
+        <KV label="Booked from">{a.source === 'home' ? 'Home page' : 'Contact page'}</KV>
+        <KV label="Booked on">{fmtDate(a.createdAt)}</KV>
+      </dl>
+      <p className="adm-muted small">Setting the status to <b>cancelled</b> frees the slot so someone else can book it.</p>
+      <TriageForm key={`${a.status}|${a.notes}`} resource="appointments" item={a} statuses={APPT_STATUSES} onChanged={onChanged} onDeleted={onDeleted} />
+    </Modal>
+  );
+}
+
+const apptTone = { booked: 'pending', confirmed: 'paid', completed: 'fulfilled', cancelled: 'cancelled', no_show: 'failed' };
+
+export const AppointmentsScreen = () => (
+  <ResourcePage
+    resource="appointments"
+    title="Booked calls"
+    subtitle="Calls booked from the Home and Contact pages (times are IST). Each booking emails the visitor a confirmation with a calendar invite and notifies your team."
+    searchPlaceholder="Search name, organization, email, phone…"
+    filters={[{ param: 'status', label: 'Status', options: APPT_STATUSES }, { param: 'source', label: 'From', options: ['home', 'contact'] }]}
+    columns={[
+      { label: 'Call time', render: (a) => <strong>{a.slotLabel}</strong> },
+      { label: 'Person', render: (a) => <>{a.name}<div className="adm-muted small">{a.organization}</div></> },
+      { label: 'Contact', render: (a) => <>{a.email}<div className="adm-muted small">{a.phone}</div></> },
+      { label: 'From', render: (a) => (a.source === 'home' ? 'Home' : 'Contact') },
+      { label: 'Status', render: (a) => <Badge value={apptTone[a.status]} label={a.status.replace('_', ' ')} /> },
+    ]}
+    Detail={AppointmentDetail}
+  />
+);
+
+// ---------------------------------------------------------------- home hero video (used on the Home page screen)
+export function HeroVideoCard() {
+  const toast = useToast();
+  const fileRef = useRef(null);
+  const [file, setFile] = useState(null); // null = loading
+  const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    publicApi.config().then((c) => setFile(c.home.heroVideoFile || '')).catch(() => setFile(''));
+  }, []);
+
+  const src = file ? `${API_BASE}/public/branding/hero-video?v=${encodeURIComponent(file)}` : '';
+
+  const upload = async (f) => {
+    if (!f) return;
+    setBusy(true);
+    try {
+      const r = await adminApi.uploadHeroVideo(f);
+      setFile(r.heroVideoFile);
+      toast.success('Hero video updated — it plays behind the Home page headline');
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setBusy(false);
+      if (fileRef.current) fileRef.current.value = '';
+    }
+  };
+  const remove = async () => {
+    if (!window.confirm('Remove the hero video? The Home page hero goes back to a plain dark background.')) return;
+    setBusy(true);
+    try {
+      await adminApi.deleteHeroVideo();
+      setFile('');
+      toast.success('Hero video removed');
+    } catch (err) {
+      toast.error(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="adm-card">
+      <h3 className="adm-card-title">Hero background video</h3>
+      <p className="adm-muted small" style={{ marginTop: -6 }}>
+        Plays muted and looping behind the Home page headline. MP4 (H.264), WebM or MOV, up to 80 MB — keep it short (10–20 s) and compressed so the page stays fast. Uploading applies immediately (no need to press Save below).
+      </p>
+      {src && <video key={src} src={src} controls muted style={{ width: '100%', maxWidth: 420, borderRadius: 8, marginBottom: 12, display: 'block' }} />}
+      {file === '' && <p className="adm-muted small">No video uploaded — the hero shows a plain dark background behind the headline.</p>}
+      <div className="adm-modal-actions" style={{ justifyContent: 'flex-start' }}>
+        <input ref={fileRef} type="file" accept="video/mp4,video/webm,video/quicktime" onChange={(e) => upload(e.target.files[0])} disabled={busy} />
+        {file && <button type="button" className="adm-btn danger" onClick={remove} disabled={busy}>Remove video</button>}
+      </div>
+    </div>
+  );
+}

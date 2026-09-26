@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useSite } from '../../context/SiteContext.jsx';
 import { GoButton } from '../../hooks/useGoto.jsx';
+import ThemeToggle from '../ui/ThemeToggle.jsx';
 import { logoUrl } from '../../utils/branding.js';
 import { PRODUCT_PAGES, pathFor } from '../../utils/routes.js';
 
@@ -50,6 +51,7 @@ export function Navbar({ onToggleMenu }) {
         <NavLink to="/contact">Contact</NavLink>
       </div>
       <div className="nav-right">
+        <ThemeToggle />
         <GoButton to="audit" className="nav-cta">{site.navCtaLabel}</GoButton>
         <button type="button" className="hamburger" aria-label="Menu" onClick={onToggleMenu}>
           <span /><span /><span />

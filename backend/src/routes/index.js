@@ -6,13 +6,14 @@ import * as auth from '../controllers/admin.auth.controller.js';
 import * as res_ from '../controllers/admin.resource.controller.js';
 import * as content from '../controllers/admin.content.controller.js';
 import * as customer from '../controllers/customer.controller.js';
+import * as appt from '../controllers/appointment.controller.js';
 import * as wp from '../controllers/whitepaper.controller.js';
 import {
-  auditLimiter, formLimiter, loginLimiter, otpLimiter, requireAdmin, requireCustomer, requireSuperAdmin, uploadAudio, uploadLogo, uploadPdf, uploadScope, validate,
+  auditLimiter, formLimiter, loginLimiter, otpLimiter, requireAdmin, requireCustomer, requireSuperAdmin, uploadAudio, uploadHeroVideo, uploadLogo, uploadPdf, uploadScope, validate,
 } from '../middleware/common.js';
 import { quoteRequestSchema } from '../services/pricing.service.js';
 import {
-  cancelRequestSchema, customerLoginSchema, customerPasswordSchema, unlockSchema, whitepaperSchema,
+  appointmentSchema, cancelRequestSchema, customerLoginSchema, customerPasswordSchema, unlockSchema, whitepaperSchema,
   replySchema, adminLoginSchema, adminUserSchema, auditRegisterSchema, auditSubmitSchema, voiceRegisterSchema, changePasswordSchema, contactSchema, leadSchema, orderAccessSchema,
   otpSendSchema, otpVerifySchema, pageSchema, promoSchema, razorpayVerifySchema, voiceDemoSchema,
 } from '../validators/publicSchemas.js';
@@ -30,6 +31,9 @@ router.post('/public/leads', formLimiter, validate(leadSchema), pub.submitLead);
 router.post('/public/whitepapers/:slug/unlock', formLimiter, validate(unlockSchema), wp.unlockWhitepaper);
 router.get('/public/whitepapers/download', wp.downloadWhitepaper);
 router.get('/public/branding/logo', wp.getLogo);
+router.get('/public/branding/hero-video', wp.getHeroVideo);
+router.get('/public/appointments/slots', appt.slots);
+router.post('/public/appointments', formLimiter, validate(appointmentSchema), appt.book);
 
 router.post('/otp/send', otpLimiter, validate(otpSendSchema), pub.otpSend);
 router.post('/otp/verify', otpLimiter, validate(otpVerifySchema), pub.otpVerify);
@@ -79,6 +83,7 @@ mountResource('contacts', res_.contactsResource);
 mountResource('demos', res_.demosResource);
 
 mountResource('cancellations', wp.cancellationsResource);
+mountResource('appointments', appt.appointmentsResource);
 mountResource('whitepaper-leads', wp.whitepaperLeadsResource);
 admin.get('/customers', wp.customersResource.list);
 admin.get('/customers/:id', wp.customersResource.get);
@@ -94,6 +99,8 @@ admin.delete('/whitepapers/:id/file', wp.removeWhitepaperPdf);
 
 admin.post('/branding/logo', uploadLogo, wp.uploadLogoFile);
 admin.delete('/branding/logo', wp.deleteLogo);
+admin.post('/branding/hero-video', uploadHeroVideo, wp.uploadHeroVideoFile);
+admin.delete('/branding/hero-video', wp.deleteHeroVideo);
 
 admin.get('/settings', content.listSettings);
 admin.post('/email/test', content.testEmail);

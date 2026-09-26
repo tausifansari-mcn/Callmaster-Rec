@@ -60,13 +60,34 @@ export const getLogo = asyncHandler(async (_req, res) => {
   res.sendFile(filePath(UPLOAD_KINDS.branding, site.logoFile));
 });
 
-// ---------------------------------------------------------------- admin: logo
-async function setLogoFile(req, logoFile) {
-  const site = await getSetting('site');
-  const previous = site.logoFile;
-  await saveSetting('site', { ...site, logoFile }, req.admin.email);
-  if (previous && previous !== logoFile) removeStored(UPLOAD_KINDS.branding, previous);
+// ---------------------------------------------------------------- public: hero video (streams with Range support)
+export const getHeroVideo = asyncHandler(async (_req, res) => {
+  const home = await getSetting('home');
+  if (!home.heroVideoFile || !fs.existsSync(filePath(UPLOAD_KINDS.branding, home.heroVideoFile))) throw ApiError.notFound('No hero video uploaded');
+  res.setHeader('Cache-Control', 'public, max-age=3600');
+  res.sendFile(filePath(UPLOAD_KINDS.branding, home.heroVideoFile));
+});
+
+// ---------------------------------------------------------------- admin: logo & hero video
+/** Points a branding setting (site.logoFile / home.heroVideoFile) at a new file and deletes the one it replaces. */
+async function setBrandingFile(req, settingKey, field, value) {
+  const current = await getSetting(settingKey);
+  const previous = current[field];
+  await saveSetting(settingKey, { ...current, [field]: value }, req.admin.email);
+  if (previous && previous !== value) removeStored(UPLOAD_KINDS.branding, previous);
 }
+const setLogoFile = (req, logoFile) => setBrandingFile(req, 'site', 'logoFile', logoFile);
+
+export const uploadHeroVideoFile = asyncHandler(async (req, res) => {
+  if (!req.file) throw ApiError.badRequest('Choose a video to upload');
+  await setBrandingFile(req, 'home', 'heroVideoFile', req.file.filename);
+  res.json({ ok: true, heroVideoFile: req.file.filename });
+});
+
+export const deleteHeroVideo = asyncHandler(async (req, res) => {
+  await setBrandingFile(req, 'home', 'heroVideoFile', '');
+  res.json({ ok: true });
+});
 
 export const uploadLogoFile = asyncHandler(async (req, res) => {
   if (!req.file) throw ApiError.badRequest('Choose an image to upload');

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, NavLink, Outlet, useLocation } from 'react-router-dom';
+import ThemeToggle from '../../components/ui/ThemeToggle.jsx';
 import { useAuth } from '../AdminContext.jsx';
 
 const NAV = [
@@ -10,6 +11,7 @@ const NAV = [
       { to: '/admin/orders', label: 'Orders' },
       { to: '/admin/leads', label: 'Pricing requests' },
       { to: '/admin/contacts', label: 'Contact messages' },
+      { to: '/admin/appointments', label: 'Booked calls' },
       { to: '/admin/cancellations', label: 'Cancellations & refunds' },
       { to: '/admin/whitepaper-leads', label: 'White paper downloads' },
       { to: '/admin/customers', label: 'Customer accounts' },
@@ -74,6 +76,7 @@ export default function AdminLayout() {
           <div className="adm-muted small">{admin.email}</div>
           <div className="adm-side-actions">
             <a className="adm-btn small" href="/" target="_blank" rel="noreferrer">View site ↗</a>
+            <ThemeToggle />
             <button type="button" className="adm-btn small" onClick={logout}>Sign out</button>
           </div>
         </div>

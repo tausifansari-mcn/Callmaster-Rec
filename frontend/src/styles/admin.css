@@ -15,12 +15,12 @@ body.admin-mode { padding-top: 0; padding-bottom: 0; background: var(--bg); }
   background: var(--surface-card); border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 18px;
 }
 .adm-side-brand { padding: 0 8px; }
-.adm-tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent-live); border: 1px solid rgba(233,162,59,0.4); border-radius: 4px; padding: 1px 6px; margin-left: 4px; }
+.adm-tag { font-family: var(--font-mono); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent-live); border: 1px solid rgba(var(--accent-rgb),0.4); border-radius: 4px; padding: 1px 6px; margin-left: 4px; }
 .adm-side nav { flex: 1; display: flex; flex-direction: column; gap: 16px; }
 .adm-nav-title { font-family: var(--font-mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ink-faint); padding: 0 8px 6px; }
 .adm-nav-link { display: block; padding: 8px 10px; border-radius: 7px; font-size: 13.5px; color: var(--ink-soft); }
 .adm-nav-link:hover { background: var(--surface-raised); color: var(--ink); }
-.adm-nav-link.active { background: rgba(233,162,59,0.12); color: var(--accent-live); font-weight: 600; }
+.adm-nav-link.active { background: rgba(var(--accent-rgb),0.12); color: var(--accent-live); font-weight: 600; }
 .adm-side-foot { border-top: 1px solid var(--border); padding: 14px 8px 0; }
 .adm-who { font-weight: 600; font-size: 14px; }
 .adm-side-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
@@ -49,9 +49,9 @@ body.admin-mode { padding-top: 0; padding-bottom: 0; background: var(--bg); }
   padding: 9px 14px; border-radius: 7px; border: 1px solid var(--border); background: var(--surface-raised); color: var(--ink); white-space: nowrap; text-decoration: none;
 }
 .adm-btn:hover:not(:disabled) { border-color: var(--ink-faint); }
-.adm-btn.primary { background: var(--accent-live); border-color: var(--accent-live); color: #14100a; }
+.adm-btn.primary { background: var(--accent-live); border-color: var(--accent-live); color: var(--on-accent); }
 .adm-btn.primary:hover:not(:disabled) { filter: brightness(1.06); border-color: var(--accent-live); }
-.adm-btn.danger { color: var(--accent-alert); border-color: rgba(255,110,94,0.4); background: transparent; }
+.adm-btn.danger { color: var(--accent-alert); border-color: rgba(var(--alert-rgb),0.4); background: transparent; }
 .adm-btn.small { padding: 5px 10px; font-size: 12px; }
 .adm-btn.block { width: 100%; padding: 12px; }
 .adm-btn:disabled { opacity: 0.4; cursor: not-allowed; }
@@ -123,13 +123,13 @@ textarea.adm-input { resize: vertical; line-height: 1.5; }
 
 /* ---------- badges / misc ---------- */
 .adm-badge { display: inline-block; font-family: var(--font-mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.04em; padding: 2px 8px; border-radius: 20px; border: 1px solid var(--border); white-space: nowrap; }
-.adm-badge.green { color: var(--accent-success); border-color: rgba(51,199,154,0.4); background: rgba(51,199,154,0.08); }
-.adm-badge.amber { color: var(--accent-live); border-color: rgba(233,162,59,0.4); background: rgba(233,162,59,0.08); }
-.adm-badge.red { color: var(--accent-alert); border-color: rgba(255,110,94,0.4); background: rgba(255,110,94,0.08); }
-.adm-badge.blue { color: #7FB2FF; border-color: rgba(127,178,255,0.4); background: rgba(127,178,255,0.08); }
+.adm-badge.green { color: var(--accent-success); border-color: rgba(var(--success-rgb),0.4); background: rgba(var(--success-rgb),0.08); }
+.adm-badge.amber { color: var(--accent-live); border-color: rgba(var(--accent-rgb),0.4); background: rgba(var(--accent-rgb),0.08); }
+.adm-badge.red { color: var(--accent-alert); border-color: rgba(var(--alert-rgb),0.4); background: rgba(var(--alert-rgb),0.08); }
+.adm-badge.blue { color: var(--cust-color); border-color: rgba(127,178,255,0.4); background: rgba(127,178,255,0.08); }
 .adm-badge.grey { color: var(--ink-faint); }
 .adm-empty { display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 60px 0; color: var(--ink-faint); font-family: var(--font-mono); font-size: 13px; }
-.adm-error { border: 1px solid rgba(255,110,94,0.4); background: rgba(255,110,94,0.08); color: var(--accent-alert); border-radius: 8px; padding: 10px 14px; font-size: 13px; margin: 0 0 14px; }
+.adm-error { border: 1px solid rgba(var(--alert-rgb),0.4); background: rgba(var(--alert-rgb),0.08); color: var(--accent-alert); border-radius: 8px; padding: 10px 14px; font-size: 13px; margin: 0 0 14px; }
 .adm-message { white-space: pre-wrap; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; font-size: 13.5px; color: var(--ink); margin: 0 0 18px; }
 
 /* ---------- detail lists ---------- */
@@ -174,7 +174,7 @@ a.adm-stat:hover { border-color: var(--accent-live); }
 .adm-bar .seg { display: block; min-height: 0; }
 .seg.orders, .dot.orders { background: var(--accent-success); }
 .seg.leads, .dot.leads { background: var(--accent-live); }
-.seg.contacts, .dot.contacts { background: #7FB2FF; }
+.seg.contacts, .dot.contacts { background: var(--cust-color); }
 .adm-bar-label { font-family: var(--font-mono); font-size: 9.5px; color: var(--ink-faint); }
 .adm-legend { display: flex; gap: 16px; flex-wrap: wrap; font-size: 12px; color: var(--ink-soft); margin-top: 14px; }
 .adm-legend .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; }
@@ -190,7 +190,7 @@ a.adm-stat:hover { border-color: var(--accent-live); }
 
 /* ---------- toasts ---------- */
 .adm-toasts { position: fixed; z-index: 300; right: 16px; bottom: 16px; display: grid; gap: 8px; max-width: min(380px, calc(100vw - 32px)); }
-.adm-toast { padding: 11px 14px; border-radius: 9px; font-size: 13.5px; border: 1px solid rgba(51,199,154,0.4); background: #0f2a22; color: var(--ink); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
-.adm-toast.error { border-color: rgba(255,110,94,0.5); background: #2c1512; }
+.adm-toast { padding: 11px 14px; border-radius: 9px; font-size: 13.5px; border: 1px solid rgba(var(--success-rgb),0.4); background: #0f2a22; color: var(--ink); box-shadow: 0 10px 30px rgba(0,0,0,0.4); }
+.adm-toast.error { border-color: rgba(var(--alert-rgb),0.5); background: #2c1512; }
 
 .adm-json { margin: 0; max-height: 420px; overflow: auto; font-family: var(--font-mono); font-size: 11.5px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; color: var(--ink-soft); }

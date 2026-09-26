@@ -1,6 +1,6 @@
 import { useSite } from '../context/SiteContext.jsx';
 import { GoLink } from '../hooks/useGoto.jsx';
-import { FaqSection, PageHero, Section } from '../components/ui/Blocks.jsx';
+import { BenefitGrid, FaqSection, PageHero, Section } from '../components/ui/Blocks.jsx';
 import PlanGrid from '../components/calculators/PlanGrid.jsx';
 import { rate2 } from '../utils/format.js';
 
@@ -10,20 +10,20 @@ export default function WhatsAppPage() {
   return (
     <section className="page active">
       <div className="container">
-        <PageHero icon="whatsapp-api" eyebrow="Official Meta green-tick API" title="Turn WhatsApp Into Your Busiest Sales Channel.">
+        <PageHero icon="whatsapp-api" illo="whatsapp-api" eyebrow="Official Meta green-tick API" title="Turn WhatsApp Into Your Busiest Sales Channel.">
           Your customers already live on WhatsApp — 98% open rates say so. CallMaster gives you the official, green-tick-verified Business API with a shared team inbox, catalog &amp; commerce, broadcast campaigns, and no-code chatbot flows — so every conversation is two-way, tracked, and handed off to a human the moment it needs one.
         </PageHero>
 
         <Section style={{ paddingTop: 0 }}>
           <h2>Why teams switch to CallMaster on WhatsApp</h2>
-          <ul className="bullet-list">
-            <li><b>Official green-tick verification</b> — the blue/green badge that tells customers this is really you, provisioned end-to-end as part of onboarding.</li>
-            <li><b>One shared team inbox</b> — every agent sees every conversation, with assignment, labels and internal notes, so nothing falls through the cracks between reps.</li>
-            <li><b>Catalog &amp; commerce built in</b> — showcase products, share a cart link, and take orders without the customer ever leaving the chat.</li>
-            <li><b>Broadcast campaigns &amp; drip flows</b> — segment your list and send approved template campaigns, with automation rules that branch on replies.</li>
-            <li><b>No-code chatbot builder</b> — automate FAQs, qualification and order status; hand off to a live agent instantly when the bot hits its limit.</li>
-            <li><b>Plug-and-play integrations</b> — connects to your CRM, Dialers and Deep Customer Insights scoring out of the box, no rip-and-replace project.</li>
-          </ul>
+          <BenefitGrid items={[
+            { icon: 'clap', title: 'Official green-tick verification', text: 'The badge that tells customers this is really you — provisioned end-to-end.' },
+            { icon: 'user', title: 'One shared team inbox', text: 'Every agent sees every conversation — nothing falls through the cracks.' },
+            { icon: 'commerce', title: 'Catalog & commerce built in', text: 'Share a cart link and take orders without leaving the chat.' },
+            { icon: 'whatsapp-api', title: 'Broadcast campaigns & drip flows', text: 'Segmented sends with automation rules that branch on replies.' },
+            { icon: 'circle-check', title: 'No-code chatbot builder', text: "Automate FAQs and hand off to a live agent the moment it's needed." },
+            { icon: 'bars3', title: 'Plug-and-play integrations', text: 'CRM, Dialers and Deep Customer Insights — no rip-and-replace project.' },
+          ]} />
         </Section>
 
         <Section id="whatsapp-pricing">

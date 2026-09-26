@@ -4,6 +4,8 @@ export const publicApi = {
   config: () => request('GET', '/public/config'),
   page: (slug) => request('GET', `/public/pages/${encodeURIComponent(slug)}`),
   contact: (body) => request('POST', '/public/contact', { body }),
+  appointmentSlots: () => request('GET', '/public/appointments/slots'),
+  bookAppointment: (body) => request('POST', '/public/appointments', { body }),
   lead: (body) => request('POST', '/public/leads', { body }),
 
   sendOtp: (body) => request('POST', '/otp/send', { body }),

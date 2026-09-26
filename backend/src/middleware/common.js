@@ -131,6 +131,7 @@ export const uploadAudio = makeUpload(UPLOAD_KINDS.audio, AUDIO_EXTS, 'file');
 export const uploadScope = makeUpload(UPLOAD_KINDS.sow, DOC_EXTS, 'scopeOfWork');
 export const uploadPdf = makeUpload(UPLOAD_KINDS.whitepapers, ['.pdf'], 'file');
 export const uploadLogo = makeUpload(UPLOAD_KINDS.branding, ['.png', '.jpg', '.jpeg', '.webp', '.gif'], 'file', 2);
+export const uploadHeroVideo = makeUpload(UPLOAD_KINDS.branding, ['.mp4', '.webm', '.mov'], 'file', 80);
 
 export const fileMeta = (file) =>
   file ? { originalName: file.originalname, storedName: file.filename, size: file.size } : undefined;

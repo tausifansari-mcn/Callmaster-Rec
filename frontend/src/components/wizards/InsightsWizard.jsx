@@ -26,7 +26,16 @@ const stageMessages = (stage, framework) => (stage === 'auditing'
   : ['Uploading your call…', 'Transcribing your call…', 'Identifying speakers…']);
 
 const Placeholder = () => (
-  <div className="placeholder-state">Your transcript, score, and improvement areas will build here once you upload a call.</div>
+  <div className="placeholder-state">
+    <div className="placeholder-illo" aria-hidden="true">
+      <div className="ring" />
+      <div className="hub"><span className="b" /><span className="b" /><span className="b" /><span className="b" /><span className="b" /></div>
+    </div>
+    <div className="placeholder-skel" aria-hidden="true">
+      <div className="sk-line w100" /><div className="sk-line w85" /><div className="sk-line w70" /><div className="sk-line w50" />
+    </div>
+    Your transcript, score, and improvement areas will build here once you upload a call.
+  </div>
 );
 
 /** Compact result shown beside the wizard; the full report renders below it. */

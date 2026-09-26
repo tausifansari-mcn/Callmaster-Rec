@@ -11,7 +11,7 @@ import { ContactsScreen, DemosScreen, LeadsScreen, OrdersScreen } from './pages/
 import { ChatbotScreen, EmailScreen, FaqScreen, HomeScreen, PricingScreen, SiteScreen } from './pages/SettingsScreens.jsx';
 import UsersScreen from './pages/UsersScreen.jsx';
 import {
-  CancellationsScreen, CustomersScreen, InsightsContentScreen, WhitepaperLeadsScreen, WhitepapersScreen,
+  AppointmentsScreen, CancellationsScreen, CustomersScreen, InsightsContentScreen, WhitepaperLeadsScreen, WhitepapersScreen,
 } from './pages/CommerceScreens.jsx';
 import IntegrationsScreen from './pages/IntegrationsScreen.jsx';
 
@@ -28,6 +28,7 @@ export default function AdminApp() {
           <Route path="email" element={<EmailScreen />} />
           <Route path="integrations" element={<IntegrationsScreen />} />
           <Route path="demos" element={<DemosScreen />} />
+          <Route path="appointments" element={<AppointmentsScreen />} />
           <Route path="cancellations" element={<CancellationsScreen />} />
           <Route path="whitepaper-leads" element={<WhitepaperLeadsScreen />} />
           <Route path="customers" element={<CustomersScreen />} />

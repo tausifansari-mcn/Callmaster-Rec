@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { adminApi } from '../../api/admin.js';
 import { useAuth, useToast } from '../AdminContext.jsx';
 import SettingsEditor from '../components/SettingsEditor.jsx';
-import { LogoCard } from './CommerceScreens.jsx';
+import { HeroVideoCard, LogoCard } from './CommerceScreens.jsx';
 
 // ---------------------------------------------------------------- Pricing
 const planFields = [
@@ -96,6 +96,8 @@ export const PricingScreen = () => (
 
 // ---------------------------------------------------------------- Home
 export const HomeScreen = () => (
+  <>
+  <HeroVideoCard />
   <SettingsEditor
     settingKey="home"
     title="Home page"
@@ -117,6 +119,7 @@ export const HomeScreen = () => (
       { type: 'text', key: 'ctaBandButton', label: 'Closing banner button text' },
     ]}
   />
+  </>
 );
 
 // ---------------------------------------------------------------- FAQs
@@ -211,13 +214,17 @@ export const SiteScreen = () => (
       { type: 'text', key: 'entityName', label: 'Operating entity name', placeholder: 'CallMaster Pvt Ltd' },
       {
         type: 'group', key: 'emails', label: 'Contact email addresses (optional overrides)', fields: [
+          { type: 'text', key: 'care', label: 'Care (shown under “Direct contact”)', placeholder: 'care@yourdomain.com' },
           { type: 'text', key: 'hello', label: 'General', placeholder: 'hello@yourdomain.com' },
           { type: 'text', key: 'sales', label: 'Sales' },
           { type: 'text', key: 'support', label: 'Support' },
           { type: 'text', key: 'privacy', label: 'Privacy / grievance' },
         ],
       },
-      { type: 'textarea', key: 'phoneAddress', label: 'Phone & office address', rows: 2, hint: 'Shown on the Contact page. Leave empty to keep the placeholder.' },
+      { type: 'textarea', key: 'phoneAddress', label: 'Phone & office address', rows: 3, hint: 'Shown on the Contact page. First line = phone number, following lines = office address.' },
+      { type: 'strings', key: 'bookingTimes', label: 'Time slots offered each day', addLabel: 'Add time', hint: 'Format: 10:00 AM, 2:30 PM' },
+      { type: 'number', key: 'bookingDaysAhead', label: 'Working days offered', suffix: 'days', step: 1, min: 1 },
+      { type: 'number', key: 'bookingCapacity', label: 'Bookings allowed per slot', step: 1, min: 1 },
       {
         type: 'group', key: 'sandboxBanner', label: 'Home page “sandbox build” badge', fields: [
           { type: 'boolean', key: 'show', label: 'Visibility', switchLabel: 'Show the badge' },
