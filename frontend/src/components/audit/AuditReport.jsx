@@ -1,4 +1,5 @@
 import { GoButton } from '../../hooks/useGoto.jsx';
+import AuditCharts from './AuditCharts.jsx';
 
 const mmss = (s) => `${String(Math.floor(s / 60)).padStart(2, '0')}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
 const cap = (s) => String(s || '').replace(/_/g, ' ').replace(/^./, (c) => c.toUpperCase());
@@ -219,6 +220,8 @@ export default function AuditReport({ results: r, transcript, submitter, admin =
       )}
 
       <Kpis r={r} />
+
+      <AuditCharts results={r} transcript={transcript} />
 
       <div className="ar-grid2">
         <Scorecard parameters={r.parameters} />
