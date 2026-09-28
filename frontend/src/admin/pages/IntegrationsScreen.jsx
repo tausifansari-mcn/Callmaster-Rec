@@ -76,6 +76,9 @@ function KeyStatusCard({ version }) {
   );
 }
 
+/** A short, collision-safe id for a new "Other API keys" row — never shown, only used to match the row on save. */
+const newKeyId = () => (window.crypto?.randomUUID ? window.crypto.randomUUID() : `k${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`);
+
 export default function IntegrationsScreen() {
   const { admin } = useAuth();
   const [version, setVersion] = useState(0);
@@ -104,6 +107,18 @@ export default function IntegrationsScreen() {
             fields: [
               { type: 'password', key: 'apiKey', label: 'Anthropic API key', placeholder: 'sk-ant-…', wide: true },
               { type: 'text', key: 'model', label: 'Model', placeholder: 'claude-sonnet-5', hint: 'Test connection tells you whether the key can use this model.' },
+            ],
+          },
+          {
+            type: 'list', key: 'custom', label: 'Other API keys', addLabel: '+ Add a key',
+            hint: 'For anything else — OpenAI, ElevenLabs, a webhook secret, another audit provider. Save it here and it\'s stored encrypted, ready for a developer to wire up next; you\'ll never need to hand over the key itself or have it typed into code. Give each one a clear name so it\'s easy to find later.',
+            itemTitle: (c) => c.name || 'New key',
+            confirmRemove: 'Remove this key? Anything set up to use it will stop working.',
+            newItem: () => ({ id: newKeyId(), name: '', apiKey: '', notes: '' }),
+            fields: [
+              { type: 'text', key: 'name', label: 'Name', placeholder: 'OpenAI', wide: true },
+              { type: 'password', key: 'apiKey', label: 'API key', placeholder: 'Paste the key here', wide: true },
+              { type: 'text', key: 'notes', label: 'Notes (optional)', placeholder: 'What this key is for', wide: true },
             ],
           },
         ]}

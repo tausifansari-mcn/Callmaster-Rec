@@ -1,4 +1,4 @@
-/* Two themes, switched by <html data-theme="light|dark"> (the header icon; the choice is remembered). Light is the default. */
+/* Two themes, switched by <html data-theme="light|dark"> (the header icon; the choice is remembered). Dark is the default. */
 :root[data-theme="dark"], :root:not([data-theme]) {
   --bg: #0A0C11;
   --ink: #F1F3F7;

@@ -42,6 +42,13 @@ export const settingsSchemas = {
   integrations: z.object({
     deepgram: z.object({ apiKey, model: str(60).min(1, 'Enter a model, e.g. nova-3'), language: str(20).min(1, 'Enter a language, e.g. multi') }),
     anthropic: z.object({ apiKey, model: str(80).min(1, 'Enter a model, e.g. claude-sonnet-5') }),
+    // Extra keys not (yet) wired into a feature — added/edited/removed freely, no code or schema change needed.
+    custom: z.array(z.object({
+      id: z.string().trim().min(1).max(60),
+      name: str(80).min(1, 'Enter a name, e.g. OpenAI'),
+      apiKey,
+      notes: str(300),
+    })).max(30),
   }),
   email: z.object({
     smtp: z.object({

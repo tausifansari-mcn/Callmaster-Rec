@@ -56,12 +56,24 @@ const maskFor = (key, path, plain) => {
   return key === 'integrations' ? `${SECRET_MASK}${plain.slice(-4)}` : SECRET_MASK;
 };
 
+/**
+ * integrations.custom is a free-form list of extra API keys — for a provider that isn't wired into any feature yet
+ * (OpenAI, ElevenLabs, a webhook secret, anything). An admin can add/rename/rotate/remove these without a code
+ * change; a developer later reads one with `getCustomApiKey(name)`. Each item's key is masked/encrypted on its own
+ * `id` (set once, client-side, when the row is added) rather than its position, so reordering never mixes up
+ * two rows' keys the way index-matching would.
+ */
+function maskCustomKeys(value) {
+  value.custom = (value.custom || []).map((item) => ({ ...item, apiKey: maskFor('integrations', null, decryptSecret(item.apiKey)) }));
+}
+
 /** Replaces every secret in a private setting with its mask (mutates and returns `value`). */
 function maskSecrets(key, value) {
   for (const path of SECRET_FIELDS[key] || []) {
     const stored = getPath(value, path);
     setPath(value, path, maskFor(key, path, decryptSecret(stored)));
   }
+  if (key === 'integrations') maskCustomKeys(value);
   return value;
 }
 
@@ -90,9 +102,22 @@ export async function getAdminSettings() {
 export async function getSettingWithSecrets(key) {
   const value = structuredClone(await getSetting(key));
   for (const path of SECRET_FIELDS[key] || []) setPath(value, path, decryptSecret(getPath(value, path)));
+  if (key === 'integrations') value.custom = (value.custom || []).map((item) => ({ ...item, apiKey: decryptSecret(item.apiKey) }));
   return value;
 }
 export const getEmailSettings = () => getSettingWithSecrets('email');
+
+/**
+ * A custom key an admin saved under Admin → API keys → "Other API keys" (Admin → API keys), decrypted —
+ * for server-side use only, never for a response. Matches by name, case-insensitively. Returns '' if not set,
+ * so new code can be written to call this once and just work the moment the admin pastes the key in — no
+ * redeploy needed either way.
+ */
+export async function getCustomApiKey(name) {
+  const { custom } = await getSettingWithSecrets('integrations');
+  const hit = (custom || []).find((c) => c.name.trim().toLowerCase() === String(name).trim().toLowerCase());
+  return hit?.apiKey || '';
+}
 
 const forAdmin = async (key) => (await getAdminSettings())[key];
 
@@ -107,6 +132,13 @@ export async function saveSetting(key, value, updatedBy) {
     const submitted = getPath(toStore, path);
     // The browser only ever sees the mask: keep the stored secret unless a new one was typed (or it was cleared).
     setPath(toStore, path, isMasked(submitted) ? getPath(current, path) : encryptSecret(submitted));
+  }
+  if (key === 'integrations') {
+    const currentById = new Map((current.custom || []).map((c) => [c.id, c]));
+    toStore.custom = (toStore.custom || []).map((item) => ({
+      ...item,
+      apiKey: isMasked(item.apiKey) ? (currentById.get(item.id)?.apiKey || '') : encryptSecret(item.apiKey),
+    }));
   }
   await Settings.save(key, toStore, updatedBy);
   listeners.forEach((fn) => fn(key));

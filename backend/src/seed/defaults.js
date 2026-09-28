@@ -197,6 +197,7 @@ export const DEFAULT_EMAIL = {
 export const DEFAULT_INTEGRATIONS = {
   deepgram: { apiKey: '', model: 'nova-3', language: 'multi' },
   anthropic: { apiKey: '', model: 'claude-sonnet-5' },
+  custom: [], // extra keys the admin has added under "Other API keys" (OpenAI, ElevenLabs, etc.) — see getCustomApiKey()
 };
 
 export const DEFAULT_INSIGHTS = {

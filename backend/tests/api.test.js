@@ -424,6 +424,63 @@ describe('admin', () => {
     assert.equal((await getAuditConfig()).deepgramSource, 'none');
   });
 
+  test('other API keys: a free-form vault (OpenAI, etc.) for features not wired up yet', async () => {
+    const { getCustomApiKey } = await import('../src/services/settings.service.js');
+
+    const before = (await call('GET', '/admin/settings', { token: adminToken })).body.integrations;
+    assert.deepEqual(before.custom, []);
+    assert.equal(await getCustomApiKey('OpenAI'), '');
+
+    const withOne = structuredClone(before);
+    withOne.custom.push({ id: 'k1', name: 'OpenAI', apiKey: 'sk-openai-abcdefgh1234', notes: 'for a future chatbot upgrade' });
+    const saved = await call('PUT', '/admin/settings/integrations', { token: adminToken, body: withOne });
+    assert.equal(saved.status, 200, JSON.stringify(saved.body));
+    assert.equal(saved.body.custom[0].apiKey, '********1234'); // masked, last 4 only
+    assert.ok(!JSON.stringify(saved.body).includes('sk-openai-abcdefgh1234'));
+
+    // decrypted lookup is case-insensitive by name — this is what a developer would call once the feature is built
+    assert.equal(await getCustomApiKey('openai'), 'sk-openai-abcdefgh1234');
+    assert.equal(await getCustomApiKey('OpenAI'), 'sk-openai-abcdefgh1234');
+    assert.equal(await getCustomApiKey('ElevenLabs'), '');
+
+    // a second row, then reorder both — each key stays attached to its own row (matched by id, not position)
+    withOne.custom = saved.body.custom;
+    withOne.custom.push({ id: 'k2', name: 'ElevenLabs', apiKey: 'el-secret-key-99998888', notes: '' });
+    const withTwo = await call('PUT', '/admin/settings/integrations', { token: adminToken, body: withOne });
+    assert.equal(withTwo.status, 200, JSON.stringify(withTwo.body));
+
+    const reordered = { ...withOne, custom: [withTwo.body.custom[1], withTwo.body.custom[0]] }; // ElevenLabs first now
+    const afterReorder = await call('PUT', '/admin/settings/integrations', { token: adminToken, body: reordered });
+    assert.equal(afterReorder.status, 200, JSON.stringify(afterReorder.body));
+    assert.equal(await getCustomApiKey('OpenAI'), 'sk-openai-abcdefgh1234');
+    assert.equal(await getCustomApiKey('ElevenLabs'), 'el-secret-key-99998888');
+
+    // renaming a row (id unchanged) keeps its key; removing a row removes only that key
+    const renamed = structuredClone(afterReorder.body);
+    renamed.custom[0].name = 'ElevenLabs TTS';
+    await call('PUT', '/admin/settings/integrations', { token: adminToken, body: renamed });
+    assert.equal(await getCustomApiKey('ElevenLabs TTS'), 'el-secret-key-99998888');
+
+    const oneLeft = { ...renamed, custom: renamed.custom.filter((c) => c.name !== 'ElevenLabs TTS') };
+    await call('PUT', '/admin/settings/integrations', { token: adminToken, body: oneLeft });
+    assert.equal(await getCustomApiKey('ElevenLabs TTS'), '');
+    assert.equal(await getCustomApiKey('OpenAI'), 'sk-openai-abcdefgh1234');
+
+    // never leaked anywhere public, and encrypted at rest
+    assert.equal((await call('GET', '/public/config')).body.integrations, undefined);
+    const { getSetting } = await import('../src/services/settings.service.js');
+    assert.match((await getSetting('integrations')).custom[0].apiKey, /^enc:v1:/);
+
+    // a plain admin cannot touch it either
+    const email2 = 'plain2.admin@example.com';
+    const made2 = await call('POST', '/admin/users', { token: adminToken, body: { name: 'Plain2', email: email2, role: 'admin', password: 'plain-admin-pass2' } });
+    const plainToken2 = (await call('POST', '/admin/auth/login', { body: { email: email2, password: 'plain-admin-pass2' } })).body.token;
+    assert.equal((await call('PUT', '/admin/settings/integrations', { token: plainToken2, body: oneLeft })).status, 403);
+    await call('DELETE', '/admin/users/' + made2.body.id, { token: adminToken });
+
+    await call('POST', '/admin/settings/integrations/reset', { token: adminToken });
+  });
+
   test('cannot delete yourself or the last super admin', async () => {
     const me = (await call('GET', '/admin/auth/me', { token: adminToken })).body.admin;
     assert.equal((await call('DELETE', `/admin/users/${me.id}`, { token: adminToken })).status, 400);

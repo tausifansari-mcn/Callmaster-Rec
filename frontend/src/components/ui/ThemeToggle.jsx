@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 const KEY = 'cm-theme';
-const current = () => (document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
+const current = () => (document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
 
 /** Sun / moon button: flips the whole site (and admin panel) between the light and dark theme and remembers the choice. */
 export default function ThemeToggle({ className = '' }) {
