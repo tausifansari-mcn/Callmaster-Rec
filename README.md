@@ -105,6 +105,8 @@ recomputed on the server**, so the browser can never set its own price.
 - Fill in Site settings (domain, company name) and turn off the “sandbox build” badge/footer note.
 - Serve everything from one server: `npm run build`, set `SERVE_FRONTEND=true` in `backend/.env`, then `npm start`.
   (Or host `frontend/dist` on a static host and set `VITE_API_BASE_URL` to the API's URL before building.)
+- Deploying to Hostinger specifically? See [`DEPLOY_HOSTINGER.md`](./DEPLOY_HOSTINGER.md) — a ready-to-upload
+  `backend/.env.production` and the exact hPanel steps.
 
 ## Scripts
 
