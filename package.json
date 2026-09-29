@@ -8,7 +8,7 @@
     "dev": "concurrently -n api,web -c yellow,cyan \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
     "dev:backend": "npm --prefix backend run dev",
     "dev:frontend": "npm --prefix frontend run dev",
-    "build": "npm --prefix frontend run build",
+    "build": "npm install --prefix frontend --include=dev && npm --prefix frontend run build",
     "start": "npm --prefix backend start",
     "test": "npm --prefix backend test"
   },
