@@ -3,7 +3,7 @@ import { env } from '../config/env.js';
 import { Otps } from '../repositories/otps.js';
 import { ApiError } from '../utils/ApiError.js';
 import { randomDigits, safeEqual, sha256 } from '../utils/helpers.js';
-import { sendOtpEmail } from './mail.service.js';
+import { sendAdminResetEmail, sendOtpEmail } from './mail.service.js';
 import { sendSms } from './integrations.service.js';
 
 const OTP_TTL_MS = 10 * 60 * 1000;
@@ -22,10 +22,12 @@ export async function sendOtp({ target, purpose }) {
   const code = randomDigits(4);
   await Otps.replace(target, purpose, hashCode(target, purpose, code), new Date(Date.now() + OTP_TTL_MS));
 
-  const byEmail = purpose === 'checkout' || purpose === 'audit-demo';
-  const delivery = byEmail
-    ? await sendOtpEmail(target, code)
-    : await sendSms(target, `Your CallMaster verification code is ${code}. It expires in 10 minutes.`);
+  const byEmail = purpose === 'checkout' || purpose === 'audit-demo' || purpose === 'admin-reset';
+  const delivery = purpose === 'admin-reset'
+    ? await sendAdminResetEmail(target, code)
+    : byEmail
+      ? await sendOtpEmail(target, code)
+      : await sendSms(target, `Your CallMaster verification code is ${code}. It expires in 10 minutes.`);
 
   if (!delivery.sent && !env.sandboxMode) {
     await Otps.removeFor(target, purpose);

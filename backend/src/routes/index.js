@@ -14,7 +14,7 @@ import {
 import { quoteRequestSchema } from '../services/pricing.service.js';
 import {
   appointmentSchema, cancelRequestSchema, customerLoginSchema, customerPasswordSchema, unlockSchema, whitepaperSchema,
-  replySchema, adminLoginSchema, adminUserSchema, auditRegisterSchema, auditSubmitSchema, voiceRegisterSchema, changePasswordSchema, contactSchema, leadSchema, orderAccessSchema,
+  replySchema, adminLoginSchema, adminForgotPasswordSchema, adminResetPasswordSchema, adminUserSchema, auditRegisterSchema, auditSubmitSchema, voiceRegisterSchema, changePasswordSchema, contactSchema, leadSchema, orderAccessSchema,
   otpSendSchema, otpVerifySchema, pageSchema, promoSchema, razorpayVerifySchema, voiceDemoSchema,
 } from '../validators/publicSchemas.js';
 
@@ -63,6 +63,8 @@ router.use('/customer', cust);
 // ------------------------------------------------------------------ admin
 const admin = Router();
 admin.post('/auth/login', loginLimiter, validate(adminLoginSchema), auth.login);
+admin.post('/auth/forgot-password', otpLimiter, validate(adminForgotPasswordSchema), auth.forgotPassword);
+admin.post('/auth/reset-password', otpLimiter, validate(adminResetPasswordSchema), auth.resetPassword);
 admin.use(requireAdmin);
 admin.get('/auth/me', auth.me);
 admin.post('/auth/change-password', validate(changePasswordSchema), auth.changePassword);

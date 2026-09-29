@@ -132,7 +132,7 @@ CREATE TABLE IF NOT EXISTS order_items (
 CREATE TABLE IF NOT EXISTS otps (
   id          BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
   target      VARCHAR(190)  NOT NULL,                       -- lowercase email or 10-digit phone
-  purpose     ENUM('checkout','voice-demo','audit-demo') NOT NULL,
+  purpose     ENUM('checkout','voice-demo','audit-demo','admin-reset') NOT NULL,
   code_hash   CHAR(64)      NOT NULL,
   attempts    TINYINT UNSIGNED NOT NULL DEFAULT 0,
   expires_at  DATETIME(3)   NOT NULL,

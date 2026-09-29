@@ -75,6 +75,17 @@ export function sendOtpEmail(to, code) {
   });
 }
 
+// ---------------------------------------------------------------- admin panel
+/** "Forgot password" code for the admin panel — same 4-digit code as the other OTP flows, its own wording. */
+export function sendAdminResetEmail(to, code) {
+  return sendMail({
+    to,
+    subject: `Reset your CallMaster admin password: ${code}`,
+    text: `A password reset was requested for the CallMaster admin panel using this email address.\n\nYour reset code is ${code}. It expires in 10 minutes.\n\nIf you didn't request this, you can ignore this email — your password stays unchanged.`,
+    html: shell('Reset your admin password', `<p>A password reset was requested for the CallMaster admin panel using this email address.</p><p>Your reset code is</p><p style="font-size:28px;letter-spacing:6px;font-weight:700">${escapeHtml(code)}</p><p>It expires in 10 minutes. If you didn't request this, you can ignore this email — your password stays unchanged.</p>`),
+  });
+}
+
 /**
  * Welcome + receipt sent after payment. `extra` carries the dashboard account (username and, for a brand-new
  * account, the temporary password) and the cancellation policy so Cloud Telephony buyers see their refund window.

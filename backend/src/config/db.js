@@ -85,8 +85,14 @@ async function migrateColumns(connection) {
     "SELECT COLUMN_TYPE AS t FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'otps' AND COLUMN_NAME = 'purpose'"
   );
   if (otp && !String(otp.t).includes("'audit-demo'")) {
-    await connection.query("ALTER TABLE otps MODIFY COLUMN purpose ENUM('checkout','voice-demo','audit-demo') NOT NULL");
-    console.log('[db] otps.purpose now allows "audit-demo"');
+    await connection.query("ALTER TABLE otps MODIFY COLUMN purpose ENUM('checkout','voice-demo','audit-demo','admin-reset') NOT NULL");
+    console.log('[db] otps.purpose now allows "audit-demo" and "admin-reset"');
+  }
+  // Admin panel "Forgot password" — added after "audit-demo" above, so it needs its own widening for anyone
+  // who already has audit-demo but not this.
+  if (otp && !String(otp.t).includes("'admin-reset'") && String(otp.t).includes("'audit-demo'")) {
+    await connection.query("ALTER TABLE otps MODIFY COLUMN purpose ENUM('checkout','voice-demo','audit-demo','admin-reset') NOT NULL");
+    console.log('[db] otps.purpose now allows "admin-reset"');
   }
   // Audit reports can exceed TEXT's 64 KB limit.
   const [[res]] = await connection.query(

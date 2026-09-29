@@ -37,6 +37,8 @@ export const adminApi = {
   login: (email, password) => call('POST', '/auth/login', { body: { email, password } }),
   me: () => call('GET', '/auth/me'),
   changePassword: (currentPassword, newPassword) => call('POST', '/auth/change-password', { body: { currentPassword, newPassword } }),
+  forgotPassword: (email) => call('POST', '/auth/forgot-password', { body: { email } }),
+  resetPassword: (email, code, newPassword) => call('POST', '/auth/reset-password', { body: { email, code, newPassword } }),
   stats: () => call('GET', '/stats'),
 
   // orders | leads | contacts | demos

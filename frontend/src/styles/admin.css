@@ -187,6 +187,8 @@ a.adm-stat:hover { border-color: var(--accent-live); }
 .adm-login-card .adm-input { margin-bottom: 10px; }
 .adm-login-card .adm-btn { margin-top: 8px; }
 .adm-login-card .center { margin-top: 12px; }
+.adm-login-links { display: flex; justify-content: space-between; gap: 12px; margin-top: 6px; font-size: 12.5px; }
+.adm-login-links:only-child { justify-content: center; }
 
 /* ---------- toasts ---------- */
 .adm-toasts { position: fixed; z-index: 300; right: 16px; bottom: 16px; display: grid; gap: 8px; max-width: min(380px, calc(100vw - 32px)); }

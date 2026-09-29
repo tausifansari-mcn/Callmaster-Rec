@@ -118,6 +118,12 @@ export const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
   newPassword: z.string().min(8, 'Use at least 8 characters').max(128),
 });
+export const adminForgotPasswordSchema = z.object({ email });
+export const adminResetPasswordSchema = z.object({
+  email,
+  code: z.string().trim().regex(/^\d{4}$/, 'Enter the 4-digit code'),
+  newPassword: z.string().min(8, 'Use at least 8 characters').max(128),
+});
 export const adminUserSchema = z.object({
   name: text('a name', 80),
   email,

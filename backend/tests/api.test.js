@@ -485,6 +485,49 @@ describe('admin', () => {
     const me = (await call('GET', '/admin/auth/me', { token: adminToken })).body.admin;
     assert.equal((await call('DELETE', `/admin/users/${me.id}`, { token: adminToken })).status, 400);
   });
+
+  // Kept last in this block: it changes the real admin password, which every earlier test here assumed unchanged.
+  test('forgot / reset password: generic response, the code never leaves the server over HTTP, full reset works', async () => {
+    // sandbox + no SMTP in tests → the service still generates a code, but the admin-reset controller only ever
+    // prints it to the server console (never the HTTP response) — capture that line the same way a real operator would.
+    const realLog = console.log;
+    let captured = '';
+    console.log = (...args) => {
+      const line = args.join(' ');
+      if (line.includes('[admin] password-reset code')) captured = line; else realLog(...args);
+    };
+    try {
+      const unknown = await call('POST', '/admin/auth/forgot-password', { body: { email: 'nobody@example.com' } });
+      assert.equal(unknown.status, 200);
+      assert.deepEqual(unknown.body, { ok: true });
+      assert.equal(captured, '', 'no code is generated for an email with no admin account');
+
+      const known = await call('POST', '/admin/auth/forgot-password', { body: { email: 'ADMIN@example.com' } }); // case-insensitive
+      assert.equal(known.status, 200);
+      assert.deepEqual(known.body, { ok: true }, 'identical response whether or not the email belongs to an admin');
+      assert.ok(!/\d{4}/.test(JSON.stringify(known.body)), 'the code is never in the HTTP response, even in sandbox mode');
+      assert.match(captured, /password-reset code for admin@example\.com: \d{4}/);
+      const code = /: (\d{4})$/.exec(captured)[1];
+
+      const badCode = await call('POST', '/admin/auth/reset-password', { body: { email: 'admin@example.com', code: code === '0000' ? '1111' : '0000', newPassword: 'brand-new-pass-1' } });
+      assert.equal(badCode.status, 400);
+      assert.match(badCode.body.error.message, /doesn't match/);
+
+      assert.equal((await call('POST', '/admin/auth/reset-password', { body: { email: 'nobody@example.com', code, newPassword: 'whatever-pass-9' } })).status, 400, "a real code doesn't work for a different (unmatched) email");
+
+      const ok = await call('POST', '/admin/auth/reset-password', { body: { email: 'admin@example.com', code, newPassword: 'brand-new-pass-1' } });
+      assert.equal(ok.status, 200, JSON.stringify(ok.body));
+
+      assert.equal((await call('POST', '/admin/auth/login', { body: { email: 'admin@example.com', password: 'correct-horse-battery' } })).status, 401, 'the old password stops working');
+      const relogin = await call('POST', '/admin/auth/login', { body: { email: 'admin@example.com', password: 'brand-new-pass-1' } });
+      assert.equal(relogin.status, 200);
+      adminToken = relogin.body.token;
+
+      assert.equal((await call('POST', '/admin/auth/reset-password', { body: { email: 'admin@example.com', code, newPassword: 'another-pass-2' } })).status, 400, 'the code is single-use');
+    } finally {
+      console.log = realLog;
+    }
+  });
 });
 
 describe('customer accounts & cancellation', () => {
