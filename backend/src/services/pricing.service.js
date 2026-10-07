@@ -6,21 +6,34 @@ import { getSetting } from './settings.service.js';
 
 export const PRODUCTS = {
   'cloud-telephony': { name: 'Cloud Telephony', prefix: 'CL' },
-  dialers: { name: 'Dialers', prefix: 'DI' },
   'voice-bot': { name: 'Voice Bot', prefix: 'VO' },
-  'email-automation': { name: 'Email Automation', prefix: 'EM' },
-  'whatsapp-api': { name: 'WhatsApp Business API', prefix: 'WH' },
 };
 export const PRODUCT_KEYS = Object.keys(PRODUCTS);
 
 const int = (min, max) => z.coerce.number().int().min(min).max(max);
+const vendorName = z.string().trim().max(120).default('');
+const vendorRate = z.coerce.number().min(0).max(1000000).default(0);
 const configSchemas = {
-  'cloud-telephony': z.object({ lic: int(1, 10000), chan: int(0, 10000).default(0), did: int(0, 10000).default(0) }),
-  dialers: z.object({ qty: int(1, 100000) }),
-  'voice-bot': z.object({ languages: z.array(z.string().trim().min(1)).max(50).default([]) }),
-  'email-automation': z.object({ planKey: z.string().trim().min(1), qty: int(1, 1000).default(1) }),
-  'whatsapp-api': z.object({ planKey: z.string().trim().min(1), qty: int(1, 1000).default(1) }),
+  // vendorName/vendorRate: "what do you pay your current vendor?" price-match fields — both optional.
+  'cloud-telephony': z.object({ lic: int(1, 10000), chan: int(0, 10000).default(0), did: int(0, 10000).default(0), vendorName, vendorRate }),
+  'voice-bot': z.object({ languages: z.array(z.string().trim().min(1)).max(50).default([]), vendorRate }),
 };
+
+/**
+ * "What do you pay your current vendor?" price match, shared by Cloud Telephony (per-licence) and Voice Bot
+ * (per-minute, informational only — see priceItem). Bounded by pricing.<product>.vendorMin/vendorMax so a
+ * implausibly low claimed rate gets flagged for manual review instead of auto-applied, and an implausibly
+ * high one is rejected outright.
+ */
+function matchVendorRate(rate, name, ourRate, { vendorMin, vendorMax }, requireName = true) {
+  if (!rate) return { state: 'none' };
+  if (rate > vendorMax) return { state: 'invalid' };
+  if (requireName && !name) return { state: 'noname' };
+  if (rate < vendorMin) return { state: 'low', vendorRate: rate, vendorName: name };
+  if (rate < ourRate) return { state: 'match', matchedRate: rate, vendorRate: rate, vendorName: name };
+  if (rate === ourRate) return { state: 'same', matchedRate: rate, vendorRate: rate, vendorName: name };
+  return { state: 'higher', vendorRate: rate, vendorName: name };
+}
 
 export const quoteRequestSchema = z.object({
   productKey: z.enum(PRODUCT_KEYS),
@@ -36,31 +49,28 @@ function priceItem(productKey, rawConfig, pricing) {
   const base = { productKey, product: PRODUCTS[productKey].name };
 
   if (productKey === 'cloud-telephony') {
-    const { licenseRate, channelRate, didRate } = pricing.telephony;
+    const { licenseRate, channelRate, didRate, vendorMin, vendorMax } = pricing.telephony;
+    const match = matchVendorRate(cfg.vendorRate, cfg.vendorName, licenseRate, { vendorMin, vendorMax });
+    const matched = match.state === 'match' || match.state === 'same';
+    const unitRate = matched ? match.matchedRate : licenseRate;
     const rows = [
-      { label: 'User licenses', sub: `${cfg.lic} × ${money(licenseRate)}/mo`, value: cfg.lic * licenseRate },
+      { label: 'User licenses', sub: `${cfg.lic} × ${money(unitRate)}/mo${matched ? ' (price-matched)' : ''}`, value: cfg.lic * unitRate },
       { label: 'Extra calling channels', sub: `${cfg.chan} × ${money(channelRate)}/mo`, value: cfg.chan * channelRate },
       { label: 'Extra DIDs', sub: `${cfg.did} × ${money(didRate)}/mo`, value: cfg.did * didRate },
     ];
-    return { ...base, mode: 'cart', plan: 'Custom configuration', unit: '/month', billingNote: 'monthly', rows, config: cfg };
-  }
-
-  if (productKey === 'dialers') {
-    const tier = pricing.dialers.tiers.find((t) => cfg.qty >= t.min && cfg.qty <= t.max);
-    if (!tier) throw ApiError.badRequest('That seat count needs custom pricing — please talk to our enterprise team.');
-    const rows = [{ label: 'Agent seats', sub: `${cfg.qty} × ${money(tier.rate)}/mo`, value: cfg.qty * tier.rate }];
-    return {
-      ...base, mode: 'cart', plan: `${cfg.qty} agent seat${cfg.qty > 1 ? 's' : ''}`, unit: '/month', billingNote: 'monthly', rows, config: cfg,
-    };
+    return { ...base, mode: 'cart', plan: 'Custom configuration', unit: '/month', billingNote: 'monthly', rows, config: cfg, vendorMatch: match };
   }
 
   if (productKey === 'voice-bot') {
-    const { setupFee, languageFee, perMinuteRate, languages } = pricing.voiceBot;
+    const { setupFee, languageFee, perMinuteRate, languages, vendorMin, vendorMax } = pricing.voiceBot;
     const chosen = [...new Set(cfg.languages)];
     const unknown = chosen.filter((l) => !languages.includes(l));
     if (unknown.length) throw ApiError.badRequest(`Unknown language: ${unknown.join(', ')}`);
     const rows = [{ label: 'Setup & onboarding', sub: 'one-time — English & Hindi', value: setupFee }];
     chosen.forEach((l) => rows.push({ label: `Regional language — ${l}`, sub: 'one-time add-on', value: languageFee }));
+    // Per-minute usage is billed separately (see billingNote below), so a vendor price match here is informational
+    // only — it does not change this quote's total. Our team confirms the actual per-minute rate in writing.
+    const match = matchVendorRate(cfg.vendorRate, '', perMinuteRate, { vendorMin, vendorMax }, false);
     return {
       ...base,
       mode: 'cart',
@@ -68,26 +78,10 @@ function priceItem(productKey, rawConfig, pricing) {
       unit: 'one-time',
       billingNote: `one-time — usage billed separately at ₹${perMinuteRate}/minute (English & Hindi included; regional languages billed at the same rate once purchased)`,
       rows,
-      config: { languages: chosen },
+      config: { languages: chosen, vendorRate: cfg.vendorRate },
+      vendorMatch: match,
     };
   }
-
-  // Plan-based products: email automation & WhatsApp
-  const plans = productKey === 'email-automation' ? pricing.emailAutomation.plans : pricing.whatsapp.plans;
-  const plan = plans.find((p) => p.key === cfg.planKey);
-  if (!plan) throw ApiError.badRequest('Unknown plan');
-  if (plan.contactOnly) throw ApiError.badRequest('This plan is not available for online purchase — please contact sales.');
-  return {
-    ...base,
-    mode: 'plan',
-    plan: plan.name,
-    unit: plan.unit,
-    qtyLabel: 'Quantity',
-    qty: cfg.qty,
-    unitPrice: plan.price,
-    rows: [],
-    config: { planKey: plan.key, qty: cfg.qty },
-  };
 }
 
 export async function resolvePromo(code) {

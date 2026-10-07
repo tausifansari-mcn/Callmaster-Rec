@@ -15,7 +15,7 @@ export async function getMailConfig() {
     ? { host: s.smtp.host, port: Number(s.smtp.port) || 587, secure: Boolean(s.smtp.secure), user: s.smtp.user, pass: s.smtp.pass }
     : { ...env.smtp };
   const fromEmail = s.fromEmail || (useDb ? s.smtp.user : '');
-  const from = fromEmail ? `"${(s.fromName || 'CallMaster').replace(/"/g, '')}" <${fromEmail}>` : env.smtp.from;
+  const from = fromEmail ? `"${(s.fromName || 'Nimantran').replace(/"/g, '')}" <${fromEmail}>` : env.smtp.from;
   const notifyTo = (s.notifyTo || env.notifyEmail || '').split(',').map((x) => x.trim()).filter(Boolean);
   return { configured: Boolean(smtp.host), source: useDb ? 'admin panel' : '.env', smtp, from, notifyTo, notify: s.notify, autoReply: s.autoReply };
 }
@@ -60,7 +60,7 @@ export async function sendMail({ to, subject, html, text, replyTo, icalEvent }) 
 
 const shell = (title, body) => `<div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:auto;color:#1a1d26">
 <h2 style="margin:0 0 12px">${escapeHtml(title)}</h2>${body}
-<p style="color:#7a8094;font-size:12px;margin-top:24px">CallMaster</p></div>`;
+<p style="color:#7a8094;font-size:12px;margin-top:24px">Nimantran</p></div>`;
 
 const textToHtml = (t) => escapeHtml(t).split(/\n{2,}/).map((p) => `<p>${p.replace(/\n/g, '<br>')}</p>`).join('');
 const fill = (tpl, vars) => String(tpl).replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) => vars[k] ?? '');
@@ -69,8 +69,8 @@ const fill = (tpl, vars) => String(tpl).replace(/\{\{\s*(\w+)\s*\}\}/g, (_, k) =
 export function sendOtpEmail(to, code) {
   return sendMail({
     to,
-    subject: `Your CallMaster verification code: ${code}`,
-    text: `Your CallMaster verification code is ${code}. It expires in 10 minutes.`,
+    subject: `Your Nimantran verification code: ${code}`,
+    text: `Your Nimantran verification code is ${code}. It expires in 10 minutes.`,
     html: shell('Verify your email', `<p>Your verification code is</p><p style="font-size:28px;letter-spacing:6px;font-weight:700">${escapeHtml(code)}</p><p>It expires in 10 minutes. If you didn't request it, you can ignore this email.</p>`),
   });
 }
@@ -80,9 +80,9 @@ export function sendOtpEmail(to, code) {
 export function sendAdminResetEmail(to, code) {
   return sendMail({
     to,
-    subject: `Reset your CallMaster admin password: ${code}`,
-    text: `A password reset was requested for the CallMaster admin panel using this email address.\n\nYour reset code is ${code}. It expires in 10 minutes.\n\nIf you didn't request this, you can ignore this email — your password stays unchanged.`,
-    html: shell('Reset your admin password', `<p>A password reset was requested for the CallMaster admin panel using this email address.</p><p>Your reset code is</p><p style="font-size:28px;letter-spacing:6px;font-weight:700">${escapeHtml(code)}</p><p>It expires in 10 minutes. If you didn't request this, you can ignore this email — your password stays unchanged.</p>`),
+    subject: `Reset your Nimantran admin password: ${code}`,
+    text: `A password reset was requested for the Nimantran admin panel using this email address.\n\nYour reset code is ${code}. It expires in 10 minutes.\n\nIf you didn't request this, you can ignore this email — your password stays unchanged.`,
+    html: shell('Reset your admin password', `<p>A password reset was requested for the Nimantran admin panel using this email address.</p><p>Your reset code is</p><p style="font-size:28px;letter-spacing:6px;font-weight:700">${escapeHtml(code)}</p><p>It expires in 10 minutes. If you didn't request this, you can ignore this email — your password stays unchanged.</p>`),
   });
 }
 
@@ -99,13 +99,13 @@ export function sendOrderReceipt(order, extra = {}) {
   const isCT = order.productKey === 'cloud-telephony';
 
   const accountBlock = account
-    ? `<p><b>Your account is ready.</b> Manage billing and your subscription anytime from the CallMaster dashboard: <a href="${escapeHtml(loginUrl)}">${escapeHtml(loginUrl)}</a></p>${
+    ? `<p><b>Your account is ready.</b> Manage billing and your subscription anytime from the Nimantran dashboard: <a href="${escapeHtml(loginUrl)}">${escapeHtml(loginUrl)}</a></p>${
       created
         ? `<p style="font-family:monospace;background:#eefaf5;border:1px solid #bfe8d8;border-radius:6px;padding:8px 10px">Username: ${escapeHtml(account.username)}<br>Temporary password: ${escapeHtml(tempPassword)} (you'll be asked to change this on first login)</p>`
         : `<p>This order was added to your existing account (username <b>${escapeHtml(account.username)}</b>).</p>`}`
     : '';
   const ctBlock = isCT && policy
-    ? `<p><b>Your welcome offer:</b> for your first billing month, we'll audit 2% of your call volume through Deep Customer Insights and share the results with you at no extra cost.</p>
+    ? `<p><b>Your welcome offer:</b> for your first billing month, we'll audit 2% of your call volume through Quality Audits and share the results with you at no extra cost.</p>
 <p><b>Cancellation &amp; refunds:</b> you can cancel within ${policy.windowDays} days of this purchase for a full refund, processed to your original payment method within ${policy.refundDays} working days. You can cancel from your dashboard: <a href="${escapeHtml(loginUrl)}">${escapeHtml(loginUrl)}</a>.</p>`
     : '';
 
@@ -118,9 +118,9 @@ export function sendOrderReceipt(order, extra = {}) {
 
   return sendMail({
     to: order.customer.email,
-    subject: `Welcome to CallMaster — your ${order.product} purchase is confirmed`,
+    subject: `Welcome to Nimantran — your ${order.product} purchase is confirmed`,
     text,
-    html: shell('Welcome to CallMaster', `<p>Hi ${escapeHtml(order.customer.contact)},</p>
+    html: shell('Welcome to Nimantran', `<p>Hi ${escapeHtml(order.customer.contact)},</p>
 <p>Thanks for purchasing <b>${escapeHtml(order.product)}</b> (${escapeHtml(order.plan)}). We've received your payment of <b>${money(order.total)}</b> against Order <b>${escapeHtml(order.orderId)}</b> — your receipt is below.</p>
 <table style="width:100%;border-collapse:collapse">${rows}
 ${order.discountAmount ? `<tr><td>Discount (${escapeHtml(order.discountCode)})</td><td style="text-align:right">−${money(order.discountAmount)}</td></tr>` : ''}
@@ -153,18 +153,18 @@ function inviteFor(appt) {
   const start = new Date(appt.slotStart);
   const end = new Date(start.getTime() + 30 * 60000);
   return [
-    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//CallMaster//Call booking//EN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
-    `UID:appointment-${appt.id}@callmaster`, `DTSTAMP:${stamp(new Date())}`, `DTSTART:${stamp(start)}`, `DTEND:${stamp(end)}`,
-    'SUMMARY:Call with the CallMaster team', `DESCRIPTION:Booked by ${appt.name} (${appt.organization}).`, 'END:VEVENT', 'END:VCALENDAR',
+    'BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Nimantran//Call booking//EN', 'METHOD:PUBLISH', 'BEGIN:VEVENT',
+    `UID:appointment-${appt.id}@nimantran.ai`, `DTSTAMP:${stamp(new Date())}`, `DTSTART:${stamp(start)}`, `DTEND:${stamp(end)}`,
+    'SUMMARY:Call with the Nimantran team', `DESCRIPTION:Booked by ${appt.name} (${appt.organization}).`, 'END:VEVENT', 'END:VCALENDAR',
   ].join('\r\n');
 }
 
 /** Confirmation to the person who booked a call, with a calendar invite attached. */
 export function sendAppointmentConfirmation(appt) {
-  const body = `Hi ${appt.name},\n\nYour call with the CallMaster team is booked for ${appt.slotLabel}. A calendar invite is attached — our team will call you on ${appt.phone}.\n\nNeed to change the time? Just reply to this email.\n\nRegards,\nTeam CallMaster`;
+  const body = `Hi ${appt.name},\n\nYour call with the Nimantran team is booked for ${appt.slotLabel}. A calendar invite is attached — our team will call you on ${appt.phone}.\n\nNeed to change the time? Just reply to this email.\n\nRegards,\nTeam Nimantran`;
   return sendMail({
     to: appt.email,
-    subject: `Your CallMaster call is booked — ${appt.slotLabel}`,
+    subject: `Your Nimantran call is booked — ${appt.slotLabel}`,
     text: body,
     html: shell('Your call is booked', textToHtml(body)),
     icalEvent: { method: 'PUBLISH', content: inviteFor(appt) },
@@ -189,9 +189,9 @@ export async function sendTestEmail(to) {
   const cfg = await getMailConfig();
   const res = await sendMail({
     to,
-    subject: 'CallMaster — test email',
-    text: 'This is a test email from the CallMaster admin panel. Your email settings work.',
-    html: shell('Test email', '<p>This is a test email from the CallMaster admin panel. Your email settings work.</p>'),
+    subject: 'Nimantran — test email',
+    text: 'This is a test email from the Nimantran admin panel. Your email settings work.',
+    html: shell('Test email', '<p>This is a test email from the Nimantran admin panel. Your email settings work.</p>'),
   });
   return { ...res, source: cfg.source };
 }
@@ -210,7 +210,7 @@ export async function notifyTeam(kind, subject, fields, replyTo) {
     .join('');
   return sendMail({
     to: cfg.notifyTo,
-    subject: `[CallMaster] ${subject}`,
+    subject: `[Nimantran] ${subject}`,
     text: Object.entries(fields).map(([k, v]) => `${k}: ${v}`).join('\n'),
     html: shell(subject, `<table>${list}</table>`),
     replyTo,

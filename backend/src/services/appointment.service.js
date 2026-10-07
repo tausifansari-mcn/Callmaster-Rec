@@ -22,24 +22,29 @@ function minutesOf(time) {
 const istToUtc = (y, m, d, minutes) => new Date(Date.UTC(y, m, d, 0, 0) + minutes * 60000 - IST_OFFSET_MS);
 
 /**
- * The bookable calendar, built in IST: the next N working days (Mon–Fri, starting tomorrow) × the configured times.
- * Each slot knows whether it is still free, so the site can grey out taken ones and the server can re-check on booking.
+ * The bookable calendar, built in IST: the next N working days (Monday–Saturday, starting tomorrow, skipping
+ * Sundays and any date listed in site.bookingHolidays) × the configured times. Each slot knows whether it is
+ * still free, so the site can grey out taken ones and the server can re-check on booking.
  */
 export async function buildSlots(now = new Date()) {
   const site = await getSetting('site');
   const times = (site.bookingTimes || []).filter((t) => minutesOf(t) !== null);
   const capacity = Math.max(1, Number(site.bookingCapacity) || 1);
+  const holidays = site.bookingHolidays || {};
   const istNow = new Date(now.getTime() + IST_OFFSET_MS); // its UTC fields read as IST wall-clock
   const cursor = new Date(Date.UTC(istNow.getUTCFullYear(), istNow.getUTCMonth(), istNow.getUTCDate()));
 
   const days = [];
-  while (days.length < Math.max(1, Number(site.bookingDaysAhead) || 5)) {
+  const maxLookaheadDays = 366; // safety valve: never spin forever if every remaining day is a holiday
+  for (let i = 0; i < maxLookaheadDays && days.length < Math.max(1, Number(site.bookingDaysAhead) || 5); i += 1) {
     cursor.setUTCDate(cursor.getUTCDate() + 1);
-    const dow = cursor.getUTCDay();
-    if (dow === 0 || dow === 6) continue;
+    const dow = cursor.getUTCDay(); // 0 = Sunday — the only permanently closed day
+    if (dow === 0) continue;
     const y = cursor.getUTCFullYear(); const m = cursor.getUTCMonth(); const d = cursor.getUTCDate();
+    const date = `${y}-${pad(m + 1)}-${pad(d)}`;
+    if (holidays[date]) continue;
     days.push({
-      date: `${y}-${pad(m + 1)}-${pad(d)}`,
+      date,
       label: `${DAY_NAMES[dow]}, ${d} ${MONTH_NAMES[m]}`,
       slots: times.map((time) => ({ time, start: istToUtc(y, m, d, minutesOf(time)) })),
     });

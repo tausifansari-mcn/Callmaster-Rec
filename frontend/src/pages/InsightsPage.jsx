@@ -48,7 +48,7 @@ function PricingRequestForm() {
 
   return (
     <div className="lead-form-box">
-      <h3>Deep Customer Insights — pricing request</h3>
+      <h3>Quality Audits — pricing request</h3>
       <p className="sub">A few details so we can size this correctly for your volume.</p>
       <form onSubmit={submit} noValidate>
         <div className="field-row2">
@@ -91,9 +91,12 @@ export default function InsightsPage() {
   return (
     <section className="page active">
       <div className="container">
-        <PageHero icon="audit" illo="audit" eyebrow="Know why every call won or lost — automatically" title="Deep Customer Insights">
-          Upload a call. Get the transcript, the score, and exactly what to fix — in seconds, not after a QA review. For sales calls, it goes further: it finds your best-performing pitch from real calls and pushes it to your whole team, so everyone's using what's actually working today. No rip-and-replace — it runs alongside your existing QA process from day one.
+        <PageHero icon="audit" illo="audit" eyebrow="Quality Audits" title="Stop sampling 2% of your calls and hoping the rest are fine.">
+          Every recording gets the same rigor a senior QA analyst would give it — transcribed, scored against your own parameters, and flagged for coaching, in the time it takes to make coffee. For sales calls, it goes further: it finds your best-performing pitch from real calls and pushes it to your whole team. Upload one of your own calls below and see it for yourself.
         </PageHero>
+        <div className="chip-row">
+          <span className="chip">Inbound</span><span className="chip">Outbound sales</span><span className="chip">Collections</span><span className="chip">Sales campaigns</span>
+        </div>
 
         <Section style={{ paddingTop: 0 }}>
           <h2>How it works</h2>

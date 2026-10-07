@@ -42,7 +42,7 @@ function ResetForm({ email, onDone, onBack }) {
 
   return (
     <form className="adm-login-card" onSubmit={submit}>
-      <div className="brand"><span className="dot" />CallMaster</div>
+      <div className="brand"><span className="dot" />Nimantran</div>
       <h1>Enter the reset code</h1>
       <p className="adm-muted">
         If <strong>{email}</strong> has an admin account, we've emailed it a 4-digit code — it expires in 10 minutes.
@@ -98,7 +98,7 @@ function ForgotForm({ onSent, onBack }) {
 
   return (
     <form className="adm-login-card" onSubmit={submit}>
-      <div className="brand"><span className="dot" />CallMaster</div>
+      <div className="brand"><span className="dot" />Nimantran</div>
       <h1>Reset your password</h1>
       <p className="adm-muted">Enter the email on your admin account and we'll send a reset code to it.</p>
       <label className="adm-label" htmlFor="adm-forgot-email">Email</label>
@@ -154,7 +154,7 @@ export default function LoginPage() {
     return (
       <div className="adm-login">
         <div className="adm-login-card">
-          <div className="brand"><span className="dot" />CallMaster</div>
+          <div className="brand"><span className="dot" />Nimantran</div>
           <h1>Password updated</h1>
           <p className="adm-muted">Sign in with your new password.</p>
           <button type="button" className="adm-btn primary block" onClick={() => setView('login')}>Back to sign in</button>
@@ -166,7 +166,7 @@ export default function LoginPage() {
   return (
     <div className="adm-login">
       <form className="adm-login-card" onSubmit={submit}>
-        <div className="brand"><span className="dot" />CallMaster</div>
+        <div className="brand"><span className="dot" />Nimantran</div>
         <h1>Admin sign in</h1>
         <p className="adm-muted">Manage pricing, content, leads and orders.</p>
         <label className="adm-label" htmlFor="adm-email">Email</label>

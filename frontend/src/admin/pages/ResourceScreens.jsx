@@ -116,7 +116,7 @@ export const OrdersScreen = () => (
     searchPlaceholder="Search order ID, company, email, phone…"
     filters={[
       { param: 'status', label: 'Status', options: ORDER_STATUSES },
-      { param: 'product', label: 'Product', options: ['cloud-telephony', 'dialers', 'voice-bot', 'email-automation', 'whatsapp-api'] },
+      { param: 'product', label: 'Product', options: ['cloud-telephony', 'voice-bot'] },
     ]}
     columns={[
       { label: 'Order', render: (o) => <strong>{o.orderId}</strong> },
@@ -155,7 +155,7 @@ export const LeadsScreen = () => (
   <ResourcePage
     resource="leads"
     title="Pricing requests"
-    subtitle="Leads from the “Deep Customer Insights — pricing request” form. Reply with volume-based pricing."
+    subtitle="Leads from the “Quality Audits — pricing request” form. Reply with volume-based pricing."
     searchPlaceholder="Search name, organization, email, phone…"
     filters={[{ param: 'status', label: 'Status', options: LEAD_STATUSES }]}
     columns={[
@@ -175,7 +175,7 @@ const CONTACT_STATUSES = ['new', 'read', 'replied', 'closed'];
 /** Sends an email reply to the person who wrote in (via the SMTP settings) and marks the message as replied. */
 function ReplyBox({ contact, onChanged }) {
   const toast = useToast();
-  const [subject, setSubject] = useState(`Re: your enquiry (${contact.interest || 'CallMaster'})`);
+  const [subject, setSubject] = useState(`Re: your enquiry (${contact.interest || 'Nimantran'})`);
   const [message, setMessage] = useState('');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');

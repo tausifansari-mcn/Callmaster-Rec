@@ -11,9 +11,12 @@ export default function VoiceBotPage() {
   return (
     <section className="page active">
       <div className="container">
-        <PageHero icon="voice" illo="voice" title="Hear Your Bot Call You — Before You Buy It.">
-          Pick your industry, the type of calls you run, and your bot's voice. We'll place a real call to your phone in seconds. Plug-and-play from day one — no lengthy integration project before you go live.
+        <PageHero icon="voice" illo="voice" eyebrow="Voice Bots" title="A bot your customers won't hang up on.">
+          Pick the accent, the voice, the script — English, Hindi or Hinglish, Indian, British or American — and Nimantran calls your own phone with it. Not a canned sample. Your script, your number, your call.
         </PageHero>
+        <div className="chip-row">
+          <span className="chip">Collections</span><span className="chip">Customer service</span><span className="chip">Abandoned cart recovery</span><span className="chip">Appointment reminders</span>
+        </div>
 
         <Section style={{ paddingTop: 0 }}>
           <h2>How it works</h2>

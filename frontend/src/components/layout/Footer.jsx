@@ -10,9 +10,11 @@ export default function Footer() {
   return (
     <footer>
       <div className="container">
-        {logoUrl(site) && (
-          <div className="footer-brand"><img src={logoUrl(site)} alt={site.brandName} /><span>CONNECT · SUPPORT · GROW</span></div>
-        )}
+        <div className="footer-brand">
+          {logoUrl(site) && <img src={logoUrl(site)} alt="" />}
+          {site.brandName}
+        </div>
+        <p className="footer-tagline">Enable people. Empower businesses.</p>
         <div className="footer-grid">
           <div>
             <h4>PRODUCT</h4>

@@ -1,8 +1,8 @@
 {
-  "name": "callmaster-frontend",
+  "name": "nimantran-frontend",
   "version": "1.0.0",
   "private": true,
-  "description": "CallMaster website (React) with built-in admin panel at /admin",
+  "description": "Nimantran website (React) with built-in admin panel at /admin",
   "type": "module",
   "scripts": {
     "dev": "vite",

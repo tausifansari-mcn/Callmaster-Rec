@@ -7,96 +7,73 @@
  */
 
 export const DEFAULT_SITE = {
-  brandName: 'CallMaster',
-  siteTitle: 'CallMaster — Deep Customer Insights, Voice Bot & Cloud Telephony',
+  brandName: 'Nimantran',
+  siteTitle: 'Nimantran: Cloud Telephony, AI Call Audits & Voice Bots',
   domain: '', // replaces "[domain]" across the site once set
   entityName: '', // replaces "[operating entity name]" once set
-  navCtaLabel: 'Try Live Demo',
-  sandboxBanner: { show: true, text: 'SANDBOX BUILD · FOR INTERNAL TESTING' },
-  footerNote: 'CallMaster — sandbox build for internal testing only. Not a production site.',
-  emails: { care: 'care@callmaster.ai', hello: '', sales: '', support: '', privacy: '' }, // full addresses; blank = derive from domain
+  navCtaLabel: 'Book a meeting',
+  sandboxBanner: { show: false, text: 'SANDBOX BUILD · FOR INTERNAL TESTING' },
+  footerNote: 'Nimantran — sandbox build for internal testing only. Not a production site.',
+  emails: { care: 'care@nimantran.ai', hello: '', sales: '', support: '', privacy: '' }, // full addresses; blank = derive from domain
   phoneAddress: '+91 96671 95550\nTrapezoid IT Park, 1st Floor, C-27, C Block, Phase 2, Sector 62, Noida – 201309', // shown under "Direct contact"
-  bookingTimes: ['10:00 AM', '11:30 AM', '1:00 PM', '2:30 PM', '4:00 PM', '5:30 PM'], // "Book a call" slots (IST)
-  bookingDaysAhead: 5, // working days offered, starting tomorrow
+  // "Book a call" calendar (IST): Monday–Saturday, 11:30 AM–5:30 PM, 30-minute slots (last slot starts 5:00 PM).
+  bookingTimes: ['11:30 AM', '12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM', '5:00 PM'],
+  bookingDaysAhead: 60, // working days offered (Mon–Sat, minus holidays below), starting tomorrow — enough for a few months of calendar navigation
   bookingCapacity: 1, // bookings allowed per slot
+  // Government of India gazetted holidays + major festivals the calendar closes on, on top of the permanent Sunday closure.
+  bookingHolidays: {
+    '2026-01-14': 'Makar Sankranti / Pongal', '2026-01-23': 'Basant Panchami', '2026-01-26': 'Republic Day', '2026-02-15': 'Maha Shivratri',
+    '2026-03-03': 'Holika Dahan', '2026-03-04': 'Holi', '2026-03-19': 'Ugadi / Gudi Padwa', '2026-03-21': 'Id-ul-Fitr', '2026-03-26': 'Ram Navami',
+    '2026-03-31': 'Mahavir Jayanti', '2026-04-03': 'Good Friday', '2026-04-14': 'Vaisakhi / Vishu', '2026-05-01': 'Buddha Purnima',
+    '2026-05-27': 'Id-ul-Zuha (Bakrid)', '2026-06-26': 'Muharram', '2026-07-16': 'Rath Yatra', '2026-08-15': 'Independence Day',
+    '2026-08-26': 'Milad-un-Nabi', '2026-08-28': 'Raksha Bandhan', '2026-09-04': 'Janmashtami', '2026-09-14': 'Ganesh Chaturthi',
+    '2026-10-02': 'Gandhi Jayanti', '2026-10-19': 'Maha Ashtami', '2026-10-20': 'Dussehra', '2026-11-08': 'Diwali', '2026-11-09': 'Govardhan Puja',
+    '2026-11-11': 'Bhai Dooj', '2026-11-15': 'Chhath Puja', '2026-11-24': 'Guru Nanak Jayanti', '2026-12-25': 'Christmas Day',
+    '2027-01-14': 'Makar Sankranti', '2027-01-15': 'Pongal', '2027-01-26': 'Republic Day', '2027-02-11': 'Basant Panchami',
+    '2027-03-06': 'Maha Shivratri', '2027-03-10': 'Id-ul-Fitr', '2027-03-22': 'Holika Dahan', '2027-03-23': 'Holi', '2027-03-26': 'Good Friday',
+    '2027-04-07': 'Ugadi / Gudi Padwa', '2027-04-14': 'Vaisakhi / Vishu', '2027-04-15': 'Ram Navami', '2027-04-19': 'Mahavir Jayanti',
+    '2027-05-17': 'Id-ul-Zuha (Bakrid)', '2027-05-20': 'Buddha Purnima', '2027-06-16': 'Muharram', '2027-07-05': 'Rath Yatra',
+    '2027-08-15': 'Independence Day / Milad-un-Nabi', '2027-08-17': 'Raksha Bandhan', '2027-08-25': 'Janmashtami', '2027-09-04': 'Ganesh Chaturthi',
+    '2027-09-12': 'Onam', '2027-10-02': 'Gandhi Jayanti', '2027-10-07': 'Maha Ashtami', '2027-10-08': 'Maha Navami', '2027-10-09': 'Dussehra',
+    '2027-10-28': 'Naraka Chaturdashi', '2027-10-29': 'Diwali', '2027-10-30': 'Govardhan Puja', '2027-10-31': 'Bhai Dooj',
+    '2027-11-04': 'Chhath Puja', '2027-11-14': 'Guru Nanak Jayanti', '2027-12-25': 'Christmas Day',
+  },
   promoCodeExample: 'MCN247X', // shown in "Have a discount code, e.g. …?" hints and in the chatbot
   cancellationWindowDays: 3, // Cloud Telephony: full refund if cancelled within this many days of purchase
   refundWorkingDays: 7, // …processed to the original payment method within this many working days
-  logoFile: '', // set by uploading a logo in Admin → Site settings (empty = text brand)
+  logoFile: 'nimantran-logo.png', // set by uploading a logo in Admin → Site settings (empty = text brand)
 };
 
 export const DEFAULT_HOME = {
   heroVideoFile: '', // set by uploading a video in Admin → Home page (empty = a plain dark hero)
-  eyebrow: 'One platform. Every customer conversation.',
-  title: 'Sell More. Serve Better. On Every Call.',
-  sub: 'Voice, WhatsApp, email and calls — all in one place, with AI listening to every conversation and telling you exactly what\'s working. Built by a team that has run contact centers for 23 years. Live in minutes. No sales call needed.',
-  primaryCta: 'See It Work — Free',
-  secondaryCta: 'Talk to Us',
+  eyebrow: 'AI call intelligence, built by a company that\'s run contact centers for 23 years',
+  title: 'Hear it work before you buy it.',
+  sub: 'Nimantran audits every call instead of a 2% sample through Quality Audits, places real Voice Bot calls in the accent and language you choose, and quotes SIP Channels for the volume you actually run — all live below, on your own number, your own recording, your own script.',
+  primaryCta: 'Try the Live Demo',
+  secondaryCta: 'Talk to Sales',
   trustQuote: '"Built by people who have run the floor for 23 years — not people who have read about it."',
   stats: [
-    { value: '23+ yrs', label: 'in contact center operations' },
-    { value: '250+', label: 'enterprise clients' },
+    { value: '23+', label: 'years in contact center operations' },
+    { value: '250+', label: 'businesses served' },
     { value: '97%', label: 'client retention' },
-    { value: 'ISO 27001:2022', label: 'certified' },
-    { value: '6', label: 'products, 1 platform' },
+    { value: 'ISO 27001', label: '2022 certified' },
   ],
-  ctaBandTitle: 'See it work on your own call, in your own language, on your own phone.',
+  ctaBandTitle: 'Hear it on your own calls.',
   ctaBandButton: 'Try the Live Demo — No Cost, No Commitment',
 };
 
 export const DEFAULT_PRICING = {
   gstRate: 18,
-  telephony: { licenseRate: 1500, channelRate: 650, didRate: 75 },
-  dialers: {
-    tiers: [
-      { min: 1, max: 5, rate: 1500 },
-      { min: 6, max: 10, rate: 1200 },
-      { min: 11, max: 20, rate: 1100 },
-    ],
-  },
+  // vendorMin/vendorMax bound the "what do you pay your current vendor?" price-match field on the quote forms —
+  // below vendorMin the number needs a manual review, above vendorMax it's rejected as not a plausible rate.
+  telephony: { licenseRate: 1500, channelRate: 650, didRate: 75, vendorMin: 500, vendorMax: 10000 },
   voiceBot: {
     setupFee: 30000,
     languageFee: 15000,
     perMinuteRate: 3.5,
-    languages: ['Tamil', 'Telugu', 'Kannada', 'Malayalam', 'Bengali', 'Marathi', 'Gujarati', 'Punjabi'],
-  },
-  emailAutomation: {
-    plans: [
-      {
-        key: 'starter', name: 'Starter', badge: 'Starter', price: 2999, unit: '/month', featured: false, contactOnly: false,
-        features: ['Up to 10,000 emails/month', '3 active sequences', 'Standard deliverability monitoring'],
-      },
-      {
-        key: 'growth', name: 'Growth', badge: 'Growth — most popular', price: 8999, unit: '/month', featured: true, contactOnly: false,
-        features: ['Up to 50,000 emails/month', 'Unlimited sequences', 'Dedicated IP warm-up'],
-      },
-      {
-        key: 'enterprise', name: 'Enterprise', badge: 'Enterprise', price: 0, unit: '', featured: false, contactOnly: true,
-        features: ['Dedicated sending infrastructure', 'Custom deliverability SLAs', 'Volume-based pricing'],
-      },
-    ],
-  },
-  whatsapp: {
-    plans: [
-      {
-        key: 'starter', name: 'Starter', badge: 'Starter', price: 4999, unit: '/month', featured: false, contactOnly: false,
-        features: ['Green-tick verified number, up to 3 agent seats', '2 approved message templates', 'Shared inbox, standard support'],
-      },
-      {
-        key: 'growth', name: 'Growth', badge: 'Growth — most popular', price: 12999, unit: '/month', featured: true, contactOnly: false,
-        features: ['Up to 15 agent seats', 'Unlimited templates, catalog & commerce', 'Broadcast campaign tools & chatbot builder'],
-      },
-      {
-        key: 'enterprise', name: 'Enterprise', badge: 'Enterprise', price: 0, unit: '', featured: false, contactOnly: true,
-        features: ['Unlimited seats, multi-number/multi-brand', 'Dedicated account management', 'Custom integrations & SLA-backed onboarding'],
-      },
-    ],
-    interactionRates: [
-      { category: 'Marketing', rate: 0.94, use: 'Promotions, offers, re-engagement broadcasts' },
-      { category: 'Utility', rate: 0.2, use: 'Order updates, delivery status, account alerts' },
-      { category: 'Authentication', rate: 0.18, use: 'OTPs and login/verification codes' },
-      { category: 'Service', rate: 0.04, use: 'Customer-initiated support replies within the 24-hr window' },
-    ],
+    vendorMin: 1,
+    vendorMax: 20,
+    languages: ['Tamil', 'Telugu', 'Kannada', 'Malayalam', 'Marathi', 'Bengali', 'Gujarati', 'Punjabi', 'Odia', 'Assamese'],
   },
 };
 
@@ -111,32 +88,28 @@ export const DEFAULT_FAQS = {
     { q: 'Can the bot handle interruptions and follow-up questions?', a: 'Yes — it\'s built on conversational AI, not a fixed IVR tree.' },
     { q: 'What happens if the bot can\'t resolve the query?', a: 'It escalates — to a live agent or a scheduled callback, on your existing flow. No extra setup required.' },
     { q: 'Can it be trained on our specific scripts and FAQs?', a: 'Yes — point it at your existing scripts and FAQs and it plugs straight in. No lengthy integration project.' },
-    { q: 'Which languages/dialects are supported today vs. on the roadmap?', a: 'English, Hindi, Hinglish, British English and American English today, with more planned.' },
-  ],
-  dialers: [
-    { q: 'Can this integrate with our existing CRM?', a: 'Yes — it plugs into your existing CRM and call-routing stack without a rip-and-replace project.' },
-    { q: 'Does it work with Deep Customer Insights out of the box?', a: 'Yes — every connected call is automatically eligible for CLAP, MAGIC Script or RESO scoring, no separate setup.' },
-  ],
-  email: [
-    { q: 'Can I bring my own sending domain?', a: 'Yes — connect your own domain and we handle DKIM/SPF/DMARC setup as part of onboarding.' },
-    { q: 'What happens if I go over my monthly email limit?', a: 'You\'re notified before you hit the cap, with the option to upgrade or top up rather than being cut off mid-campaign.' },
-  ],
-  whatsapp: [
-    { q: 'Do I need my own Meta Business Manager account?', a: 'We can provision one for you or connect to your existing account and green-tick verification as part of onboarding.' },
-    { q: 'What counts as a conversation/message for billing?', a: 'Each message is billed by Meta\'s category (Marketing, Utility, Authentication or Service) at the rates above — a 24-hour customer-service window opened by an incoming message is billed at the Service rate regardless of how many replies you send inside it.' },
-    { q: 'Can I run automated chatbot flows and still hand off to a human?', a: 'Yes — the no-code builder handles FAQs, qualification and order-status flows, and hands the conversation to a live agent in the shared inbox the moment it can\'t resolve something, or on request.' },
-    { q: 'Is the green tick guaranteed?', a: 'Official Business Verification is granted by Meta based on your business documentation — we manage the submission and support you through it, but final approval is Meta\'s call.' },
+    { q: 'Which languages/dialects are supported today vs. on the roadmap?', a: 'English, Hindi, Hinglish, British English and American English today, with regional Indian languages available as one-time add-ons.' },
+    { q: 'Paying your current voice bot vendor less per minute?', a: 'Tell us what you pay today on the quote form — if it\'s a plausible rate, we\'ll try to match it before you commit.' },
   ],
   telephony: [
     { q: 'What exactly makes a number "mobile look-alike"?', a: 'It\'s formatted and routed to present as a standard 10-digit mobile number rather than a visibly corporate pattern (1800/0XX toll-free or landline prefixes) — the same call quality, but far less likely to be ignored, screened, or flagged as spam.' },
-    { q: 'How does the 2% Insights audit work?', a: 'A random 2% sample of your monthly call volume is automatically scored through Deep Customer Insights — CLAP, MAGIC Script or RESO depending on the call type — at no extra cost, so you get visibility into call quality without buying a separate product.' },
+    { q: 'How does the 2% Insights audit work?', a: 'A random 2% sample of your monthly call volume is automatically scored through Quality Audits — CLAP, MAGIC Script or RESO depending on the call type — at no extra cost in your first month, so you get visibility into call quality without buying a separate product.' },
     { q: 'Can I change my license, channel or DID count later?', a: 'Yes — this is a configurable, self-serve plan. Scale up or down and your next bill reflects it.' },
+    { q: 'Already using another provider?', a: 'Tell us who it is and what you pay per licence on the configurator — if it\'s a plausible rate, we\'ll match it and add more benefits on top.' },
     { q: 'Is there a bigger discount for high volume?', a: 'For large, custom deployments, [talk to Enterprise Sales](/contact) instead of checking out here.' },
+  ],
+  sip: [
+    { q: 'How is SIP Channels pricing worked out?', a: 'By your channel count and usage pattern — tell us how many concurrent channels you need and we\'ll quote it to your actual volume rather than a generic rate card.' },
+    { q: 'What uptime standard do SIP Channels run to?', a: 'The uptime a 24/7 contact center actually needs, not a best-effort startup SLA — the specifics are confirmed with you on the quote.' },
+  ],
+  social: [
+    { q: 'When will Social Listening be available?', a: 'We\'re finalizing scope and data sources ahead of general availability — talk to sales to be notified when it launches.' },
+    { q: 'What will Social Listening track?', a: 'What\'s said about your brand across the channels customers actually vent on, so a five-star call doesn\'t quietly mask a one-star thread elsewhere. Full scope is still being defined.' },
   ],
 };
 
 export const DEFAULT_CHATBOT = {
-  greeting: 'Hi! I\'m the CallMaster helpline bot. Ask me about our products, pricing, demos, refunds, or anything else — or tap a quick question below.',
+  greeting: 'Hi! I\'m the Nimantran helpline bot. Ask me about our products, pricing, demos, refunds, or anything else — or tap a quick question below.',
   fallback: 'I couldn\'t quite match that to something specific — let me connect you with our team instead.',
   quickReplies: ['What products do you offer?', 'How does pricing work?', 'How do I get support?', 'Can I try a demo?'],
   // Opens the chat by itself when a visitor has been idle on a page for a while.
@@ -151,22 +124,21 @@ export const DEFAULT_CHATBOT = {
   // Rules are checked top to bottom; the first match wins. A rule matches when the message contains any keyword,
   // or matches `pattern` (a regular expression) and does not match `excludePattern`.
   rules: [
-    { keywords: [], pattern: 'product|offer|what (do you|can you)', excludePattern: 'pric|cost', reply: 'We build six products: Deep Customer Insights (call scoring/QA), Voice Bot, Dialers, Email Automation, WhatsApp Business API, and Cloud Telephony. Which one would you like to know more about?', target: '', anchor: '', label: '' },
+    { keywords: [], pattern: 'product|offer|what (do you|can you)', excludePattern: 'pric|cost', reply: 'We build five products: Quality Audits (call scoring/QA), Voice Bot, Cloud Telephony, SIP Channels, and Social Listening. Which one would you like to know more about?', target: '', anchor: '', label: '' },
     { keywords: [], pattern: 'support|help me|get support', excludePattern: '', reply: 'For support, reach our team via the Contact page — replies within one business day.', target: 'contact', anchor: '', label: 'Go to Contact' },
     { keywords: ['voice bot', 'voicebot', 'voice-bot'], pattern: '', excludePattern: '', reply: 'Our Voice Bot places real AI-driven calls — pick industry, call type, language and voice, and try it on your own number free. Setup is a one-time {{voiceBot.setupFee}} (+{{voiceBot.languageFee}} per extra regional language), then {{voiceBot.perMinuteRate}}/minute usage.', target: 'voice', anchor: 'voice-pricing', label: 'Open Voice Bot pricing' },
-    { keywords: ['whatsapp', 'whats app'], pattern: '', excludePattern: '', reply: 'WhatsApp Business API gets you the official green tick, a shared team inbox, catalog/commerce and broadcast automation. Plans start at {{whatsapp.plans.0.price}}/month, plus Meta\'s pass-through per-message interaction charges.', target: 'whatsapp-api', anchor: 'whatsapp-pricing', label: 'Open WhatsApp API pricing' },
     { keywords: ['cloud telephony', 'telephony', 'phone number', 'did'], pattern: '', excludePattern: '', reply: 'Cloud Telephony gives you the mobile look-alike number — formatted to get answered like a normal 10-digit mobile, not screened like a landline or 1800 number. Configure licenses, channels and DIDs and pay online.', target: 'telephony', anchor: 'telephony-pricing', label: 'Configure Cloud Telephony' },
-    { keywords: ['dialer', 'predictive', 'power dialer'], pattern: '', excludePattern: '', reply: 'Our Dialers support predictive, power and preview modes with DNC scrubbing built in. Pricing is tiered by seat count: {{dialers.tiers.0.rate}}/agent/month for 1–5 seats, {{dialers.tiers.1.rate}} for 6–10, {{dialers.tiers.2.rate}} for 11–20 — above 20 seats, talk to sales.', target: 'dialers', anchor: 'dialers-pricing', label: 'Open Dialer pricing' },
-    { keywords: ['email automation', 'email sequence', 'drip'], pattern: '', excludePattern: '', reply: 'Email Automation covers drip sequences, deliverability monitoring and CRM sync, from {{emailAutomation.plans.0.price}}/month.', target: 'email-automation', anchor: 'email-pricing', label: 'Open Email Automation pricing' },
-    { keywords: ['insight', 'audit', 'call scoring', 'clap', 'magic script', 'reso'], pattern: '', excludePattern: '', reply: 'Deep Customer Insights scores every call the right way — quality for service, best-pitch finder for sales, promise-to-pay scoring for collections. You can try it free on your own call.', target: 'audit', anchor: 'audit-pricing', label: 'Try Deep Customer Insights' },
-    { keywords: ['pricing', 'price', 'cost', 'how much'], pattern: '', excludePattern: '', reply: 'Most products are self-serve — pick a plan and pay online instantly. Deep Customer Insights is volume-based, so we email you exact rates. Head to the Pricing page for a full breakdown by product.', target: 'pricing', anchor: '', label: 'See all pricing' },
-    { keywords: ['refund', 'cancel', 'cancellation'], pattern: '', excludePattern: '', reply: 'You can cancel a subscription any time — it stays active till the end of the current billing cycle. One-time setup fees are refundable in full if work hasn\'t started yet. Full details are in our Refund & Cancellation Policy.', target: 'refund-policy', anchor: '', label: 'Read the Refund Policy' },
+    { keywords: ['sip', 'sip channel', 'concurrent call', 'channels'], pattern: '', excludePattern: '', reply: 'SIP Channels give you inbound and outbound concurrent-call capacity, quoted to your actual volume. Tell us your channel count and we\'ll come back with pricing.', target: 'sip-channels', anchor: '', label: 'Get SIP Channels pricing' },
+    { keywords: ['social listening', 'social media', 'brand mentions'], pattern: '', excludePattern: '', reply: 'Social Listening tracks what\'s said about your brand beyond the call. It\'s not generally available yet — talk to sales to be notified at launch.', target: 'social-listening', anchor: '', label: 'Learn about Social Listening' },
+    { keywords: ['insight', 'audit', 'call scoring', 'clap', 'magic script', 'reso'], pattern: '', excludePattern: '', reply: 'Quality Audits scores every call the right way — quality for service, best-pitch finder for sales, promise-to-pay scoring for collections. You can try it free on your own call.', target: 'audit', anchor: 'audit-pricing', label: 'Try Quality Audits' },
+    { keywords: ['pricing', 'price', 'cost', 'how much'], pattern: '', excludePattern: '', reply: 'Cloud Telephony and Voice Bot are self-serve — pick a plan and pay online instantly. Quality Audits, SIP Channels and Social Listening are quoted to your volume, so we email you exact rates. Head to the Pricing page for a full breakdown by product.', target: 'pricing', anchor: '', label: 'See all pricing' },
+    { keywords: ['refund', 'cancel', 'cancellation'], pattern: '', excludePattern: '', reply: 'Cloud Telephony can be cancelled within {{cancellationWindowDays}} days of purchase for a full refund, paid within {{refundWorkingDays}} working days — email care@nimantran.ai with your company name. Full details are in our Refund & Cancellation Policy.', target: 'refund-policy', anchor: '', label: 'Read the Refund Policy' },
     { keywords: ['contact', 'talk to sales', 'human', 'agent', 'callback'], pattern: '', excludePattern: '', reply: 'Happy to connect you with our team — leave your details on the Contact page and we\'ll get back within one business day.', target: 'contact', anchor: '', label: 'Go to Contact' },
-    { keywords: ['demo', 'trial', 'try it', 'free'], pattern: '', excludePattern: '', reply: 'You can try Deep Customer Insights on your own call, or have our Voice Bot call your own phone — both are free, no card required. Which would you like to try?', target: 'audit', anchor: '', label: 'Try a live demo' },
+    { keywords: ['demo', 'trial', 'try it', 'free'], pattern: '', excludePattern: '', reply: 'You can try Quality Audits on your own call, or have our Voice Bot call your own phone — both are free, no card required. Which would you like to try?', target: 'audit', anchor: '', label: 'Try a live demo' },
     { keywords: ['gst', 'tax', 'invoice'], pattern: '', excludePattern: '', reply: 'GST is charged at {{gstRate}}% on top of the subtotal at checkout, after any discount code is applied. Your invoice reflects the GST number you provide during checkout.', target: '', anchor: '', label: '' },
     { keywords: ['otp', 'verification', 'verify email'], pattern: '', excludePattern: '', reply: 'We verify every checkout with a one-time code sent to your official business email — this confirms it\'s really you before payment, and we don\'t accept personal addresses like Gmail or Yahoo for billing.', target: '', anchor: '', label: '' },
     { keywords: ['payment', 'razorpay', 'checkout', 'pay'], pattern: '', excludePattern: '', reply: 'Checkout runs through Razorpay. You\'ll see requirement → company details → email OTP → payment, with the final amount (incl. GST, minus any discount code) confirmed before you pay.', target: '', anchor: '', label: '' },
-    { keywords: ['discount', 'promo', 'coupon', 'code'], pattern: '', excludePattern: '', reply: 'Discount codes are applied on the payment step of checkout, across every product — try {{site.promoCodeExample}} for 10% off, subtracted before GST.', target: '', anchor: '', label: '' },
+    { keywords: ['discount', 'promo', 'coupon', 'code'], pattern: '', excludePattern: '', reply: 'Discount codes are applied on the payment step of checkout, across every self-serve product — try {{site.promoCodeExample}} for 10% off, subtracted before GST.', target: '', anchor: '', label: '' },
     { keywords: ['support', 'help'], pattern: '', excludePattern: '', reply: 'For account or product support, reach out via the Contact page and our team replies within one business day — or keep chatting here for quick answers.', target: 'contact', anchor: '', label: 'Go to Contact' },
   ],
 };
@@ -178,14 +150,14 @@ export const DEFAULT_CHATBOT = {
  */
 export const DEFAULT_EMAIL = {
   smtp: { host: '', port: 587, secure: false, user: '', pass: '' },
-  fromName: 'CallMaster',
+  fromName: 'Nimantran',
   fromEmail: '', // blank = the SMTP user
   notifyTo: '', // comma-separated inboxes that receive new-message / lead / order alerts
   notify: { contact: true, lead: true, order: true, demo: true },
   autoReply: {
     enabled: false,
-    subject: 'We received your message — CallMaster',
-    body: 'Hi {{name}},\n\nThanks for reaching out to CallMaster. We\'ve received your message and will get back to you within one business day.\n\nRegards,\nTeam CallMaster',
+    subject: 'We received your message — Nimantran',
+    body: 'Hi {{name}},\n\nThanks for reaching out to Nimantran. We\'ve received your message and will get back to you within one business day.\n\nRegards,\nTeam Nimantran',
   },
 };
 
@@ -229,7 +201,7 @@ export const DEFAULT_INSIGHTS = {
 
 export const DEFAULT_WHITEPAPERS = [
   { slug: 'mobile-look-alike-number', title: 'The Mobile Look-Alike Number', description: 'Why the number you call from decides whether your customer picks up. One page, no fluff.', order: 10 },
-  { slug: 'clap-magic-script-reso', title: 'CLAP, MAGIC Script & RESO', description: 'The three frameworks behind Deep Customer Insights, explained in full — and why a software company alone couldn\'t have built them.', order: 20 },
+  { slug: 'clap-magic-script-reso', title: 'CLAP, MAGIC Script & RESO', description: 'The three frameworks behind Quality Audits, explained in full — and why a software company alone couldn\'t have built them.', order: 20 },
 ];
 
 export const DEFAULT_SETTINGS = {

@@ -111,10 +111,10 @@ export default function ChatWidget() {
     <>
       <button type="button" className={`chat-bubble${visible ? ' visible' : ''}`} aria-label="Chat" onClick={toggle}>💬</button>
 
-      <div className={`chat-panel${open ? ' open' : ''}`} role="dialog" aria-label="CallMaster helpline chat">
+      <div className={`chat-panel${open ? ' open' : ''}`} role="dialog" aria-label="Nimantran helpline chat">
         <div className="chat-head">
           <div>
-            <div className="chat-head-title">CallMaster Helpline</div>
+            <div className="chat-head-title">Nimantran Helpline</div>
             <div className="chat-head-sub">Usually replies instantly · sandbox bot</div>
           </div>
           <button type="button" className="chat-close-btn" aria-label="Close chat" onClick={() => setOpen(false)}>&times;</button>

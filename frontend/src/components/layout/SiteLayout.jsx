@@ -15,6 +15,8 @@ function Shell() {
 
   useEffect(() => { setMenuOpen(false); }, [pathname]);
   useEffect(() => { document.title = site.siteTitle; }, [site.siteTitle]);
+  // The public site is light-only (matches the brand); only the admin panel offers a dark theme.
+  useEffect(() => { document.documentElement.setAttribute('data-theme', 'light'); }, []);
 
   // A logo makes the header taller (CSS var --nav-h), and doubles as the browser-tab icon.
   const logo = logoUrl(site);

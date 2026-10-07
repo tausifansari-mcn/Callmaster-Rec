@@ -57,6 +57,37 @@ describe('rubrics', () => {
       assert.ok(tool.input_schema.required.includes(extra));
     }
   });
+
+  test('customRubric: weights sum to 100, no framework extra, dedupes and caps at 20', async () => {
+    const { customRubric } = await import('../src/services/audit/rubrics.js');
+    const r = customRubric(['Opening script', 'Objection handling', 'Closing', 'Opening script', '  ', ''], 'Outbound Sales');
+    assert.equal(r.parameters.length, 3); // de-duplicated, blanks dropped
+    assert.equal(r.parameters.reduce((s, p) => s + p.weight, 0), 100);
+    assert.equal(r.extra, undefined);
+    assert.equal(r.compliance.length, 0);
+    assert.equal(r.lob, 'Outbound Sales');
+    assert.equal(r.parameters[0].name, 'Opening script');
+
+    // Flows cleanly through the same tool-schema builder as the standard rubrics, with no framework-specific section.
+    const tool = buildToolSchema(r);
+    assert.deepEqual(tool.input_schema.properties.parameters.items.properties.key.enum, ['custom_0', 'custom_1', 'custom_2']);
+    assert.equal(tool.input_schema.properties.clap, undefined);
+    assert.equal(tool.input_schema.properties.magic, undefined);
+    assert.equal(tool.input_schema.properties.reso, undefined);
+
+    // More than 20 names is capped; an empty list still produces a usable single-parameter rubric.
+    assert.equal(customRubric(Array.from({ length: 30 }, (_, i) => `Param ${i}`)).parameters.length, 20);
+    const empty = customRubric([]);
+    assert.equal(empty.parameters.length, 1);
+    assert.equal(empty.parameters[0].weight, 100);
+  });
+
+  test('a mock audit against custom parameters uses them instead of the LOB rubric', () => {
+    const { results } = buildMockAudit('Inbound Support', 'Priya', ['My own parameter A', 'My own parameter B']);
+    assert.equal(results.framework, 'Custom scoring parameters');
+    assert.deepEqual(results.parameters.map((p) => p.name), ['My own parameter A', 'My own parameter B']);
+    assert.ok(results.score >= 0 && results.score <= 100);
+  });
 });
 
 describe('scoring', () => {

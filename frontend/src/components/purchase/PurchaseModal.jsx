@@ -89,10 +89,10 @@ export default function PurchaseModal({ session, onClose }) {
             order_id: order.razorpay.orderId,
             amount: order.razorpay.amount,
             currency: order.razorpay.currency,
-            name: 'CallMaster',
+            name: 'Nimantran',
             description: `${order.quote.product} — ${order.quote.plan}`,
             prefill: { name: customer.contact, email: customer.email, contact: customer.phone },
-            theme: { color: '#E9A23B' },
+            theme: { color: '#2563EB' },
             handler: (r) => resolve(r),
             modal: { ondismiss: () => reject(new Error('Payment was cancelled. You can try again.')) },
           });

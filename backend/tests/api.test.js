@@ -124,16 +124,26 @@ describe('checkout', () => {
     assert.equal(bad.status, 400);
   });
 
-  test('dialer tiers and the >20 seat cutoff', async () => {
-    const t = (qty) => call('POST', '/checkout/quote', { body: { productKey: 'dialers', config: { qty } } });
-    assert.equal((await t(3)).body.subtotal, 4500);
-    assert.equal((await t(8)).body.subtotal, 9600);
-    assert.equal((await t(15)).body.subtotal, 16500);
-    assert.equal((await t(21)).status, 400);
+  test('cloud telephony vendor price match: matched, same, below-floor and implausible rates', async () => {
+    const q = (vendorRate, vendorName = 'Acme Telecom') => call('POST', '/checkout/quote', { body: { productKey: 'cloud-telephony', config: { lic: 2, vendorRate, vendorName } } });
+    const matched = await q(1200); // below our ₹1,500 rate, within [vendorMin, vendorMax] → auto price-matched
+    assert.equal(matched.body.vendorMatch.state, 'match');
+    assert.equal(matched.body.subtotal, 2400); // 2 × ₹1,200
+    const same = await q(1500);
+    assert.equal(same.body.vendorMatch.state, 'same');
+    assert.equal(same.body.subtotal, 3000);
+    const low = await q(100); // below vendorMin (500) → flagged, not auto-applied
+    assert.equal(low.body.vendorMatch.state, 'low');
+    assert.equal(low.body.subtotal, 3000);
+    const noName = await q(1200, '');
+    assert.equal(noName.body.vendorMatch.state, 'noname');
+    const implausible = await q(999999);
+    assert.equal(implausible.body.vendorMatch.state, 'invalid');
+    assert.equal(implausible.body.subtotal, 3000); // unaffected by an implausible claim
   });
 
-  test('enterprise plans cannot be bought online', async () => {
-    const r = await call('POST', '/checkout/quote', { body: { productKey: 'email-automation', config: { planKey: 'enterprise' } } });
+  test('unknown voice bot language is rejected', async () => {
+    const r = await call('POST', '/checkout/quote', { body: { productKey: 'voice-bot', config: { languages: ['Klingon'] } } });
     assert.equal(r.status, 400);
   });
 
@@ -141,12 +151,12 @@ describe('checkout', () => {
     const email = 'buyer@acme.in';
     const verifyToken = await verifiedToken(email);
     const res = await placeOrder({
-      productKey: 'whatsapp-api', config: { planKey: 'growth', qty: 2, total: 1 }, promoCode: 'MCN247X', customer: customer(email), verifyToken,
+      productKey: 'cloud-telephony', config: { lic: 10, chan: 0, did: 0, total: 1 }, promoCode: 'MCN247X', customer: customer(email), verifyToken,
     });
     assert.equal(res.status, 201, JSON.stringify(res.body));
-    assert.equal(res.body.quote.subtotal, 25998);
-    assert.equal(res.body.quote.total, Math.round(25998 * 0.9) + Math.round(Math.round(25998 * 0.9) * 0.18));
-    assert.match(res.body.orderId, /^CM-WH-[A-Z0-9]{6}$/);
+    assert.equal(res.body.quote.subtotal, 15000);
+    assert.equal(res.body.quote.total, Math.round(15000 * 0.9) + Math.round(Math.round(15000 * 0.9) * 0.18));
+    assert.match(res.body.orderId, /^CM-CL-[A-Z0-9]{6}$/);
 
     const wrongToken = await call('POST', `/orders/${res.body.orderId}/sandbox-pay`, { body: { accessToken: 'x' } });
     assert.equal(wrongToken.status, 404);
@@ -157,7 +167,7 @@ describe('checkout', () => {
   });
 
   test('order requires a verified email', async () => {
-    const res = await placeOrder({ productKey: 'dialers', config: { qty: 2 }, customer: customer('x@acme.in'), verifyToken: 'not-a-real-token' });
+    const res = await placeOrder({ productKey: 'cloud-telephony', config: { lic: 1 }, customer: customer('x@acme.in'), verifyToken: 'not-a-real-token' });
     assert.equal(res.status, 403);
   });
 
@@ -285,7 +295,7 @@ describe('admin', () => {
     const q = await call('POST', '/checkout/quote', { body: { productKey: 'cloud-telephony', config: { lic: 2 } } });
     assert.equal(q.body.subtotal, 4000);
 
-    pricing.dialers.tiers = [{ min: 1, max: 10, rate: 1 }, { min: 5, max: 20, rate: 2 }];
+    pricing.telephony.vendorMax = pricing.telephony.vendorMin - 1; // "up to" below "from" — invalid
     assert.equal((await call('PUT', '/admin/settings/pricing', { token: adminToken, body: pricing })).status, 400);
     await call('POST', '/admin/settings/pricing/reset', { token: adminToken });
   });
@@ -303,7 +313,7 @@ describe('admin', () => {
 
     const promo = await call('POST', '/admin/promos', { token: adminToken, body: { code: 'save20', percent: 20 } });
     assert.equal(promo.status, 201);
-    const q = await call('POST', '/checkout/quote', { body: { productKey: 'dialers', config: { qty: 1 }, promoCode: 'SAVE20' } });
+    const q = await call('POST', '/checkout/quote', { body: { productKey: 'cloud-telephony', config: { lic: 1 }, promoCode: 'SAVE20' } });
     assert.equal(q.body.discountAmount, 300);
   });
 
@@ -544,7 +554,7 @@ describe('customer accounts & cancellation', () => {
     const email = 'consent@acme.in';
     const verifyToken = await verifiedToken(email);
     const form = new FormData();
-    form.append('payload', JSON.stringify({ productKey: 'dialers', config: { qty: 1 }, customer: customer(email), verifyToken }));
+    form.append('payload', JSON.stringify({ productKey: 'cloud-telephony', config: { lic: 1 }, customer: customer(email), verifyToken }));
     const res = await call('POST', '/orders', { form });
     assert.equal(res.status, 400);
     assert.match(res.body.error.message, /read and understood/);
@@ -557,7 +567,7 @@ describe('customer accounts & cancellation', () => {
     assert.equal(a.paid.cancellation.windowDays, 3);
     assert.equal(a.paid.account.created, true);
     const { username, tempPassword } = a.paid.account;
-    assert.match(username, /@callmaster-account$/);
+    assert.match(username, /@nimantran-account$/);
     assert.ok(tempPassword);
 
     assert.equal((await call('POST', '/customer/login', { body: { login: username, password: 'wrong' } })).status, 401);
@@ -622,9 +632,9 @@ describe('customer accounts & cancellation', () => {
   });
 
   test('only paid Cloud Telephony orders inside the window can be cancelled', async () => {
-    const email = 'dialer@acme.in';
+    const email = 'voicebuyer@acme.in';
     const verifyToken = await verifiedToken(email);
-    const res = await placeOrder({ productKey: 'dialers', config: { qty: 1 }, customer: customer(email), verifyToken });
+    const res = await placeOrder({ productKey: 'voice-bot', config: { languages: [] }, customer: customer(email), verifyToken }, 'scope.pdf');
     assert.equal(res.status, 201, JSON.stringify(res.body));
     await call('POST', `/orders/${res.body.orderId}/sandbox-pay`, { body: { accessToken: res.body.accessToken } });
     assert.equal((await call('POST', `/orders/${res.body.orderId}/cancel`, { body: { accessToken: res.body.accessToken } })).status, 409);
@@ -761,29 +771,36 @@ describe('book a call, contact rules and hero video (v3 redesign)', () => {
     assert.equal((await call('POST', '/public/contact', { body: { ...base, email: 'asha@acme.in', phone: '9876543210' } })).status, 201);
   });
 
-  test('offered slots are weekdays in IST starting tomorrow, and a booked slot is taken', async () => {
+  test('offered slots are Mon–Sat in IST starting tomorrow, holidays are skipped, and a booked slot is taken', async () => {
+    const { DEFAULT_SITE } = await import('../src/seed/defaults.js');
+    const GAZETTED_HOLIDAYS_2026_2027 = DEFAULT_SITE.bookingHolidays;
     const { body } = await call('GET', '/public/appointments/slots');
     assert.equal(body.timezone, 'IST');
-    assert.equal(body.days.length, 5);
-    assert.deepEqual(body.days[0].times.map((t) => t.time), ['10:00 AM', '11:30 AM', '1:00 PM', '2:30 PM', '4:00 PM', '5:30 PM']);
-    for (const d of body.days) { const dow = new Date(`${d.date}T00:00:00Z`).getUTCDay(); assert.ok(dow >= 1 && dow <= 5, `${d.date} is a weekday`); }
+    assert.equal(body.days.length, 60);
+    assert.deepEqual(body.days[0].times.map((t) => t.time), ['11:30 AM', '12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM', '3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM', '5:00 PM']);
+    for (const d of body.days) {
+      const dow = new Date(`${d.date}T00:00:00Z`).getUTCDay();
+      assert.ok(dow >= 1 && dow <= 6, `${d.date} is Monday–Saturday`);
+      assert.ok(!GAZETTED_HOLIDAYS_2026_2027[d.date], `${d.date} is not a listed holiday`);
+    }
     const todayIst = new Date(Date.now() + 5.5 * 3600 * 1000).toISOString().slice(0, 10);
     assert.ok(body.days[0].date > todayIst, 'never offers today');
 
     const { date } = body.days[0];
-    const bad = await call('POST', '/public/appointments', { body: { ...person, email: 'priya@gmail.com', date, time: '10:00 AM', source: 'home' } });
+    const bad = await call('POST', '/public/appointments', { body: { ...person, email: 'priya@gmail.com', date, time: '11:30 AM', source: 'home' } });
     assert.equal(bad.status, 400);
     assert.equal((await call('POST', '/public/appointments', { body: { ...person, date, time: '3:17 PM', source: 'home' } })).status, 400, 'not an offered time');
-    assert.equal((await call('POST', '/public/appointments', { body: { ...person, date: '2020-01-06', time: '10:00 AM', source: 'home' } })).status, 400, 'not an offered day');
+    assert.equal((await call('POST', '/public/appointments', { body: { ...person, date: '2020-01-06', time: '11:30 AM', source: 'home' } })).status, 400, 'not an offered day');
+    assert.equal((await call('POST', '/public/appointments', { body: { ...person, date: '2026-12-25', time: '11:30 AM', source: 'home' } })).status, 400, 'not offered on a gazetted holiday (Christmas Day)');
 
-    const ok = await call('POST', '/public/appointments', { body: { ...person, date, time: '10:00 AM', source: 'home' } });
+    const ok = await call('POST', '/public/appointments', { body: { ...person, date, time: '11:30 AM', source: 'home' } });
     assert.equal(ok.status, 201, JSON.stringify(ok.body));
-    assert.match(ok.body.label, /at 10:00 AM IST$/);
-    const again = await call('POST', '/public/appointments', { body: { ...person, name: 'Someone Else', email: 'other@zenithbpo.in', date, time: '10:00 AM', source: 'contact' } });
+    assert.match(ok.body.label, /at 11:30 AM IST$/);
+    const again = await call('POST', '/public/appointments', { body: { ...person, name: 'Someone Else', email: 'other@zenithbpo.in', date, time: '11:30 AM', source: 'contact' } });
     assert.equal(again.status, 409);
     const after = (await call('GET', '/public/appointments/slots')).body.days[0].times;
-    assert.equal(after.find((t) => t.time === '10:00 AM').available, false);
-    assert.equal(after.find((t) => t.time === '11:30 AM').available, true);
+    assert.equal(after.find((t) => t.time === '11:30 AM').available, false);
+    assert.equal(after.find((t) => t.time === '12:00 PM').available, true);
   });
 
   test('admin sees the booking, can update it, and a cancelled slot is bookable again', async () => {
@@ -800,12 +817,12 @@ describe('book a call, contact rules and hero video (v3 redesign)', () => {
 
     await call('PATCH', `/admin/appointments/${a.id}`, { token: adminToken, body: { status: 'cancelled' } });
     const day = (await call('GET', '/public/appointments/slots')).body.days[0];
-    assert.equal(day.times.find((t) => t.time === '10:00 AM').available, true);
+    assert.equal(day.times.find((t) => t.time === '11:30 AM').available, true);
   });
 
   test('booking hours and capacity come from Site settings', async () => {
     const site = (await call('GET', '/admin/settings', { token: adminToken })).body.site;
-    assert.equal(site.emails.care, 'care@callmaster.ai');
+    assert.equal(site.emails.care, 'care@nimantran.ai');
     const put = await call('PUT', '/admin/settings/site', { token: adminToken, body: { ...site, bookingTimes: ['9:00 AM', '4:30 PM'], bookingDaysAhead: 3 } });
     assert.equal(put.status, 200, JSON.stringify(put.body));
     const { days } = (await call('GET', '/public/appointments/slots')).body;

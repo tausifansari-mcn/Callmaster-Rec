@@ -188,7 +188,7 @@ export function buildSystemPrompt(rubric) {
     .map((x) => `- ${x.key} — ${x.name} (weight ${x.weight}): ${x.guide}`)
     .join('\n');
   const checks = rubric.compliance.map((c) => `- ${c}`).join('\n');
-  return `You are a senior contact-centre quality auditor with 20 years of floor experience, auditing one call for CallMaster's "Deep Customer Insights".
+  return `You are a senior contact-centre quality auditor with 20 years of floor experience, auditing one call for Nimantran's "Quality Audits".
 
 CALL TYPE: ${rubric.lob} — ${rubric.description}
 FRAMEWORK: ${rubric.framework}

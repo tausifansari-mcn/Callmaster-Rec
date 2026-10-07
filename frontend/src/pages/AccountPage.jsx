@@ -216,7 +216,7 @@ export default function AccountPage() {
   return (
     <section className="page active">
       <div className="container">
-        <PageHero eyebrow="Customer dashboard" title="Your CallMaster account">
+        <PageHero eyebrow="Customer dashboard" title="Your Nimantran account">
           Manage your orders and subscription. Your login details are in the welcome email we sent after your purchase.
         </PageHero>
         {view === 'loading' && <div className="pm-processing"><div className="pm-spinner" />Loading…</div>}

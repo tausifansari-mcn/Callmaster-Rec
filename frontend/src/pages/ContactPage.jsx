@@ -6,7 +6,7 @@ import Field from '../components/ui/Field.jsx';
 import { PageHero, Section } from '../components/ui/Blocks.jsx';
 import { ERR, PHONE_RE, isOfficialEmail } from '../utils/validators.js';
 
-const INTERESTS = ['Deep Customer Insights', 'Voice Bot', 'Cloud Telephony', 'Enterprise'];
+const INTERESTS = ['Quality Audits', 'Voice Bot', 'Cloud Telephony', 'SIP Channels', 'Social Listening', 'Enterprise'];
 const EMPTY = { name: '', organization: '', email: '', phone: '', interest: INTERESTS[0], message: '' };
 
 /** "Direct contact": the care address plus phone and office address, all editable under Admin → Site settings. */

@@ -48,6 +48,7 @@ const ADDED_COLUMNS = [
   { table: 'demo_sessions', column: 'audit_error', ddl: 'VARCHAR(500) NULL AFTER audit_stage' },
   { table: 'demo_sessions', column: 'access_token', ddl: 'VARCHAR(64) NULL AFTER audit_error' },
   { table: 'demo_sessions', column: 'transcript', ddl: 'LONGTEXT NULL AFTER results' },
+  { table: 'demo_sessions', column: 'custom_params', ddl: 'LONGTEXT NULL AFTER transcript' },
   { table: 'orders', column: 'customer_account_id', ddl: 'BIGINT UNSIGNED NULL AFTER sow_size' },
   { table: 'orders', column: 'dpdp_consent_at', ddl: 'DATETIME(3) NULL AFTER customer_account_id' },
   { table: 'orders', column: 'welcome_offer', ddl: 'TINYINT(1) NOT NULL DEFAULT 0 AFTER dpdp_consent_at' },

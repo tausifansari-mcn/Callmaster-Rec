@@ -6,22 +6,11 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const money = z.coerce.number().min(0).max(100000000);
 
 export const PAGE_KEYS = [
-  '', 'home', 'audit', 'voice', 'dialers', 'email-automation', 'whatsapp-api', 'telephony', 'pricing', 'about', 'contact',
+  '', 'home', 'audit', 'voice', 'telephony', 'sip-channels', 'social-listening', 'pricing', 'about', 'contact',
   'terms', 'privacy', 'cookie-policy', 'data-retention', 'refund-policy', 'insights', 'account',
   // legacy ids from the original single-file site, still present in older stored chatbot rules
   'cookie', 'retention', 'refund',
 ];
-
-const plan = z.object({
-  key: z.string().trim().regex(/^[a-z0-9-]+$/i, 'Plan key may only contain letters, numbers and dashes').max(40),
-  name: str(60).min(1),
-  badge: str(80),
-  price: money,
-  unit: str(30),
-  featured: z.boolean(),
-  contactOnly: z.boolean(),
-  features: z.array(str(200)).max(20),
-});
 
 const faqList = z.array(z.object({ q: str(300).min(1), a: longStr(3000).min(1) })).max(50);
 
@@ -83,8 +72,10 @@ export const settingsSchemas = {
     refundWorkingDays: z.coerce.number().int().min(1).max(60),
     logoFile: str(160),
     bookingTimes: z.array(z.string().trim().regex(/^(1[0-2]|0?[1-9]):[0-5]\d\s?(AM|PM)$/i, 'Use times like 10:00 AM or 2:30 PM')).min(1).max(12),
-    bookingDaysAhead: z.coerce.number().int().min(1).max(14),
+    bookingDaysAhead: z.coerce.number().int().min(1).max(120),
     bookingCapacity: z.coerce.number().int().min(1).max(20),
+    // Dates (YYYY-MM-DD) the booking calendar closes on, beyond the permanent Sunday closure — e.g. gazetted holidays.
+    bookingHolidays: z.record(str(80)).default({}),
   }),
 
   insights: z.object({
@@ -113,28 +104,20 @@ export const settingsSchemas = {
 
   pricing: z.object({
     gstRate: z.coerce.number().min(0).max(100),
-    telephony: z.object({ licenseRate: money, channelRate: money, didRate: money }),
-    dialers: z.object({
-      tiers: z
-        .array(z.object({ min: z.coerce.number().int().min(1), max: z.coerce.number().int().min(1), rate: money }))
-        .min(1)
-        .max(10),
-    }),
+    // vendorMin/vendorMax bound the "what do you pay your current vendor?" price-match field on the quote forms.
+    telephony: z.object({ licenseRate: money, channelRate: money, didRate: money, vendorMin: money, vendorMax: money }),
     voiceBot: z.object({
       setupFee: money,
       languageFee: money,
       perMinuteRate: money,
+      vendorMin: money,
+      vendorMax: money,
       languages: z.array(str(40).min(1)).max(40),
-    }),
-    emailAutomation: z.object({ plans: z.array(plan).min(1).max(6) }),
-    whatsapp: z.object({
-      plans: z.array(plan).min(1).max(6),
-      interactionRates: z.array(z.object({ category: str(60).min(1), rate: money, use: str(200) })).max(12),
     }),
   }),
 
   faqs: z.object({
-    audit: faqList, voice: faqList, dialers: faqList, email: faqList, whatsapp: faqList, telephony: faqList,
+    audit: faqList, voice: faqList, telephony: faqList, sip: faqList, social: faqList,
   }),
 
   chatbot: z.object({
@@ -148,15 +131,7 @@ export const settingsSchemas = {
 
 /** Extra semantic checks that a structural schema can't express. Returns an error message or null. */
 export function checkPricingSemantics(p) {
-  const tiers = [...p.dialers.tiers].sort((a, b) => a.min - b.min);
-  for (let i = 0; i < tiers.length; i += 1) {
-    if (tiers[i].max < tiers[i].min) return `Dialer tier ${i + 1}: "to" must be ≥ "from"`;
-    if (i > 0 && tiers[i].min <= tiers[i - 1].max) return 'Dialer tiers must not overlap';
-  }
-  for (const group of [p.emailAutomation.plans, p.whatsapp.plans]) {
-    const keys = group.map((x) => x.key.toLowerCase());
-    if (new Set(keys).size !== keys.length) return 'Plan keys must be unique within a product';
-    if (group.some((x) => !x.contactOnly && x.price <= 0)) return 'A purchasable plan needs a price greater than 0';
-  }
+  if (p.telephony.vendorMax < p.telephony.vendorMin) return 'Cloud Telephony: vendor price-match "up to" must be ≥ "from"';
+  if (p.voiceBot.vendorMax < p.voiceBot.vendorMin) return 'Voice Bot: vendor price-match "up to" must be ≥ "from"';
   return null;
 }

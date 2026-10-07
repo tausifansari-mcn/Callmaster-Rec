@@ -5,7 +5,7 @@ import { Settings } from '../repositories/settings.js';
 import { hashPassword } from '../services/password.js';
 import { env } from '../config/env.js';
 import { Whitepapers } from '../repositories/whitepapers.js';
-import { DEFAULT_SETTINGS, DEFAULT_PROMOS, DEFAULT_WHITEPAPERS, DEFAULT_FAQS, DEFAULT_CHATBOT, DEFAULT_INSIGHTS } from './defaults.js';
+import { DEFAULT_SETTINGS, DEFAULT_PROMOS, DEFAULT_WHITEPAPERS, DEFAULT_FAQS, DEFAULT_CHATBOT, DEFAULT_INSIGHTS, DEFAULT_SITE, DEFAULT_HOME, DEFAULT_PRICING, DEFAULT_EMAIL } from './defaults.js';
 import { LEGAL_PAGES } from './legalPages.js';
 
 /** Idempotent: only inserts what is missing, never overwrites edits made from the admin panel. */
@@ -21,6 +21,7 @@ export async function seedDefaults() {
 
   await migrateContent();
   await migrateRedesignV3();
+  await migrateNimantranRebrand();
 
   await seedFirstAdmin();
 }
@@ -64,7 +65,7 @@ async function migrateRedesignV3() {
     await drop('home', {
       eyebrow: 'One stack for every way you reach a customer',
       title: 'Every Customer Conversation. One Platform. Zero Guesswork.',
-      primaryCta: 'Try Deep Customer Insights Live',
+      primaryCta: 'Try Quality Audits Live',
       sub: DEFAULT_OLD_HOME_SUB,
     });
     await drop('site', { phoneAddress: '' });
@@ -87,6 +88,54 @@ async function migrateRedesignV3() {
 }
 
 const DEFAULT_OLD_HOME_SUB = 'Voice Bots, Cloud Telephony, WhatsApp, Email Automation and Dialers to run every conversation — and Deep Customer Insights to score, audit and improve every single one of them, automatically. Most vendors sell you a channel. We built the floor operations behind 250+ enterprise contact centers for 23 years, then built the platform that runs it — so what you get isn\'t six disconnected tools, it\'s one system where every call, chat and message makes the next one better. Set up online in minutes. No sales call required.';
+
+/**
+ * The CallMaster → Nimantran rebrand: new name, new product lineup (Dialers, Email Automation and
+ * WhatsApp Business API retired; SIP Channels and Social Listening added), new legal copy. This
+ * intentionally overwrites the site/home/pricing/faqs/chatbot/email settings and the 5 legal pages
+ * wholesale with the new defaults — a deliberate one-time replace, not a selective field drop like
+ * migrateRedesignV3 above. Anything an admin edits *after* this runs is untouched, same as every
+ * other migration here (`runOnce` only ever fires once per database).
+ */
+async function migrateNimantranRebrand() {
+  await runOnce('nimantran-rebrand', async () => {
+    // Merge rather than replace wherever an admin could plausibly have already customized a value
+    // (SMTP credentials, a custom domain/entity name, tweaked rates) — only the fields that define the
+    // old brand/product lineup are forced to the new defaults.
+    const site = (await Settings.all(['site'])).site || {};
+    await Settings.save('site', { ...site, ...DEFAULT_SITE, emails: { ...site.emails, ...DEFAULT_SITE.emails } }, 'system');
+
+    const home = (await Settings.all(['home'])).home || {};
+    await Settings.save('home', { ...home, ...DEFAULT_HOME }, 'system');
+
+    const pricing = (await Settings.all(['pricing'])).pricing || {};
+    const { dialers, emailAutomation, whatsapp, ...pricingKeep } = pricing;
+    await Settings.save('pricing', {
+      ...pricingKeep,
+      telephony: { ...pricing.telephony, vendorMin: DEFAULT_PRICING.telephony.vendorMin, vendorMax: DEFAULT_PRICING.telephony.vendorMax },
+      voiceBot: { ...pricing.voiceBot, vendorMin: DEFAULT_PRICING.voiceBot.vendorMin, vendorMax: DEFAULT_PRICING.voiceBot.vendorMax },
+    }, 'system');
+
+    const faqs = (await Settings.all(['faqs'])).faqs || {};
+    const { dialers: _faqD, email: _faqE, whatsapp: _faqW, ...faqsKeep } = faqs;
+    await Settings.save('faqs', { ...faqsKeep, sip: DEFAULT_FAQS.sip, social: DEFAULT_FAQS.social }, 'system');
+
+    // The chatbot rules are tightly coupled to the product lineup that's changing, so this one is a full replace.
+    await Settings.save('chatbot', DEFAULT_CHATBOT, 'system');
+
+    const email = (await Settings.all(['email'])).email || {};
+    await Settings.save('email', {
+      ...email,
+      fromName: DEFAULT_EMAIL.fromName,
+      autoReply: { ...email.autoReply, subject: DEFAULT_EMAIL.autoReply.subject, body: DEFAULT_EMAIL.autoReply.body },
+    }, 'system');
+
+    for (const page of LEGAL_PAGES) {
+      const existing = await Pages.findPublishedBySlug(page.slug);
+      if (existing) await Pages.update(existing.id, { ...existing, title: page.title, sections: page.sections, order: page.order });
+    }
+  });
+}
 
 async function seedFirstAdmin() {
   if ((await Admins.count()) > 0) return;

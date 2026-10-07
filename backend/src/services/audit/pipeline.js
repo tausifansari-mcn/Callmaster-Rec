@@ -6,8 +6,9 @@ import { transcribe } from './deepgram.js';
 import { auditTranscript } from './claude.js';
 import { getAuditConfig } from './config.js';
 import { AuditError } from './errors.js';
-import { rubricFor } from './rubrics.js';
+import { customRubric, rubricFor } from './rubrics.js';
 import { buildResults } from './scoring.js';
+import { parseJson } from '../../repositories/_util.js';
 
 // ---------------------------------------------------------------- tiny concurrency limiter
 // Audits call two paid APIs, so cap how many run at once; the rest wait their turn in memory.
@@ -30,7 +31,8 @@ function schedule(task) {
 async function runAudit(id) {
   const job = await Demos.findAuditJob(id);
   if (!job) return;
-  const rubric = rubricFor(job.lob);
+  const customParams = parseJson(job.custom_params, null);
+  const rubric = customParams?.length ? customRubric(customParams, job.lob) : rubricFor(job.lob);
   const started = Date.now();
   try {
     const filePath = path.join(env.uploadDir, 'audio', path.basename(job.file_stored_name));

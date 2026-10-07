@@ -139,3 +139,29 @@ Do NOT invent portfolio statistics or benchmarks — you only have this one call
 };
 
 export const rubricFor = (lob) => RUBRICS[lob] || RUBRICS['Inbound Support'];
+
+/**
+ * Builds a rubric from parameter names the visitor supplied themselves, instead of the standard LOB rubric —
+ * same shape as RUBRICS entries, so it flows through buildToolSchema/buildSystemPrompt/buildResults unchanged.
+ * Weights split evenly (summing to exactly 100); there is no CLAP/MAGIC/RESO framework read for a custom audit.
+ */
+export function customRubric(paramNames, lob) {
+  const clean = [...new Set((paramNames || []).map((n) => String(n).trim()).filter(Boolean))].slice(0, 20);
+  const names = clean.length ? clean : ['Overall call quality'];
+  const base = Math.floor(100 / names.length);
+  const parameters = names.map((name, i) => p(
+    `custom_${i}`,
+    name,
+    i === names.length - 1 ? 100 - base * (names.length - 1) : base,
+    `Score how well the call performs against "${name}", a custom scoring parameter supplied by the customer — judge it on its own terms from the transcript.`
+  ));
+  return {
+    lob: lob || 'Custom',
+    framework: 'Custom scoring parameters',
+    extra: undefined,
+    description: 'A call scored against custom parameters the customer supplied, instead of the standard rubric.',
+    parameters,
+    compliance: [],
+    focus: 'These are custom scoring parameters supplied by the customer, not one of the standard frameworks — there is no CLAP / MAGIC Script / RESO read for this audit. Score only the listed parameters, strictly from the transcript.',
+  };
+}

@@ -8,7 +8,7 @@ export const VOICE_LANGUAGES = ['English', 'Hindi', 'Hinglish', 'British English
 export const AUDIT_CALL_TYPES = ['Inbound Support', 'Outbound Sales', 'Collections', 'Retention', 'A mix of the above'];
 export const VOLUME_BANDS = ['Under 5,000 calls/month', '5,000–25,000 calls/month', '25,000–100,000 calls/month', '100,000+ calls/month'];
 export const QA_SETUPS = ['Manual/sample-based QA today', 'Using another QA/analytics tool', 'No formal QA process today'];
-export const CONTACT_INTERESTS = ['Deep Customer Insights', 'Voice Bot', 'Cloud Telephony', 'Enterprise'];
+export const CONTACT_INTERESTS = ['Quality Audits', 'Voice Bot', 'Cloud Telephony', 'SIP Channels', 'Social Listening', 'Enterprise'];
 
 const text = (label, max = 200) => z.string({ required_error: `Enter ${label}` }).trim().min(1, `Enter ${label}`).max(max);
 const email = z.string().trim().toLowerCase().refine(isEmail, 'Enter a valid email');
@@ -25,7 +25,7 @@ export const contactSchema = z.object({
   organization: text('your organization'),
   email: officialEmail,
   phone,
-  interest: z.enum(CONTACT_INTERESTS).optional().default('Deep Customer Insights'),
+  interest: z.enum(CONTACT_INTERESTS).optional().default('Quality Audits'),
   message: z.string().trim().max(5000).optional().default(''),
 });
 
@@ -61,6 +61,8 @@ export const auditSubmitSchema = z.object({
   accessToken: z.string().min(1, 'Session expired — please start again'),
   lob: z.enum(['Inbound Support', 'Outbound Sales', 'Collections', 'Retention'], { errorMap: () => ({ message: 'Select a line of business' }) }),
   rights: truthy.refine((v) => v, 'Please confirm you have the right to submit this recording'),
+  // JSON-encoded string[] (multipart text field) — scoring parameters the visitor supplied instead of the standard rubric.
+  customParams: z.string().max(4000).optional(),
 });
 
 /** Step 5 of the Voice Bot wizard — the bot configuration plus who is asking. */

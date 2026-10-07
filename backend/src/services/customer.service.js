@@ -9,7 +9,7 @@ const pick = () => ALPHABET[crypto.randomInt(ALPHABET.length)];
 /** Temporary password shown once / emailed; the customer must change it at first sign-in. */
 export const generateTempPassword = () => `Cm${Array.from({ length: 6 }, pick).join('')}${crypto.randomInt(10, 100)}!`;
 
-const usernameBase = (email) => `${String(email).split('@')[0].toLowerCase().replace(/[^a-z0-9.]/g, '') || 'customer'}@callmaster-account`;
+const usernameBase = (email) => `${String(email).split('@')[0].toLowerCase().replace(/[^a-z0-9.]/g, '') || 'customer'}@nimantran-account`;
 
 async function uniqueUsername(email) {
   const base = usernameBase(email);

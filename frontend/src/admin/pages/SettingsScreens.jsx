@@ -5,22 +5,10 @@ import SettingsEditor from '../components/SettingsEditor.jsx';
 import { HeroVideoCard, LogoCard } from './CommerceScreens.jsx';
 
 // ---------------------------------------------------------------- Pricing
-const planFields = [
-  { type: 'text', key: 'name', label: 'Plan name', hint: 'Shown in checkout, e.g. "Growth"' },
-  { type: 'text', key: 'key', label: 'Plan ID', hint: 'Short internal ID: letters, numbers, dashes (unique per product)' },
-  { type: 'text', key: 'badge', label: 'Badge text', hint: 'Small label on the card, e.g. "Growth — most popular"' },
-  { type: 'number', key: 'price', label: 'Price', prefix: '₹', hint: 'Ignored for "contact sales" plans' },
-  { type: 'text', key: 'unit', label: 'Billing unit', hint: 'e.g. /month' },
-  { type: 'boolean', key: 'featured', label: 'Highlight', switchLabel: 'Show as featured (amber outline)' },
-  { type: 'boolean', key: 'contactOnly', label: 'Availability', switchLabel: 'Contact sales only (no online purchase, shows "Custom")' },
-  { type: 'strings', key: 'features', label: 'Features', addLabel: 'Add feature' },
+const vendorMatchFields = (unitLabel) => [
+  { type: 'number', key: 'vendorMin', label: 'Price match: minimum plausible rate', prefix: '₹', hint: `Below this, a customer's claimed vendor ${unitLabel} is flagged for manual review instead of auto-matched.` },
+  { type: 'number', key: 'vendorMax', label: 'Price match: maximum plausible rate', prefix: '₹', hint: `Above this, a claimed vendor ${unitLabel} is rejected as implausible.` },
 ];
-const newPlan = () => ({ key: `plan-${Date.now().toString(36)}`, name: 'New plan', badge: 'New plan', price: 0, unit: '/month', featured: false, contactOnly: false, features: [] });
-const planList = () => ({
-  type: 'list', key: 'plans', label: 'Plans', addLabel: 'Add plan', fields: planFields, newItem: newPlan,
-  itemTitle: (p) => `${p.name || 'Plan'}${p.contactOnly ? ' — contact sales' : p.price ? ` — ₹${Number(p.price).toLocaleString('en-IN')}${p.unit}` : ''}`,
-  confirmRemove: 'Remove this plan from the live site?',
-});
 
 const PRICING_SECTIONS = [
   {
@@ -34,22 +22,8 @@ const PRICING_SECTIONS = [
         { type: 'number', key: 'licenseRate', label: 'Per user license', prefix: '₹', suffix: '/ month' },
         { type: 'number', key: 'channelRate', label: 'Per extra calling channel', prefix: '₹', suffix: '/ month' },
         { type: 'number', key: 'didRate', label: 'Per extra DID (number)', prefix: '₹', suffix: '/ month' },
+        ...vendorMatchFields('rate per licence/month'),
       ],
-    }],
-  },
-  {
-    id: 'dialers', label: 'Dialers',
-    fields: [{
-      type: 'group', key: 'dialers', label: 'Seat-count tiers', hint: 'Tiers must not overlap. Seat counts above the highest tier show "Custom — talk to sales".', fields: [{
-        type: 'list', key: 'tiers', label: 'Tiers', addLabel: 'Add tier', confirmRemove: 'Remove this tier?',
-        itemTitle: (t) => `${t.min}–${t.max} agents`,
-        newItem: () => ({ min: 21, max: 50, rate: 1000 }),
-        fields: [
-          { type: 'number', key: 'min', label: 'From (seats)', min: 1, step: 1 },
-          { type: 'number', key: 'max', label: 'To (seats)', min: 1, step: 1 },
-          { type: 'number', key: 'rate', label: 'Rate per agent', prefix: '₹', suffix: '/ month' },
-        ],
-      }],
     }],
   },
   {
@@ -60,25 +34,7 @@ const PRICING_SECTIONS = [
         { type: 'number', key: 'languageFee', label: 'Per regional language add-on', prefix: '₹', hint: 'One-time, per language' },
         { type: 'number', key: 'perMinuteRate', label: 'Usage rate', prefix: '₹', suffix: '/ minute', hint: 'Billed monthly — shown on the site, not charged at checkout' },
         { type: 'strings', key: 'languages', label: 'Regional languages offered', addLabel: 'Add language' },
-      ],
-    }],
-  },
-  { id: 'email', label: 'Email Automation', fields: [{ type: 'group', key: 'emailAutomation', label: 'Email Automation', fields: [planList()] }] },
-  {
-    id: 'whatsapp', label: 'WhatsApp API',
-    fields: [{
-      type: 'group', key: 'whatsapp', label: 'WhatsApp Business API', fields: [
-        planList(),
-        {
-          type: 'list', key: 'interactionRates', label: 'Meta interaction rates (reference table)', addLabel: 'Add category', confirmRemove: 'Remove this row?',
-          itemTitle: (r) => r.category || 'Category',
-          newItem: () => ({ category: 'New category', rate: 0, use: '' }),
-          fields: [
-            { type: 'text', key: 'category', label: 'Category' },
-            { type: 'number', key: 'rate', label: 'Rate per message', prefix: '₹' },
-            { type: 'text', key: 'use', label: 'Typical use', wide: true },
-          ],
-        },
+        ...vendorMatchFields('rate per minute'),
       ],
     }],
   },
@@ -132,12 +88,11 @@ const faqList = (key, label) => ({
 });
 
 const FAQ_SECTIONS = [
-  { id: 'audit', label: 'Insights', fields: [faqList('audit', 'Deep Customer Insights')] },
+  { id: 'audit', label: 'Insights', fields: [faqList('audit', 'Quality Audits')] },
   { id: 'voice', label: 'Voice Bot', fields: [faqList('voice', 'Voice Bot')] },
-  { id: 'dialers', label: 'Dialers', fields: [faqList('dialers', 'Dialers')] },
-  { id: 'email', label: 'Email', fields: [faqList('email', 'Email Automation')] },
-  { id: 'whatsapp', label: 'WhatsApp', fields: [faqList('whatsapp', 'WhatsApp Business API')] },
   { id: 'telephony', label: 'Telephony', fields: [faqList('telephony', 'Cloud Telephony')] },
+  { id: 'sip', label: 'SIP Channels', fields: [faqList('sip', 'SIP Channels')] },
+  { id: 'social', label: 'Social Listening', fields: [faqList('social', 'Social Listening')] },
 ];
 
 export const FaqScreen = () => (
@@ -152,9 +107,8 @@ export const FaqScreen = () => (
 // ---------------------------------------------------------------- Chatbot
 const TARGETS = [
   { value: '', label: '— no link —' },
-  { value: 'home', label: 'Home' }, { value: 'audit', label: 'Deep Customer Insights' }, { value: 'voice', label: 'Voice Bot' },
-  { value: 'dialers', label: 'Dialers' }, { value: 'email-automation', label: 'Email Automation' },
-  { value: 'whatsapp-api', label: 'WhatsApp Business API' }, { value: 'telephony', label: 'Cloud Telephony' },
+  { value: 'home', label: 'Home' }, { value: 'audit', label: 'Quality Audits' }, { value: 'voice', label: 'Voice Bot' },
+  { value: 'telephony', label: 'Cloud Telephony' }, { value: 'sip-channels', label: 'SIP Channels' }, { value: 'social-listening', label: 'Social Listening' },
   { value: 'pricing', label: 'Pricing' }, { value: 'insights', label: 'Insights & Resources' }, { value: 'account', label: 'Customer login' }, { value: 'about', label: 'About' }, { value: 'contact', label: 'Contact' },
   { value: 'terms', label: 'Terms & Conditions' }, { value: 'privacy', label: 'Privacy Policy' },
   { value: 'cookie-policy', label: 'Cookie Policy' }, { value: 'data-retention', label: 'Data Retention Policy' },
@@ -180,7 +134,7 @@ export const ChatbotScreen = () => (
       },
       {
         type: 'list', key: 'rules', label: 'Reply rules', addLabel: 'Add rule', confirmRemove: 'Remove this rule?',
-        hint: 'Prices can be inserted so they stay in sync with the Pricing screen, e.g. {{voiceBot.setupFee}}, {{voiceBot.perMinuteRate}}, {{dialers.tiers.0.rate}}, {{emailAutomation.plans.0.price}}, {{whatsapp.plans.0.price}}, {{telephony.licenseRate}}, {{gstRate}}, {{site.promoCodeExample}}.',
+        hint: 'Prices can be inserted so they stay in sync with the Pricing screen, e.g. {{voiceBot.setupFee}}, {{voiceBot.perMinuteRate}}, {{telephony.licenseRate}}, {{gstRate}}, {{site.promoCodeExample}}.',
         itemTitle: (r, i) => `${i + 1}. ${r.keywords?.filter(Boolean).slice(0, 3).join(', ') || (r.pattern ? `/${r.pattern}/` : 'Untitled rule')}`,
         newItem: () => ({ keywords: [], pattern: '', excludePattern: '', reply: '', target: '', anchor: '', label: '' }),
         fields: [
@@ -210,8 +164,8 @@ export const SiteScreen = () => (
       { type: 'text', key: 'brandName', label: 'Brand name (navigation bar)' },
       { type: 'text', key: 'siteTitle', label: 'Browser tab title', wide: true },
       { type: 'text', key: 'navCtaLabel', label: 'Navigation button text' },
-      { type: 'text', key: 'domain', label: 'Domain', placeholder: 'callmaster.in', hint: 'Used for hello@, sales@, support@, privacy@ when no full address is set below.' },
-      { type: 'text', key: 'entityName', label: 'Operating entity name', placeholder: 'CallMaster Pvt Ltd' },
+      { type: 'text', key: 'domain', label: 'Domain', placeholder: 'nimantran.ai', hint: 'Used for hello@, sales@, support@, privacy@ when no full address is set below.' },
+      { type: 'text', key: 'entityName', label: 'Operating entity name', placeholder: 'Nimantran Pvt Ltd' },
       {
         type: 'group', key: 'emails', label: 'Contact email addresses (optional overrides)', fields: [
           { type: 'text', key: 'care', label: 'Care (shown under “Direct contact”)', placeholder: 'care@yourdomain.com' },
@@ -293,7 +247,7 @@ export const EmailScreen = () => (
             { type: 'boolean', key: 'secure', label: 'Encryption', switchLabel: 'Use SSL/TLS from the start (port 465)' },
           ],
         },
-        { type: 'text', key: 'fromName', label: 'Sender name', placeholder: 'CallMaster' },
+        { type: 'text', key: 'fromName', label: 'Sender name', placeholder: 'Nimantran' },
         { type: 'text', key: 'fromEmail', label: 'Sender email (optional)', placeholder: 'Defaults to the login above', hint: 'Some providers only allow the login address here.' },
         { type: 'text', key: 'notifyTo', label: 'Send notifications to', wide: true, placeholder: 'tausif.ansari@teammas.in, sales@yourdomain.com', hint: 'Comma-separated. The visitor’s address is set as Reply-To, so replying from your inbox goes straight to them.' },
         {

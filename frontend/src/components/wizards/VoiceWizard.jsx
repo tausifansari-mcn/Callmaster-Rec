@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { publicApi } from '../../api/public.js';
 import { GoButton } from '../../hooks/useGoto.jsx';
 import { safeGet, safeRemove, safeSet } from '../../utils/storage.js';
-import { LANGUAGES, cancelSpeech, playLanguagePreview, speechReady } from '../../utils/speech.js';
+import { AVATAR_NAMES, LANGUAGES, cancelSpeech, playLanguagePreview, speechReady } from '../../utils/speech.js';
 import { ERR, PHONE_RE, isEmail } from '../../utils/validators.js';
 import Field from '../ui/Field.jsx';
 import StepDots from '../ui/StepDots.jsx';
@@ -47,7 +47,7 @@ function CallPanel({ state, data, onReset }) {
       <details className="transcript" open>
         <summary>What the bot said</summary>
         <div className="transcript-body">
-          <div><span className="who">Bot:</span> Hi, this is CallMaster's {data.industry} {data.callType} assistant calling — this is a short demo, is now an okay time?</div><br />
+          <div><span className="who">Bot:</span> Hi, this is Nimantran's {data.industry} {data.callType} assistant calling — this is a short demo, is now an okay time?</div><br />
           <div><span className="who">You (simulated):</span> Sure, go ahead.</div><br />
           <div style={{ opacity: 0.6 }}>[sandbox transcript — mock content for layout testing only]</div>
         </div>
@@ -233,19 +233,28 @@ export default function VoiceWizard() {
 
           {step === 4 && (
             <>
-              <Label n={4} suffix="LANGUAGE" />
+              <Label n={4} suffix="VOICE AVATAR" />
               <div className="voice-preview-note">
                 {speechReady
-                  ? 'Tap a language to hear a sample in that accent — this is browser text-to-speech standing in for the real prerecorded script.'
+                  ? 'Pick a voice and play a sample — this is browser text-to-speech standing in for the real prerecorded script.'
                   : "Voice preview isn't supported in this browser."}
               </div>
-              <div className="lang-grid">
-                {LANGUAGES.map((l) => (
-                  <div key={l.label} className={`lang-chip${d.language === l ? ' selected' : ''}`} role="button" tabIndex={0}
-                    onClick={() => pickLanguage(l)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickLanguage(l); } }}>
-                    <span>{l.label}</span><span className="play-icon">▶</span>
-                  </div>
-                ))}
+              <div className="avatar-grid">
+                {LANGUAGES.map((l) => {
+                  const name = AVATAR_NAMES[l.label]?.[d.gender] || l.label;
+                  const selected = d.language === l;
+                  return (
+                    <div key={l.label} className={`avatar-card${selected ? ' selected' : ''}`} role="button" tabIndex={0}
+                      onClick={() => pickLanguage(l)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickLanguage(l); } }}>
+                      <div className="avatar-circle">{name.slice(0, 1)}</div>
+                      <div className="avatar-name">{name}</div>
+                      <div className="avatar-tags"><span className="avatar-tag">{d.gender}</span><span className="avatar-tag">{l.label}</span></div>
+                      <button type="button" className={`play-btn${selected ? ' playing' : ''}`} onClick={(e) => { e.stopPropagation(); pickLanguage(l); }}>
+                        {selected ? 'Playing…' : 'Play sample'}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
               <div className="btn-row" style={{ marginTop: 18 }}>
                 <button type="button" className="btn secondary" onClick={() => leaveLanguageStep(3)}>Back</button>
@@ -320,7 +329,7 @@ export default function VoiceWizard() {
               <div className="checkbox-row">
                 <input type="checkbox" id="v-consent" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
                 <label htmlFor="v-consent">
-                  This is my own number. I understand CallMaster does not store or retain this demo call recording on the website beyond the session, in line with the DPDP Act, 2023, and I consent to receive this demo call. <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.
+                  This is my own number. I understand Nimantran does not store or retain this demo call recording on the website beyond the session, in line with the DPDP Act, 2023, and I consent to receive this demo call. <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.
                 </label>
               </div>
               {apiError && <div className="field-error-banner">{apiError}</div>}

@@ -1,4 +1,4 @@
-# CallMaster Website
+# Nimantran Website
 
 A React website with a Node.js/Express API, a MySQL database and a built-in admin panel.
 It is a full rebuild of the original single-file `index.html` (kept for reference in

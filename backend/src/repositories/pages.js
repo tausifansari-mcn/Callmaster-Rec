@@ -2,8 +2,8 @@ import { exec, one, query } from '../config/db.js';
 import { bit, flag, parseJson } from './_util.js';
 
 export const RESERVED_SLUGS = [
-  'admin', 'api', 'home', 'pricing', 'about', 'contact', 'deep-customer-insights', 'voice-bot', 'dialers',
-  'email-automation', 'whatsapp-api', 'cloud-telephony', 'insights', 'account', 'uploads', 'assets',
+  'admin', 'api', 'home', 'pricing', 'about', 'contact', 'deep-customer-insights', 'voice-bot',
+  'cloud-telephony', 'sip-channels', 'social-listening', 'insights', 'account', 'uploads', 'assets',
 ];
 
 const map = (r) => r && ({

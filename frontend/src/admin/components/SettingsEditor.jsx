@@ -6,7 +6,7 @@ import { Fields } from './SchemaForm.jsx';
 
 /**
  * Loads one settings document, lets the admin edit it with a schema-driven form, and saves it.
- * `sections` lets a screen show several tabs of the same document (e.g. Pricing → Cloud Telephony / Dialers / …).
+ * `sections` lets a screen show several tabs of the same document (e.g. Pricing → Cloud Telephony / Voice Bot / …).
  */
 export default function SettingsEditor({ settingKey, title, subtitle, fields, sections, previewPath, onSaved }) {
   const toast = useToast();

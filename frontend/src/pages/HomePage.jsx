@@ -1,11 +1,30 @@
-import { useEffect, useRef } from 'react';
 import { useSite } from '../context/SiteContext.jsx';
 import { GoButton, GoLink } from '../hooks/useGoto.jsx';
 import BookCall from '../components/booking/BookCall.jsx';
 import { IconBadge } from '../components/ui/Icons.jsx';
 import { BenefitGrid, HowSteps, Section } from '../components/ui/Blocks.jsx';
-import { heroVideoUrl } from '../utils/branding.js';
-import { rate } from '../utils/format.js';
+import RichText from '../components/ui/RichText.jsx';
+
+const HOME_FAQS = [
+  { q: 'Is the trial really free?', a: 'Yes. Each phone number gets one free trial of Quality Audits and one of Voice Bots, with no payment details needed.' },
+  { q: 'Which languages and accents do the voice bots support?', a: 'English, Hindi and Hinglish, with Indian, British or American accents. You choose the voice and upload your own script.' },
+  { q: 'How do I subscribe to a plan?', a: 'Cloud Telephony and Voice Bots are self-serve — choose a plan and pay online. Quality Audits, SIP Channels and Social Listening are quoted to your volume, so send a request and our team sets up billing directly.' },
+  { q: 'What happens to the recordings I upload?', a: 'They are used only to produce your result and for our team to follow up, per our Data Retention Policy.' },
+  { q: 'What is the mobile look-alike number?', a: 'Cloud Telephony lines are issued as mobile-style numbers, so your customers see a number that looks like any other mobile when you call.' },
+  { q: 'Can I cancel Cloud Telephony?', a: 'Yes. Cancel within 3 days of purchase for a full refund, paid within 7 working days. Email care@nimantran.ai with your company name. This applies to Cloud Telephony only.' },
+  { q: 'When can I book a meeting?', a: "Monday to Saturday, 11:30 AM to 5:30 PM India time, in 30-minute slots. We're closed on Sundays, Government of India holidays and major festivals." },
+];
+
+const SERVICES = [
+  { icon: 'audit', tag: 'Quality Audits', title: 'Every call scored, not just a sample', to: 'audit', cta: 'Explore Quality Audits',
+    text: "Nimantran audits every call your team makes or takes — inbound, outbound sales, collections, and sales campaigns — instead of the 2% sample most quality teams manage manually. Each recording is transcribed and scored against a set of parameters, either Nimantran's built-in rubric or your own, so coaching decisions rest on full coverage instead of guesswork." },
+  { icon: 'voice', tag: 'Voice Bots', title: 'Bots that actually call you', to: 'voice', cta: 'Explore Voice Bots',
+    text: 'Nimantran\'s voice bots handle collections, customer service, and abandoned-cart recovery in English, Hindi, or Hinglish, with a choice of Indian, British, or American accents so the voice fits your customers, not just your product roadmap. Upload your own script and the bot is ready to place calls immediately.' },
+  { icon: 'sip-channels', tag: 'SIP Channels', title: 'Concurrent-call capacity, quoted right', to: 'sip-channels', cta: 'Explore SIP Channels',
+    text: "Nimantran's SIP channels give you inbound and outbound concurrent-call capacity built to the uptime standard a 24/7 contact center actually needs, not a best-effort startup SLA. Channel count and usage pattern set the price, so it's quoted to your actual volume instead of sold off a generic rate card." },
+  { icon: 'social-listening', tag: 'Social Listening', title: 'The signal beyond the call', to: 'social-listening', cta: 'Explore Social Listening',
+    text: "Nimantran tracks what's said about your brand across the channels people actually use to vent, not just the calls that reach your center. It's built to sit alongside the audit and voice bot modules, so a five-star call doesn't quietly mask a one-star thread elsewhere. Scope and data sources are being finalized ahead of general availability." },
+];
 
 const FRAMEWORKS = [
   {
@@ -29,7 +48,7 @@ const WHY = [
   { icon: 'search', title: 'See results before you talk to anyone', text: 'Upload a real call, get a real scorecard — right here, right now.' },
   { icon: 'pen', title: 'No jargon, no feature grid', text: 'Just what changes for your team, in plain language.' },
   { icon: 'clock', title: 'Set up in minutes, not weeks', text: 'Self-serve pricing — no sales cycle required to get started.' },
-  { icon: 'email-automation', title: 'A trackable lead, not a cold quote', text: 'Tell us your volume and setup — pricing lands in your inbox, not on a public page.' },
+  { icon: 'sip-channels', title: 'A trackable lead, not a cold quote', text: 'Tell us your volume and setup — pricing lands in your inbox, not on a public page.' },
 ];
 
 const STEPS = [
@@ -40,91 +59,78 @@ const STEPS = [
 
 const FOOTNOTE = '*Illustrative — based on typical results teams see from AI-optimized scripts and collections scoring, not a guaranteed outcome for every account.';
 
-function ProductCards({ pricing }) {
-  const perMin = rate(pricing.voiceBot.perMinuteRate);
-  const cards = [
-    { icon: 'audit', tags: 'Service · Sales · Collections', title: 'Deep Customer Insights', lead: 'Up to 20% more sales, up to 32% more collections recovered.', star: true, text: 'Every call scored the right way, with the exact moment it went wrong.', to: 'audit', cta: 'Try it live →' },
-    { icon: 'voice', title: 'Voice Bot', lead: 'Never miss a call, day or night.', text: `AI voice agents in English, Hindi or your regional language, from ₹${perMin}/minute — hear it call you before you buy.`, to: 'voice', cta: 'Try it live →' },
-    { icon: 'telephony', title: 'Cloud Telephony', lead: 'Numbers that get picked up, not screened.', text: 'Built on infrastructure running a live 250+ client contact center — configured and bought online.', to: 'telephony', cta: 'Configure & buy →' },
-    { icon: 'dialers', title: 'Dialers', lead: 'More live conversations per hour, fewer dead dials.', text: 'Predictive and power dialing built for the outbound floor, not a demo environment.', to: 'dialers', cta: 'See plans →' },
-    { icon: 'email-automation', title: 'Email Automation', lead: 'Inbox delivery that holds up at scale.', text: 'Drip sequences and lifecycle campaigns run with the same operational discipline as our voice and chat channels.', to: 'email-automation', cta: 'See plans →' },
-    { icon: 'whatsapp-api', title: 'WhatsApp Business API', lead: 'Official rates, one inbox, zero markup.', text: 'Green-tick verified API with shared team inbox, catalog and broadcast automation.', to: 'whatsapp-api', cta: 'See plans →' },
-  ];
+function ServicesGrid() {
   return (
-    <div className="card-grid" style={{ marginBottom: 8 }}>
-      {cards.map((c) => (
-        <div className="prod-card" key={c.title}>
-          <IconBadge name={c.icon} />
-          {c.tags && <div className="fw-tags">{c.tags}</div>}
-          <h3>{c.title}</h3>
-          <p><b>{c.lead}{c.star && <sup style={{ fontSize: 9 }}>*</sup>}</b> {c.text}</p>
-          <GoLink to={c.to}>{c.cta}</GoLink>
+    <div className="services-grid">
+      {SERVICES.map((s) => (
+        <div className="service-block" key={s.tag}>
+          <IconBadge name={s.icon} />
+          <div className="tag">{s.tag}</div>
+          <h3>{s.title}</h3>
+          <p>{s.text}</p>
+          <GoLink to={s.to}>{s.cta}</GoLink>
         </div>
       ))}
+      <div className="service-block wide">
+        <IconBadge name="telephony" />
+        <div className="tag">Cloud Telephony</div>
+        <h3>Call from a number that looks like a mobile</h3>
+        <p>Cloud calling lines for your team, issued as mobile-style numbers so your calls look personal from the first ring. Pay per user at ₹1,500 a month, add channels and numbers as you grow, and get 2% of your calls audited free in your first month.</p>
+        <GoLink to="telephony">Explore Cloud Telephony</GoLink>
+      </div>
     </div>
   );
 }
 
-/** Background video: browsers differ on when muted autoplay is allowed, so keep nudging playback for a few seconds. */
-function HeroVideo({ src }) {
-  const ref = useRef(null);
-  useEffect(() => {
-    const v = ref.current;
-    if (!v) return undefined;
-    v.muted = true;
-    const play = () => { try { v.play()?.catch(() => {}); } catch { /* not allowed yet */ } };
-    play();
-    let tries = 0;
-    const timer = setInterval(() => { tries += 1; if (!v.paused || tries > 20) clearInterval(timer); else play(); }, 500);
-    const events = ['click', 'touchstart', 'keydown'];
-    const onGesture = () => { play(); if (!v.paused) events.forEach((e) => document.removeEventListener(e, onGesture)); };
-    events.forEach((e) => document.addEventListener(e, onGesture, { passive: true }));
-    v.addEventListener('canplay', play);
-    const onVisible = () => { if (!document.hidden) play(); };
-    document.addEventListener('visibilitychange', onVisible);
-    return () => {
-      clearInterval(timer);
-      events.forEach((e) => document.removeEventListener(e, onGesture));
-      document.removeEventListener('visibilitychange', onVisible);
-      v.removeEventListener('canplay', play);
-    };
-  }, [src]);
-  return (
-    <video ref={ref} className="hero-bg-video" autoPlay muted loop playsInline preload="auto" aria-hidden="true">
-      <source src={src} />
-    </video>
-  );
-}
-
 export default function HomePage() {
-  const { site, home, pricing } = useSite();
-  const video = heroVideoUrl(home);
+  const { site, home } = useSite();
   return (
     <section className="page active">
       <div className="container">
         {site.sandboxBanner.show && (
           <div className="badge-row"><span className="badge">{site.sandboxBanner.text}</span></div>
         )}
-        <div className="hero hero-video-hero">
-          <div className="hero-video-wrap">
-            {video && <HeroVideo src={video} />}
-            <div className="hero-video-overlay" />
-            <div className="hero-video-copy">
-              <div className="eyebrow">{home.eyebrow}</div>
+
+        <div className="hero-band">
+          <div className="hero hero-grid">
+            <div>
+              <div className="eyebrow-plain">{home.eyebrow}</div>
               <h1>{home.title}</h1>
               <p className="sub">{home.sub}</p>
               <div className="cta-row">
                 <GoButton to="audit" className="btn">{home.primaryCta}</GoButton>
-                <GoButton to="contact" className="btn secondary hero-video-btn-secondary">{home.secondaryCta}</GoButton>
+                <GoButton to="contact" className="btn secondary">{home.secondaryCta}</GoButton>
+              </div>
+            </div>
+            <div className="hero-mock">
+              <div className="mock-head">
+                <span className="mock-title">Quality Audits — sample output</span>
+                <span className="mock-live"><span className="mock-dot" />Live on this site</span>
+              </div>
+              <div className="mock-transcript">
+                Agent: Thank you for calling, this is Priya, how may I help you today?<br />
+                Customer: Hi, I wanted to check on my order status...<br />
+                Agent: Of course, let me pull that up. Could I get your order number?
+              </div>
+              <div className="mock-scores">
+                <div className="mock-score"><div className="n">92</div><div className="l">Greeting</div></div>
+                <div className="mock-score"><div className="n">88</div><div className="l">Resolution</div></div>
+                <div className="mock-score"><div className="n">95</div><div className="l">Tone</div></div>
+                <div className="mock-score"><div className="n">81</div><div className="l">Compliance</div></div>
               </div>
             </div>
           </div>
-        </div>
-        <div className="trust-line">{home.trustQuote}
-          <div className="stat-row">
-            {home.stats.map((s, i) => <span key={i}><b>{s.value}</b> {s.label}</span>)}
+          <p className="intro-para">Nimantran brings call quality auditing, human-sounding voice bots, cloud telephony, scalable SIP channels, and social listening into one platform, built to plug into how your team already works rather than force a new one. There's no lengthy integration project or separate onboarding cycle — configure it with your own calls, scripts, and channels, and it's ready to run from day one.</p>
+          <div className="stats-grid">
+            {home.stats.map((s, i) => <div className="stat-card" key={i}><div className="num">{s.value}</div><div className="lbl">{s.label}</div></div>)}
           </div>
         </div>
+
+        <Section>
+          <div className="kicker">What's included</div>
+          <h2>Five products, one place to run your call operations.</h2>
+          <ServicesGrid />
+        </Section>
 
         <Section style={{ paddingTop: 0 }}>
           <h2>What's in it for you</h2>
@@ -158,16 +164,26 @@ export default function HomePage() {
           <HowSteps steps={STEPS} />
         </Section>
 
-        <Section style={{ paddingTop: 0, paddingBottom: 0 }}>
-          <h2>Six products. One platform. Buy any of them online, right now.</h2>
-          <p className="section-sub">Every product below has a real price, a self-serve checkout and Razorpay payment — no waiting on a sales call.</p>
+        <Section style={{ paddingTop: 0 }}>
+          <div className="kicker">Questions</div>
+          <h2>What people ask before they start.</h2>
+          {HOME_FAQS.map((f, i) => (
+            <details className="faq-item" key={i}>
+              <summary>{f.q}</summary>
+              <RichText text={f.a} />
+            </details>
+          ))}
         </Section>
-        <ProductCards pricing={pricing} />
-        <p style={{ fontSize: 11, color: 'var(--ink-faint)', margin: '0 0 40px' }}>{FOOTNOTE}</p>
 
         <div className="cta-band">
-          <h2>{home.ctaBandTitle}</h2>
-          <div className="cta-row"><GoButton to="audit" className="btn">{home.ctaBandButton}</GoButton></div>
+          <div>
+            <h2>Hear it on your own calls.</h2>
+            <p>Try the live demo now, or book a 30-minute walkthrough with our team.</p>
+          </div>
+          <div className="cta-row">
+            <GoButton to="audit" className="btn">Try the live demo</GoButton>
+            <GoButton to="contact" className="btn secondary">Book a meeting</GoButton>
+          </div>
         </div>
 
         <Section style={{ paddingTop: 0 }}>

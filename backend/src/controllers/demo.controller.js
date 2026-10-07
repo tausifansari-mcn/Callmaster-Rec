@@ -76,11 +76,20 @@ export const submitAuditDemo = asyncHandler(async (req, res) => {
       }
     }
 
-    const base = { lob, framework: FRAMEWORK_BY_LOB[lob], file: fileMeta(req.file) };
-    const who = { Email: session.email, LOB: lob, File: req.file.originalname };
+    // Scoring parameters the visitor added themselves, instead of the standard rubric — optional.
+    let customParams;
+    if (req.body.customParams) {
+      try {
+        const arr = JSON.parse(req.body.customParams);
+        if (Array.isArray(arr)) customParams = arr.map((x) => String(x).trim()).filter(Boolean).slice(0, 20);
+      } catch { /* malformed — fall back to the standard rubric rather than fail the whole submission */ }
+    }
+
+    const base = { lob, framework: FRAMEWORK_BY_LOB[lob], file: fileMeta(req.file), customParams };
+    const who = { Email: session.email, LOB: lob, File: req.file.originalname, ...(customParams?.length ? { 'Custom parameters': customParams.join(', ') } : {}) };
 
     if (!live) {
-      const { results, transcript } = buildMockAudit(lob);
+      const { results, transcript } = buildMockAudit(lob, undefined, customParams);
       await Demos.submitAudit(session.id, { ...base, status: 'completed', results, transcript });
       notifyTeam('demo', 'Insights demo run (sandbox scorecard)', who, session.email);
       return res.status(201).json({ ok: true, id: session.id, status: 'completed', results, transcript });

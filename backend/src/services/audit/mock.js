@@ -1,15 +1,16 @@
 import crypto from 'node:crypto';
-import { rubricFor } from './rubrics.js';
+import { customRubric, rubricFor } from './rubrics.js';
 import { bandFor, overallScore } from './scoring.js';
 
 const rand = (min, max) => crypto.randomInt(min, max + 1);
 
 /**
  * Sandbox scorecard used ONLY when the Deepgram / Anthropic keys are not configured: randomised values in the
- * same report shape, clearly flagged `mock: true` so the UI can label it as a sample.
+ * same report shape, clearly flagged `mock: true` so the UI can label it as a sample. `customParams`, if given,
+ * mocks the visitor's own scoring parameters instead of the standard LOB rubric.
  */
-export function buildMockAudit(lob, name = 'the agent') {
-  const rubric = rubricFor(lob);
+export function buildMockAudit(lob, name = 'the agent', customParams) {
+  const rubric = customParams?.length ? customRubric(customParams, lob) : rubricFor(lob);
   const parameters = rubric.parameters.map((p) => ({
     key: p.key, name: p.name, weight: p.weight, applicable: true, score: rand(5, 9),
     verdict: 'Sample verdict — configure the Deepgram and Anthropic API keys to get a real audit.', evidence: '', improvement: '',

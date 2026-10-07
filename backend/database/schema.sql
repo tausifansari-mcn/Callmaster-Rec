@@ -160,6 +160,7 @@ CREATE TABLE IF NOT EXISTS demo_sessions (
   access_token        VARCHAR(64)   NULL,                    -- lets the uploader's browser poll for its own report
   results             LONGTEXT      NULL,                    -- JSON audit report
   transcript          LONGTEXT      NULL,                    -- JSON speaker-labelled transcript
+  custom_params       LONGTEXT      NULL,                    -- JSON string[]: scoring parameters, if the visitor supplied their own instead of the standard rubric
   phone               VARCHAR(30)   NULL,
   industry            VARCHAR(60)   NULL,
   call_type           VARCHAR(60)   NULL,

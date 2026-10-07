@@ -10,12 +10,21 @@ export const LANGUAGES = [
   { label: 'American English', code: 'en-US', sampleKey: 'en-US' },
 ];
 
+/** Named voice avatar shown per language × gender — same underlying engine as playLanguagePreview, just a friendlier face on it. */
+export const AVATAR_NAMES = {
+  English: { Male: 'Arjun', Female: 'Aditi' },
+  Hindi: { Male: 'Rohan', Female: 'Priya' },
+  Hinglish: { Male: 'Dev', Female: 'Ananya' },
+  'British English': { Male: 'James', Female: 'Emma' },
+  'American English': { Male: 'Michael', Female: 'Sophia' },
+};
+
 const SAMPLE_LINES = {
-  'en-IN': 'Hi, this is CallMaster calling — I can help with product questions, order updates, or booking a callback.',
-  'en-US': 'Hi there, this is CallMaster calling — I can help with product questions, order updates, or booking a callback.',
-  'en-GB': 'Hello, this is CallMaster calling — I can help with product questions, order updates, or booking a callback.',
-  'hi-IN': 'नमस्ते, मैं CallMaster की ओर से बात कर रहा हूँ। मैं आपकी कैसे मदद कर सकता हूँ?',
-  hinglish: 'Hi, main CallMaster ki taraf se baat kar raha hoon. Aapki kaise help kar sakta hoon?',
+  'en-IN': 'Hi, this is Nimantran calling — I can help with product questions, order updates, or booking a callback.',
+  'en-US': 'Hi there, this is Nimantran calling — I can help with product questions, order updates, or booking a callback.',
+  'en-GB': 'Hello, this is Nimantran calling — I can help with product questions, order updates, or booking a callback.',
+  'hi-IN': 'नमस्ते, मैं Nimantran की ओर से बात कर रहा हूँ। मैं आपकी कैसे मदद कर सकता हूँ?',
+  hinglish: 'Hi, main Nimantran ki taraf se baat kar raha hoon. Aapki kaise help kar sakta hoon?',
 };
 
 export const speechReady = typeof window !== 'undefined' && 'speechSynthesis' in window;

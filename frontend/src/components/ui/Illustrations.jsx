@@ -4,8 +4,6 @@
  */
 const A = { xmlns: 'http://www.w3.org/2000/svg', fill: 'none', 'aria-hidden': true };
 
-const PHONE = 'M129 122c0-2 1.6-3.7 3.7-3.7h3.2c1.8 0 3.4 1.3 3.6 3.1.3 2.1 1 4.1 1.8 6 .4.9.2 1.9-.5 2.5l-2.1 1.9c1.7 3.4 4.3 6.1 7.7 7.7l1.9-2.1c.6-.7 1.6-.9 2.5-.5 1.9.8 3.9 1.5 6 1.8 1.8.3 3.1 1.8 3.1 3.6v3.2c0 2.1-1.6 3.7-3.7 3.7C140.5 148.9 130.1 138.5 129 125z';
-
 const HERO = {
   audit: (
     <>
@@ -35,43 +33,6 @@ const HERO = {
       <path className="il-accent-stroke" d="M284 128c0 9 7 16 16 16s16-7 16-16" strokeWidth="2.5" strokeLinecap="round" />
       <circle className="il-card" cx="120" cy="250" r="26" />
       <path className="il-success-stroke" d="M110 240c4-6 20-6 24 3s-1 15-1 15" strokeWidth="3" strokeLinecap="round" />
-    </>
-  ),
-  dialers: (
-    <>
-      <circle className="il-bg" cx="210" cy="180" r="172" />
-      <circle className="il-card" cx="140" cy="130" r="30" /><path className="il-line" d={PHONE} />
-      <circle className="il-card" cx="280" cy="130" r="30" style={{ stroke: 'var(--accent-live)' }} />
-      <path className="il-accent" d="M269 122c0-2 1.6-3.7 3.7-3.7h3.2c1.8 0 3.4 1.3 3.6 3.1.3 2.1 1 4.1 1.8 6 .4.9.2 1.9-.5 2.5l-2.1 1.9c1.7 3.4 4.3 6.1 7.7 7.7l1.9-2.1c.6-.7 1.6-.9 2.5-.5 1.9.8 3.9 1.5 6 1.8 1.8.3 3.1 1.8 3.1 3.6v3.2c0 2.1-1.6 3.7-3.7 3.7C280.5 148.9 270.1 138.5 269 125z" />
-      <path className="il-accent-stroke" d="M310 122l8 8-8 8M318 130h-30" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" opacity="0.5" />
-      <circle className="il-card" cx="140" cy="230" r="30" />
-      <path className="il-line" transform="translate(0 100)" d={PHONE} />
-      <rect className="il-card" x="185" y="205" width="60" height="50" rx="8" style={{ stroke: 'var(--accent-success)' }} />
-      <path className="il-success-stroke" d="M198 226l7 7 14-14" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
-      <text className="il-text-success" x="215" y="248" textAnchor="middle" fontSize="8" fontWeight="600">CONNECTED</text>
-    </>
-  ),
-  'email-automation': (
-    <>
-      <circle className="il-bg" cx="210" cy="180" r="172" />
-      <rect className="il-card" x="120" y="110" width="180" height="130" rx="12" />
-      <path className="il-accent-stroke" d="M120 122l90 65 90-65" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-      <circle className="il-success" cx="300" cy="110" r="24" />
-      <path d="M290 110l7 7 13-13" stroke="#FFFFFF" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" />
-      <rect className="il-card" x="140" y="255" width="60" height="18" rx="9" />
-      <rect className="il-card" x="210" y="255" width="70" height="18" rx="9" />
-    </>
-  ),
-  'whatsapp-api': (
-    <>
-      <circle className="il-bg" cx="210" cy="180" r="172" />
-      <rect className="il-card" x="145" y="90" width="130" height="190" rx="18" />
-      <rect className="il-bg" x="160" y="115" width="70" height="16" rx="8" />
-      <rect className="il-success" x="160" y="140" width="100" height="16" rx="8" opacity="0.18" />
-      <rect className="il-bg" x="160" y="165" width="85" height="16" rx="8" />
-      <circle className="il-line" cx="210" cy="258" r="7" />
-      <circle className="il-success" cx="300" cy="120" r="26" />
-      <path d="M289 120l7 7 14-14" stroke="#FFFFFF" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round" />
     </>
   ),
   telephony: (

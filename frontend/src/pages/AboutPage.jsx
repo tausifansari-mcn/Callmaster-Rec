@@ -8,7 +8,7 @@ export default function AboutPage() {
     <section className="page active">
       <div className="container">
         <PageHero eyebrow="Not a software vendor" title="Operators First. Software Second.">
-          CallMaster was built inside a live contact center — not designed in a product meeting and sold to operators afterward. CLAP, MAGIC Script and RESO exist because we had to run these floors ourselves first.
+          Nimantran was built inside a live contact center — not designed in a product meeting and sold to operators afterward. CLAP, MAGIC Script and RESO exist because we had to run these floors ourselves first.
         </PageHero>
         <Section style={{ paddingTop: 0, paddingBottom: 0 }}>
           <BenefitGrid items={[

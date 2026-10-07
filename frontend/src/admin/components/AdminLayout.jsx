@@ -55,11 +55,11 @@ export default function AdminLayout() {
     <div className="adm-shell">
       <header className="adm-topbar">
         <button type="button" className="adm-icon-btn" aria-label="Menu" onClick={() => setOpen((o) => !o)}>☰</button>
-        <div className="brand"><span className="dot" />CallMaster <span className="adm-tag">Admin</span></div>
+        <div className="brand"><span className="dot" />Nimantran <span className="adm-tag">Admin</span></div>
       </header>
 
       <aside className={`adm-side${open ? ' open' : ''}`}>
-        <div className="brand adm-side-brand"><span className="dot" />CallMaster <span className="adm-tag">Admin</span></div>
+        <div className="brand adm-side-brand"><span className="dot" />Nimantran <span className="adm-tag">Admin</span></div>
         <nav>
           {NAV.map((g) => (
             <div key={g.group} className="adm-nav-group">

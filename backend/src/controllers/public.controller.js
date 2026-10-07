@@ -45,7 +45,7 @@ export const submitContact = asyncHandler(async (req, res) => {
 export const submitLead = asyncHandler(async (req, res) => {
   const l = req.body;
   await Leads.create({ ...l, source: 'insights-pricing', ip: req.ip });
-  notifyTeam('lead', 'New pricing request — Deep Customer Insights', {
+  notifyTeam('lead', 'New pricing request — Quality Audits', {
     Name: l.name, Organization: l.organization, Email: l.email, Phone: l.phone,
     'Call type': l.callType, Volume: l.monthlyVolume, 'QA setup': l.qaSetup,
   }, l.email);

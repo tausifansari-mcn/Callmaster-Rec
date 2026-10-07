@@ -27,7 +27,7 @@ export async function sendOtp({ target, purpose }) {
     ? await sendAdminResetEmail(target, code)
     : byEmail
       ? await sendOtpEmail(target, code)
-      : await sendSms(target, `Your CallMaster verification code is ${code}. It expires in 10 minutes.`);
+      : await sendSms(target, `Your Nimantran verification code is ${code}. It expires in 10 minutes.`);
 
   if (!delivery.sent && !env.sandboxMode) {
     await Otps.removeFor(target, purpose);

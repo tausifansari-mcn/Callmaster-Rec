@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 
 const KEY = 'cm-theme';
-const current = () => (document.documentElement.getAttribute('data-theme') === 'light' ? 'light' : 'dark');
+const current = () => (document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
 
 /** Sun / moon button: flips the whole site (and admin panel) between the light and dark theme and remembers the choice. */
 export default function ThemeToggle({ className = '' }) {
@@ -10,7 +10,7 @@ export default function ThemeToggle({ className = '' }) {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     try { localStorage.setItem(KEY, theme); } catch { /* storage unavailable — the choice just isn't remembered */ }
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#0A0C11' : '#FFFFFF');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#071226' : '#0A2A6B');
   }, [theme]);
 
   const next = theme === 'dark' ? 'light' : 'dark';

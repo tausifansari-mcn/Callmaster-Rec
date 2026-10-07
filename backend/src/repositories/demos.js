@@ -97,9 +97,10 @@ export const Demos = {
   async submitAudit(id, d) {
     await exec(
       `UPDATE demo_sessions SET lob = ?, framework = ?, file_original_name = ?, file_stored_name = ?, file_size = ?,
-         audit_status = ?, audit_stage = ?, audit_error = NULL, results = ?, transcript = ? WHERE id = ?`,
+         audit_status = ?, audit_stage = ?, audit_error = NULL, results = ?, transcript = ?, custom_params = ? WHERE id = ?`,
       [d.lob, d.framework, d.file?.originalName ?? null, d.file?.storedName ?? null, d.file?.size ?? null,
-        d.status, d.status === 'processing' ? 'transcribing' : null, toJson(d.results), toJson(d.transcript), id]
+        d.status, d.status === 'processing' ? 'transcribing' : null, toJson(d.results), toJson(d.transcript),
+        d.customParams?.length ? toJson(d.customParams) : null, id]
     );
   },
 
@@ -116,7 +117,7 @@ export const Demos = {
 
   /** For the background worker. */
   async findAuditJob(id) {
-    return one("SELECT id, lob, name, file_stored_name FROM demo_sessions WHERE id = ? AND type = 'audit'", [id]);
+    return one("SELECT id, lob, name, file_stored_name, custom_params FROM demo_sessions WHERE id = ? AND type = 'audit'", [id]);
   },
   async setAuditStage(id, stage) {
     await exec('UPDATE demo_sessions SET audit_stage = ? WHERE id = ?', [stage, id]);

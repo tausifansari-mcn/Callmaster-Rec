@@ -1,10 +1,22 @@
 import { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { NavLink, useParams } from 'react-router-dom';
 import { publicApi } from '../api/public.js';
 import { useSite } from '../context/SiteContext.jsx';
 import RichText from '../components/ui/RichText.jsx';
 import { applySiteTokens } from '../utils/tokens.js';
 import { GoButton } from '../hooks/useGoto.jsx';
+
+const LEGAL_PAGES = [
+  { slug: 'terms', label: 'Terms and conditions' },
+  { slug: 'privacy', label: 'Privacy policy' },
+  { slug: 'cookie-policy', label: 'Cookie policy' },
+  { slug: 'data-retention', label: 'Data retention policy' },
+  { slug: 'refund-policy', label: 'Refund & cancellation policy' },
+];
+
+function fmtDate(d) {
+  try { return new Date(d).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }); } catch { return ''; }
+}
 
 export function NotFoundPage() {
   return (

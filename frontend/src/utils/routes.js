@@ -6,10 +6,9 @@ export const ROUTES = {
   home: '/',
   audit: '/deep-customer-insights',
   voice: '/voice-bot',
-  dialers: '/dialers',
-  'email-automation': '/email-automation',
-  'whatsapp-api': '/whatsapp-api',
   telephony: '/cloud-telephony',
+  'sip-channels': '/sip-channels',
+  'social-listening': '/social-listening',
   pricing: '/pricing',
   insights: '/insights',
   account: '/account',
@@ -29,10 +28,9 @@ export const ROUTES = {
 export const pathFor = (key) => ROUTES[key] || (key ? `/${key}` : '/');
 
 export const PRODUCT_PAGES = [
-  { id: 'audit', label: 'Deep Customer Insights', desc: 'Score every call with CLAP, MAGIC Script or RESO.' },
-  { id: 'voice', label: 'Voice Bot', desc: 'AI voice agents that call, qualify and resolve — in your language.' },
-  { id: 'dialers', label: 'Dialers', desc: 'Predictive & power dialing that keeps agents talking, not dialing.' },
-  { id: 'email-automation', label: 'Email Automation', desc: 'Drip sequences and deliverability monitoring, at BPO scale.' },
-  { id: 'whatsapp-api', label: 'WhatsApp Business API', desc: 'Official green-tick API, shared inbox, broadcasts & bots.' },
+  { id: 'audit', label: 'Quality Audits', desc: 'Score every call with CLAP, MAGIC Script or RESO.' },
+  { id: 'voice', label: 'Voice Bots', desc: 'AI voice agents that call, qualify and resolve — in your language.' },
   { id: 'telephony', label: 'Cloud Telephony', desc: 'Mobile look-alike numbers that actually get picked up.' },
+  { id: 'sip-channels', label: 'SIP Channels', desc: 'Concurrent-call capacity, quoted to your actual volume.' },
+  { id: 'social-listening', label: 'Social Listening', desc: 'What customers say about you beyond the call.' },
 ];

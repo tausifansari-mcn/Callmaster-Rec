@@ -66,7 +66,7 @@ export const env = {
     secure: bool(process.env.SMTP_SECURE, false),
     user: process.env.SMTP_USER || '',
     pass: process.env.SMTP_PASS || '',
-    from: process.env.MAIL_FROM || 'CallMaster <no-reply@localhost>',
+    from: process.env.MAIL_FROM || 'Nimantran <no-reply@localhost>',
   },
   notifyEmail: process.env.NOTIFY_EMAIL || '',
 
@@ -74,7 +74,7 @@ export const env = {
   smsWebhookUrl: process.env.SMS_WEBHOOK_URL || '',
   voiceDemoWebhookUrl: process.env.VOICE_DEMO_WEBHOOK_URL || '',
 
-  // ---- Deep Customer Insights: real call audit (Deepgram speech-to-text → Claude audit) ----
+  // ---- Quality Audits: real call audit (Deepgram speech-to-text → Claude audit) ----
   audit: {
     deepgramKey: process.env.DEEPGRAM_API_KEY || '',
     deepgramModel: process.env.DEEPGRAM_MODEL || 'nova-3',

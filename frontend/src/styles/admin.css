@@ -1,4 +1,4 @@
-/* CallMaster admin panel — reuses the site's design tokens (see site.css :root) */
+/* Nimantran admin panel — reuses the site's design tokens (see site.css :root) */
 body.admin-mode { padding-top: 0; padding-bottom: 0; background: var(--bg); }
 @media (max-width: 899px) { body.admin-mode { padding-bottom: 0; } }
 

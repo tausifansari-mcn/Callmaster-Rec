@@ -116,7 +116,7 @@ export function DetailsStep({ eyebrow, customer, setCustomer, requiresFile, file
       <div className="checkbox-row" id="pm-dpdp-f">
         <input type="checkbox" id="pm-dpdp" checked={dpdp} onChange={(e) => { setDpdp(e.target.checked); if (e.target.checked) setDpdpError(false); }} />
         <label htmlFor="pm-dpdp">
-          I understand CallMaster does not store or retain what I enter on this website beyond what's needed to process this order and meet legal record-keeping requirements, in line with India's Digital Personal Data Protection Act, 2023 (DPDP Act). <a href="/privacy" target="_blank" rel="noreferrer">Read the Privacy Policy</a>.
+          I understand Nimantran does not store or retain what I enter on this website beyond what's needed to process this order and meet legal record-keeping requirements, in line with India's Digital Personal Data Protection Act, 2023 (DPDP Act). <a href="/privacy" target="_blank" rel="noreferrer">Read the Privacy Policy</a>.
         </label>
       </div>
       {dpdpError && <div className="err" id="pm-dpdp-err" style={{ display: 'block', marginTop: -8, marginBottom: 8 }}>Please confirm you've read and understood this before continuing</div>}
@@ -308,13 +308,13 @@ function WelcomePreview({ result, sandbox }) {
           ? `A copy of this welcome email has been sent to ${result.email}`
           : `${sandbox ? 'SANDBOX MODE — ' : ''}email delivery isn't configured on this server, so here is the welcome message we would send to ${result.email}`}
       </div>
-      <div className="pep-subject">Welcome to CallMaster — your {result.product} purchase is confirmed</div>
+      <div className="pep-subject">Welcome to Nimantran — your {result.product} purchase is confirmed</div>
       <div className="pep-body">
         <p>Hi {result.contact},</p>
         <p>Thanks for purchasing <b>{result.product}</b> ({result.plan}). We've received your payment of <b>{money(result.total)}</b> against Order <b>{result.orderId}</b>.</p>
         {account.created ? (
           <>
-            <p><b>Your account is ready.</b> Manage billing and your subscription anytime from your <a href="/account" target="_blank" rel="noreferrer">CallMaster dashboard</a>:</p>
+            <p><b>Your account is ready.</b> Manage billing and your subscription anytime from your <a href="/account" target="_blank" rel="noreferrer">Nimantran dashboard</a>:</p>
             <div className="pep-cred">
               Username: {account.username}<br />
               {account.tempPassword
@@ -323,11 +323,11 @@ function WelcomePreview({ result, sandbox }) {
             </div>
           </>
         ) : (
-          <p>This order has been added to your existing CallMaster account (<b>{account.username}</b>) — sign in to your <a href="/account" target="_blank" rel="noreferrer">dashboard</a> with your current password.</p>
+          <p>This order has been added to your existing Nimantran account (<b>{account.username}</b>) — sign in to your <a href="/account" target="_blank" rel="noreferrer">dashboard</a> with your current password.</p>
         )}
         {isCT && result.cancellation && (
           <>
-            <p><b>Your welcome offer:</b> for your first billing month, we'll audit 2% of your call volume through Deep Customer Insights and share the results with you at no extra cost.</p>
+            <p><b>Your welcome offer:</b> for your first billing month, we'll audit 2% of your call volume through Quality Audits and share the results with you at no extra cost.</p>
             <p>
               <b>Cancellation &amp; refunds:</b> you can cancel within {result.cancellation.windowDays} days of this purchase for a full refund, processed to your original payment method within {result.cancellation.refundDays} working days.{' '}
               <button type="button" className="link-btn" onClick={onCancel}>Cancel this subscription</button>.
