@@ -3,10 +3,10 @@
   "version": "1.0.0",
   "private": true,
   "description": "Nimantran website (frontend + backend)",
-  "scripts": {
-    "build": "npm install --prefix backend --omit=dev && npm install --prefix frontend --include=dev && npm --prefix frontend run build",
-    "start": "npm --prefix backend start"
-  },
+ "scripts": {
+  "build": "npm install --prefix backend --omit=dev && npm install --prefix frontend --include=dev && npm --prefix frontend run build",
+  "start": "npm install --prefix backend --omit=dev && npm --prefix backend start"
+},
   "engines": {
     "node": ">=18"
   }
