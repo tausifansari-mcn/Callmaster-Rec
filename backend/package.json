@@ -1,36 +1,13 @@
 {
-  "name": "nimantran-backend",
+  "name": "nimantran-website",
   "version": "1.0.0",
   "private": true,
-  "description": "Nimantran website API — public site endpoints, checkout, and admin panel backend",
-  "type": "module",
-  "main": "src/server.js",
+  "description": "Nimantran website (frontend + backend)",
   "scripts": {
-    "dev": "node --watch src/server.js",
-    "start": "node src/server.js",
-    "create-admin": "node src/scripts/createAdmin.js",
-    "test": "node --test --test-concurrency=1 \"tests/**/*.test.js\""
+    "build": "npm install --prefix backend --omit=dev && npm install --prefix frontend --include=dev && npm --prefix frontend run build",
+    "start": "npm --prefix backend start"
   },
   "engines": {
     "node": ">=18"
-  },
-  "license": "UNLICENSED",
-  "dependencies": {
-    "bcryptjs": "^3.0.3",
-    "compression": "^1.8.2",
-    "cors": "^2.8.6",
-    "dotenv": "^18.0.3",
-    "express": "^4.22.3",
-    "express-rate-limit": "^8.7.0",
-    "helmet": "^8.3.0",
-    "jsonwebtoken": "^9.0.3",
-    "morgan": "^1.12.1",
-    "multer": "^2.4.0",
-    "mysql2": "^3.24.4",
-    "nodemailer": "^10.0.10",
-    "zod": "^3.25.76"
-  },
-  "devDependencies": {
-    "mysql-memory-server": "^1.16.0"
   }
 }
