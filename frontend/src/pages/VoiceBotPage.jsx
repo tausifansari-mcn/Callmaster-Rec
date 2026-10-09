@@ -1,9 +1,18 @@
 import { useSite } from '../context/SiteContext.jsx';
 import { GoLink } from '../hooks/useGoto.jsx';
-import { FaqSection, HowSteps, PageHero, Section } from '../components/ui/Blocks.jsx';
+import { BenefitGrid, FaqSection, HowSteps, PageHero, Section } from '../components/ui/Blocks.jsx';
 import VoiceSetupCalculator from '../components/calculators/VoiceSetupCalculator.jsx';
 import VoiceWizard from '../components/wizards/VoiceWizard.jsx';
 import { rate, rate2 } from '../utils/format.js';
+
+const HIGHLIGHTS = [
+  { icon: 'voice', title: 'English, Hindi and Hinglish', text: 'Talk to customers the way they actually speak, with Indian, British or American accents to match your brand.' },
+  { icon: 'pen', title: 'Your script, your flow', text: 'Build the conversation around your process: questions, branches, confirmations and handover rules.' },
+  { icon: 'clock', title: 'Always on', text: 'Calls go out and come in at any hour, without overtime or a shrinking team on festival days.' },
+  { icon: 'users', title: 'Scale up in an afternoon', text: 'Reach thousands of customers in the time a team would reach a few hundred.' },
+  { icon: 'user', title: 'Hand-off to a human', text: 'Escalate to an agent when the customer asks, or when the conversation goes off script.' },
+  { icon: 'circle-check', title: 'Pay by the minute', text: 'Pricing starts at ₹3.5 per minute, so cost follows usage, with no fixed seat to fill.' },
+];
 
 export default function VoiceBotPage() {
   const { pricing, faqs } = useSite();
@@ -25,6 +34,11 @@ export default function VoiceBotPage() {
             { art: 'mic', title: 'Pick a voice & language', text: 'Male or female, then English, Hindi, Hinglish, British or American English.' },
             { art: 'check', title: 'Verify & get the call', text: 'Enter your number, verify with OTP, and hit Call Me.' },
           ]} />
+        </Section>
+
+        <Section style={{ paddingTop: 0 }}>
+          <h2>Highlights</h2>
+          <BenefitGrid items={HIGHLIGHTS} />
         </Section>
 
         <VoiceWizard />

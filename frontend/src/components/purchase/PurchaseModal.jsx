@@ -92,7 +92,7 @@ export default function PurchaseModal({ session, onClose }) {
             name: 'Nimantran',
             description: `${order.quote.product} — ${order.quote.plan}`,
             prefill: { name: customer.contact, email: customer.email, contact: customer.phone },
-            theme: { color: '#2563EB' },
+            theme: { color: '#2F6B42' },
             handler: (r) => resolve(r),
             modal: { ondismiss: () => reject(new Error('Payment was cancelled. You can try again.')) },
           });

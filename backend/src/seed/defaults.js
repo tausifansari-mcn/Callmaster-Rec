@@ -79,17 +79,22 @@ export const DEFAULT_PRICING = {
 
 export const DEFAULT_FAQS = {
   audit: [
-    { q: 'What audio formats are supported?', a: 'MP3, WAV, and most common call-recording formats.' },
-    { q: 'How do you decide which framework applies?', a: 'By the line of business you select — Inbound/Retention gets CLAP (service quality), Outbound Sales gets MAGIC Script (best-pitch finder), Collections gets RESO (promise-to-pay scoring).' },
-    { q: 'Is my uploaded data stored?', a: 'No — uploaded audio and the resulting transcript are deleted after your session, per our Data Retention Policy.' },
-    { q: 'Can this integrate with our existing QA workflow?', a: 'Yes — it\'s built to plug into your existing QA workflow, not replace it. It runs alongside whatever process you have today and adds the scoring, without a rip-and-replace project.' },
+    { q: 'What do I need to try it?', a: 'One call recording and a phone number for verification. Each phone number gets one free trial.' },
+    { q: 'Can I score against my own parameters?', a: 'Yes. You can start with the standard scorecard or give us your own parameters, such as mandatory disclosures, tone and closing steps.' },
+    { q: 'Which languages are supported?', a: 'English, Hindi and Hinglish calls are supported today. Tell us about other regional languages you need and we will confirm.' },
+    { q: 'Does it replace my QA team?', a: 'No. It removes the manual listening so your QA team spends time on coaching and on the calls that were actually flagged.' },
+    { q: 'How is it priced?', a: 'Quality Audits is quoted to your call volume. New Cloud Telephony customers also get 2% of calls audited free in the first month.' },
+    { q: 'How is perceived NPS or CSAT worked out?', a: 'From the conversation itself: the customer\'s words, tone, repeated complaints and how the call ended. It is an estimate for every call, not a replacement for survey scores. We suggest checking it against your real survey results for a few weeks.' },
+    { q: 'What do the fraud and escalation alerts catch?', a: 'Fraud alerts flag patterns such as requests for OTPs or card details, identity mismatches and unusual account-change requests. Escalation alerts flag customers who say they will post on social media, contact the media or complain to a regulator. You choose who is told and how.' },
+    { q: 'What happens to my recording?', a: 'It is used to produce your result and handled as described in our Privacy Policy and Data Retention Policy.' },
   ],
   voice: [
-    { q: 'Can the bot handle interruptions and follow-up questions?', a: 'Yes — it\'s built on conversational AI, not a fixed IVR tree.' },
-    { q: 'What happens if the bot can\'t resolve the query?', a: 'It escalates — to a live agent or a scheduled callback, on your existing flow. No extra setup required.' },
-    { q: 'Can it be trained on our specific scripts and FAQs?', a: 'Yes — point it at your existing scripts and FAQs and it plugs straight in. No lengthy integration project.' },
-    { q: 'Which languages/dialects are supported today vs. on the roadmap?', a: 'English, Hindi, Hinglish, British English and American English today, with regional Indian languages available as one-time add-ons.' },
-    { q: 'Paying your current voice bot vendor less per minute?', a: 'Tell us what you pay today on the quote form — if it\'s a plausible rate, we\'ll try to match it before you commit.' },
+    { q: 'Will customers know it is a bot?', a: 'Our voices are natural, and we recommend identifying the call as automated. Honest framing builds more trust than pretending.' },
+    { q: 'Which languages and accents?', a: 'English, Hindi and Hinglish with Indian, British and American accents. Regional languages can be scoped on request.' },
+    { q: 'Can I try one before buying?', a: 'Yes. Enter your script, choose the voice and Nimantran calls your phone. Each phone number gets one free trial.' },
+    { q: 'What can a voice bot handle?', a: 'Collections reminders, appointment confirmations, abandoned-cart recovery, order and delivery updates, feedback calls and first-level customer service.' },
+    { q: 'How much does it cost?', a: 'From ₹3.5 per minute. Tell us your volume and we will quote it, and see whether we can match your current rate.' },
+    { q: 'Does it follow calling rules and DND?', a: 'Outbound calling is subject to telecom rules. We design campaigns around consented and permitted contacts, and you remain responsible for the consent of the numbers you upload.' },
   ],
   telephony: [
     { q: 'What exactly makes a number "mobile look-alike"?', a: 'It\'s formatted and routed to present as a standard 10-digit mobile number rather than a visibly corporate pattern (1800/0XX toll-free or landline prefixes) — the same call quality, but far less likely to be ignored, screened, or flagged as spam.' },
@@ -99,12 +104,20 @@ export const DEFAULT_FAQS = {
     { q: 'Is there a bigger discount for high volume?', a: 'For large, custom deployments, [talk to Enterprise Sales](/contact) instead of checking out here.' },
   ],
   sip: [
-    { q: 'How is SIP Channels pricing worked out?', a: 'By your channel count and usage pattern — tell us how many concurrent channels you need and we\'ll quote it to your actual volume rather than a generic rate card.' },
-    { q: 'What uptime standard do SIP Channels run to?', a: 'The uptime a 24/7 contact center actually needs, not a best-effort startup SLA — the specifics are confirmed with you on the quote.' },
+    { q: 'What is a concurrent call channel?', a: 'One channel carries one call at a time. If 40 customers can be on the phone at once, you need 40 channels.' },
+    { q: 'How do I know how many I need?', a: 'Divide peak-hour call minutes by 60 and add a safety margin. Or give us your volume and we will size it.' },
+    { q: 'Does it work with my dialer or PBX?', a: 'Most modern dialers and PBX systems support SIP. Share your setup and we will confirm compatibility.' },
+    { q: 'What uptime can I expect?', a: 'Capacity is built to a contact-center standard. Specific service levels are agreed in your contract.' },
+    { q: 'How is it priced?', a: 'By channel count and volume, quoted after you tell us what you need.' },
+    { q: 'Can I add channels later?', a: 'Yes. Capacity can be increased, and reduced, as your campaigns change.' },
   ],
   social: [
-    { q: 'When will Social Listening be available?', a: 'We\'re finalizing scope and data sources ahead of general availability — talk to sales to be notified when it launches.' },
-    { q: 'What will Social Listening track?', a: 'What\'s said about your brand across the channels customers actually vent on, so a five-star call doesn\'t quietly mask a one-star thread elsewhere. Full scope is still being defined.' },
+    { q: 'Is Social Listening available now?', a: 'It is in early access. Scope and data sources are being finalised, so talk to us to join.' },
+    { q: 'Which platforms will it cover?', a: 'Public sources are being confirmed. Tell us where your customers talk and we will tell you what we can cover.' },
+    { q: 'Does it read private messages?', a: 'No. It works with public mentions only.' },
+    { q: 'How does it connect to calls?', a: 'You can compare public sentiment with your call quality scores to see where customers feel differently.' },
+    { q: 'Do I need Quality Audits to use it?', a: 'No, but the two work well together.' },
+    { q: 'How is it priced?', a: 'Early-access pricing is shared on request.' },
   ],
 };
 

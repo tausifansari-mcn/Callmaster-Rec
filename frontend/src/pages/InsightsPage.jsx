@@ -1,7 +1,16 @@
 import { useState } from 'react';
 import { publicApi } from '../api/public.js';
 import { useSite } from '../context/SiteContext.jsx';
-import { FaqSection, HowSteps, PageHero, Section } from '../components/ui/Blocks.jsx';
+import { BenefitGrid, FaqSection, HowSteps, PageHero, Section } from '../components/ui/Blocks.jsx';
+
+const HIGHLIGHTS = [
+  { icon: 'audit', title: 'Every call scored', text: 'Replace sampling with full coverage, so a bad call is found when it happens, not at the next quarterly review.' },
+  { icon: 'pen', title: 'Your own scorecard', text: 'Use standard parameters or define your own: greeting, empathy, compliance lines, product knowledge, closing.' },
+  { icon: 'search', title: 'Transcript you can search', text: 'Each recording becomes a readable transcript, so you can find what was promised and when.' },
+  { icon: 'clap', title: 'Coaching flags', text: 'Calls that miss a parameter are flagged with the reason, so team leads coach on evidence instead of hunches.' },
+  { icon: 'circle-check', title: 'Works across call types', text: 'Inbound service, outbound sales, collections and campaign calls, each with its own scoring logic.' },
+  { icon: 'reso', title: 'Compliance evidence', text: 'Show that mandatory disclosures were read out, call by call, whenever an auditor or client asks.' },
+];
 import Field from '../components/ui/Field.jsx';
 import InsightsWizard from '../components/wizards/InsightsWizard.jsx';
 import { ERR, PHONE_RE, isOfficialEmail } from '../utils/validators.js';
@@ -105,6 +114,11 @@ export default function InsightsPage() {
             { art: 'lines-a', title: 'Select the line of business', text: 'Inbound Support, Outbound Sales, Collections, or Retention.' },
             { art: 'check', title: 'Get scored, automatically', text: 'Transcript, scorecard and exact improvement areas — in seconds.' },
           ]} />
+        </Section>
+
+        <Section style={{ paddingTop: 0 }}>
+          <h2>Highlights</h2>
+          <BenefitGrid items={HIGHLIGHTS} />
         </Section>
 
         <InsightsWizard />

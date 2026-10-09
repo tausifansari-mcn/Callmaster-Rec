@@ -15,7 +15,7 @@ const FRAMEWORK_BY_LOB = {
   Retention: 'MAGIC Script — CRT / CST',
 };
 const LOBS = Object.keys(FRAMEWORK_BY_LOB);
-const EMPTY = { name: '', company: '', email: '', file: null, lob: '', rights: false };
+const EMPTY = { name: '', company: '', email: '', file: null, lob: '', rights: false, paramMode: 'standard', customParams: ['', ''] };
 const POLL_MS = 2500;
 const MAX_WAIT_MS = 6 * 60 * 1000;
 const MESSAGE_MS = 3200;
@@ -197,6 +197,10 @@ export default function InsightsWizard() {
     form.append('accessToken', session.accessToken);
     form.append('lob', data.lob);
     form.append('rights', String(data.rights));
+    if (data.paramMode === 'custom') {
+      const names = data.customParams.map((p) => p.trim()).filter(Boolean);
+      if (names.length) form.append('customParams', JSON.stringify(names));
+    }
 
     try {
       const started = await publicApi.auditSubmit(session.id, form);
@@ -236,7 +240,8 @@ export default function InsightsWizard() {
     setStep(1);
   };
 
-  const canSubmit = data.file && data.lob && data.rights;
+  const customParamNames = data.customParams.map((p) => p.trim()).filter(Boolean);
+  const canSubmit = data.file && data.lob && data.rights && (data.paramMode === 'standard' || customParamNames.length > 0);
 
   return (
     <>
@@ -300,6 +305,30 @@ export default function InsightsWizard() {
                     {LOBS.map((l) => <option key={l}>{l}</option>)}
                   </select>
                 </Field>
+
+                <div className="field">
+                  <span className="field-label">Scoring parameters</span>
+                  <div className="seg-row">
+                    <button type="button" className={`seg-btn${data.paramMode === 'standard' ? ' active' : ''}`} onClick={() => setData((d) => ({ ...d, paramMode: 'standard' }))}>Use standard parameters</button>
+                    <button type="button" className={`seg-btn${data.paramMode === 'custom' ? ' active' : ''}`} onClick={() => setData((d) => ({ ...d, paramMode: 'custom' }))}>Use my own parameters</button>
+                  </div>
+                  {data.paramMode === 'custom' && (
+                    <div className="custom-params">
+                      {data.customParams.map((val, i) => (
+                        <div className="param-row" key={i}>
+                          <input
+                            type="text" value={val} placeholder="e.g. Opening script adherence"
+                            onChange={(e) => setData((d) => ({ ...d, customParams: d.customParams.map((p, pi) => (pi === i ? e.target.value : p)) }))}
+                          />
+                          <button type="button" className="btn secondary small" onClick={() => setData((d) => ({ ...d, customParams: d.customParams.filter((_, pi) => pi !== i) }))}>Remove</button>
+                        </div>
+                      ))}
+                      <button type="button" className="btn secondary small" onClick={() => setData((d) => ({ ...d, customParams: [...d.customParams, ''] }))}>+ Add parameter</button>
+                      <p className="hint" style={{ marginTop: 6 }}>Name your own scoring parameters — weighted evenly across all of them. Leave this section as "standard" to use Nimantran's built-in CLAP / MAGIC Script / RESO rubric instead.</p>
+                    </div>
+                  )}
+                </div>
+
                 <div className="checkbox-row">
                   <input type="checkbox" id="a-rights" checked={data.rights} onChange={(e) => setData((d) => ({ ...d, rights: e.target.checked }))} />
                   <label htmlFor="a-rights">I confirm I have the right to submit this recording.</label>

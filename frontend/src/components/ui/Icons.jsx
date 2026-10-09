@@ -32,3 +32,49 @@ export function IconBadge({ name, small = false }) {
     </div>
   );
 }
+
+const INDUSTRY_TINTS = {
+  insurance: '#2F6B42',
+  banking: '#1B3A26',
+  health: '#B65C3A',
+  'retail-ecommerce': '#D9A05B',
+  fmcg: '#6B7A3F',
+  automobiles: '#10231A',
+  ev: '#2F6B42',
+  telecom: '#1B3A26',
+  logistics: '#B65C3A',
+  aviation: '#D9A05B',
+};
+
+/**
+ * Quick decorative stand-in for the Industries section's per-page illustrations. The source site
+ * has a hand-built procedural SVG scene per industry; reproducing those isn't worth it here, so
+ * this renders a soft tinted tile with a monogram instead — used on the hub cards (small) and the
+ * per-industry hero (large).
+ */
+export function IndustryArt({ slug, letters, size = 120 }) {
+  const tint = INDUSTRY_TINTS[slug] || '#2F6B42';
+  return (
+    <div
+      aria-hidden="true"
+      style={{
+        width: size,
+        height: size,
+        borderRadius: size * 0.22,
+        background: `${tint}1A`,
+        border: `1px solid ${tint}40`,
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        flexShrink: 0,
+        fontFamily: 'var(--font-display)',
+        fontWeight: 800,
+        fontSize: size * 0.34,
+        letterSpacing: '-0.02em',
+        color: tint,
+      }}
+    >
+      {letters}
+    </div>
+  );
+}

@@ -59,6 +59,16 @@ const STEPS = [
 
 const FOOTNOTE = '*Illustrative — based on typical results teams see from AI-optimized scripts and collections scoring, not a guaranteed outcome for every account.';
 
+const WAVE_BARS = [26, 31, 10, 12, 9, 19, 33, 21, 33, 42, 20, 43, 42, 9, 8, 14, 15, 42, 17, 42, 29, 10, 19, 40, 26, 35, 21, 21, 25, 27];
+
+function Wave() {
+  return (
+    <div className="wave" aria-hidden="true">
+      {WAVE_BARS.map((h, i) => <i key={i} style={{ '--h': h, '--d': ((i * 37) % 150) / 100 }} />)}
+    </div>
+  );
+}
+
 function ServicesGrid() {
   return (
     <div className="services-grid">
@@ -101,12 +111,17 @@ export default function HomePage() {
                 <GoButton to="audit" className="btn">{home.primaryCta}</GoButton>
                 <GoButton to="contact" className="btn secondary">{home.secondaryCta}</GoButton>
               </div>
+              <div className="hero-badges">
+                <span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="var(--surface-raised)" /><path d="M7.5 12.5l3 3 6-6.5" stroke="var(--accent-live)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>ISO 27001:2022 certified</span>
+                <span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="var(--surface-raised)" /><path d="M7.5 12.5l3 3 6-6.5" stroke="var(--accent-live)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>No credit card. Just possibilities.</span>
+              </div>
             </div>
             <div className="hero-mock">
               <div className="mock-head">
                 <span className="mock-title">Quality Audits — sample output</span>
                 <span className="mock-live"><span className="mock-dot" />Live on this site</span>
               </div>
+              <Wave />
               <div className="mock-transcript">
                 Agent: Thank you for calling, this is Priya, how may I help you today?<br />
                 Customer: Hi, I wanted to check on my order status...<br />
@@ -118,6 +133,8 @@ export default function HomePage() {
                 <div className="mock-score"><div className="n">95</div><div className="l">Tone</div></div>
                 <div className="mock-score"><div className="n">81</div><div className="l">Compliance</div></div>
               </div>
+              <div className="float-chip fc1"><span className="dot" />Customer sentiment: Positive</div>
+              <div className="float-chip fc2">Every call scored</div>
             </div>
           </div>
           <p className="intro-para">Nimantran brings call quality auditing, human-sounding voice bots, cloud telephony, scalable SIP channels, and social listening into one platform, built to plug into how your team already works rather than force a new one. There's no lengthy integration project or separate onboarding cycle — configure it with your own calls, scripts, and channels, and it's ready to run from day one.</p>
@@ -163,6 +180,24 @@ export default function HomePage() {
           <p className="section-sub">From your first call to a full rollout — three steps, no sales call required to see it happen.</p>
           <HowSteps steps={STEPS} />
         </Section>
+
+        <div className="heart-band">
+          <div className="heart-grid">
+            <div>
+              <div className="kicker" style={{ color: '#E2B89C' }}>Technology with a human heart</div>
+              <div className="heart-big"><b>23+</b><span>Years of real human connection</span></div>
+              <h2>We know the people. Not just the patterns.</h2>
+              <p>Great customer experiences don't start with an algorithm. They start with understanding.</p>
+              <p>We bring 23 years of contact center experience to every insight, every call, and every connection.</p>
+              <GoButton to="why" className="btn dark" style={{ marginTop: 10 }}>The experience behind the AI</GoButton>
+            </div>
+            <ul className="heart-pillars">
+              <li>Built by contact center experts</li>
+              <li>Designed around your customers</li>
+              <li>Intelligence your team can act on</li>
+            </ul>
+          </div>
+        </div>
 
         <Section style={{ paddingTop: 0 }}>
           <div className="kicker">Questions</div>

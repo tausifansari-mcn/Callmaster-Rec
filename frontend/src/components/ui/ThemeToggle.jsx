@@ -10,7 +10,7 @@ export default function ThemeToggle({ className = '' }) {
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
     try { localStorage.setItem(KEY, theme); } catch { /* storage unavailable — the choice just isn't remembered */ }
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#071226' : '#0A2A6B');
+    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#0A1710' : '#1B3A26');
   }, [theme]);
 
   const next = theme === 'dark' ? 'light' : 'dark';

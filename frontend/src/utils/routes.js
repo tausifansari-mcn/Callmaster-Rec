@@ -9,8 +9,11 @@ export const ROUTES = {
   telephony: '/cloud-telephony',
   'sip-channels': '/sip-channels',
   'social-listening': '/social-listening',
+  why: '/why',
+  industries: '/industries',
   pricing: '/pricing',
   insights: '/insights',
+  resources: '/resources',
   account: '/account',
   about: '/about',
   contact: '/contact',
@@ -28,9 +31,9 @@ export const ROUTES = {
 export const pathFor = (key) => ROUTES[key] || (key ? `/${key}` : '/');
 
 export const PRODUCT_PAGES = [
-  { id: 'audit', label: 'Quality Audits', desc: 'Score every call with CLAP, MAGIC Script or RESO.' },
-  { id: 'voice', label: 'Voice Bots', desc: 'AI voice agents that call, qualify and resolve — in your language.' },
-  { id: 'telephony', label: 'Cloud Telephony', desc: 'Mobile look-alike numbers that actually get picked up.' },
-  { id: 'sip-channels', label: 'SIP Channels', desc: 'Concurrent-call capacity, quoted to your actual volume.' },
-  { id: 'social-listening', label: 'Social Listening', desc: 'What customers say about you beyond the call.' },
+  { id: 'audit', label: 'Quality Audits', desc: 'Every call scored, not just a sample', icon: 'audit' },
+  { id: 'voice', label: 'Voice Bots', desc: 'Bots that actually call you', icon: 'voice' },
+  { id: 'telephony', label: 'Cloud Telephony', desc: 'Call from a number that looks like a mobile', icon: 'telephony' },
+  { id: 'sip-channels', label: 'SIP Channels', desc: 'Concurrent-call capacity, quoted right', icon: 'sip-channels' },
+  { id: 'social-listening', label: 'Social Listening', desc: 'The signal beyond the call', icon: 'social-listening' },
 ];

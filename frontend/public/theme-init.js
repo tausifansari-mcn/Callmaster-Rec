@@ -5,5 +5,5 @@
   var t = "light";
   try { if (isAdmin && localStorage.getItem("cm-theme") === "dark") t = "dark"; } catch (e) { /* storage unavailable */ }
   document.documentElement.setAttribute("data-theme", t);
-  if (t === "dark") { var m = document.querySelector("meta[name=theme-color]"); if (m) m.setAttribute("content", "#071226"); }
+  if (t === "dark") { var m = document.querySelector("meta[name=theme-color]"); if (m) m.setAttribute("content", "#0A1710"); }
 })();
