@@ -1,20 +1,15 @@
 import { IconBadge } from './Icons.jsx';
-import { HeroIllo, HowStep } from './Illustrations.jsx';
+import { HowStep } from './Illustrations.jsx';
 import RichText from './RichText.jsx';
 
-/** Page hero used across product pages (the original's `.hero` with 34px top padding). `illo` adds the picture beside the headline. */
-export function PageHero({ icon, eyebrow, title, illo, children }) {
-  const copy = (
-    <>
-      {icon && <IconBadge name={icon} />}
-      {eyebrow && <div className="eyebrow">{eyebrow}</div>}
-      <h1>{title}</h1>
-      {children && <p className="sub">{children}</p>}
-    </>
-  );
+/** Heading block that opens every inner page: kicker, headline, lead paragraph, over a soft full-bleed band. */
+export function PageHero({ eyebrow, title, children }) {
   return (
-    <div className="hero" style={{ paddingTop: 34 }}>
-      {illo ? <div className="hero-grid"><div className="hero-copy">{copy}</div><HeroIllo kind={illo} /></div> : copy}
+    <div className="section-head">
+      <span className="sh-band" aria-hidden="true" />
+      {eyebrow && <div className="kicker">{eyebrow}</div>}
+      <h1>{title}</h1>
+      {children && <p>{children}</p>}
     </div>
   );
 }

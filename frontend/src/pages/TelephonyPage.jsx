@@ -1,14 +1,22 @@
 import { useSite } from '../context/SiteContext.jsx';
+import { GoButton } from '../hooks/useGoto.jsx';
 import { BenefitGrid, FaqSection, PageHero, Section } from '../components/ui/Blocks.jsx';
+import ProductOverview from '../components/ui/ProductOverview.jsx';
 import TelephonyCalculator from '../components/calculators/TelephonyCalculator.jsx';
 
+const OV_STEPS = [
+  { title: 'Choose your setup', text: 'Pick licences, channels and numbers below.' },
+  { title: 'See the price', text: 'The estimate updates as you change the numbers.' },
+  { title: 'Request the plan', text: 'Our team confirms and sets you up. Billing is direct.' },
+];
+
 const HIGHLIGHTS = [
-  { icon: 'telephony', title: 'Mobile look-alike numbers', text: 'Calls show up like a normal mobile number, not an unfamiliar landline or service series.' },
-  { icon: 'user', title: 'One licence per agent', text: '₹1,500 per user per month. Add or remove agents as the team changes.' },
-  { icon: 'bars3', title: 'Add channels as you grow', text: 'Increase concurrent call capacity when volume rises, without replacing the setup.' },
-  { icon: 'users', title: 'Extra numbers for teams', text: 'Give each team or campaign its own number so you can see what works.' },
-  { icon: 'cloud', title: 'Works from anywhere', text: 'Agents call from a laptop or phone, at the office or from home.' },
-  { icon: 'circle-check', title: 'Audits included in month one', text: 'New customers get 2% of calls audited free in the first month, with results shared.' },
+  { title: 'Mobile look-alike numbers', text: 'Calls show up like a normal mobile number, not an unfamiliar landline or service series.' },
+  { title: 'One licence per agent', text: '₹1,500 per user per month. Add or remove agents as the team changes.' },
+  { title: 'Add channels as you grow', text: 'Increase concurrent call capacity when volume rises, without replacing the setup.' },
+  { title: 'Extra numbers for teams', text: 'Give each team or campaign its own number so you can see what works.' },
+  { title: 'Works from anywhere', text: 'Agents call from a laptop or phone, at the office or from home.' },
+  { title: 'Audits included in month one', text: 'New customers get 2% of calls audited free in the first month, with results shared.' },
 ];
 
 export default function TelephonyPage() {
@@ -16,9 +24,24 @@ export default function TelephonyPage() {
   return (
     <section className="page active">
       <div className="container">
-        <PageHero icon="telephony" illo="telephony" eyebrow="The number that gets answered" title="A Phone Number Your Customers Actually Pick Up.">
-          Nimantran Cloud Telephony runs your inbound and outbound calling on the same high-uptime infrastructure powering a live 250+ client contact center operation — configured, priced and paid for online, in minutes, not a sales cycle.
+        <PageHero eyebrow="Cloud Telephony" title="Call from a number that looks like a mobile.">
+          Nimantran Cloud Telephony gives every agent a cloud calling line with a mobile-style number. Your customers see a number that looks like any other mobile, not an unfamiliar landline or service series.
         </PageHero>
+        <div className="chip-row">
+          <span className="chip">Mobile look-alike number</span><span className="chip">Pay per user</span><span className="chip">Add channels and numbers as you grow</span>
+        </div>
+
+        <ProductOverview
+          illo="telephony"
+          title="What Cloud Telephony gives you"
+          lead="Cloud Telephony gives every agent a calling line in the cloud, with no hardware and no desk phones. Lines are issued as mobile-style numbers, so customers see a number that looks personal and is more likely to be picked up."
+          steps={OV_STEPS}
+          highlights={HIGHLIGHTS}
+          tryTitle="Ready to size your setup?"
+          tryText="Choose licences, channels and numbers below and see the price update."
+          tryCta="Configure your plan"
+          tryHref="#telephony-pricing"
+        />
 
         <Section style={{ paddingTop: 0 }}>
           <div className="usp-band">
@@ -44,11 +67,6 @@ export default function TelephonyPage() {
           ]} />
         </Section>
 
-        <Section style={{ paddingTop: 0 }}>
-          <h2>Highlights</h2>
-          <BenefitGrid items={HIGHLIGHTS} />
-        </Section>
-
         <Section id="telephony-pricing">
           <h2>Configure &amp; buy online</h2>
           <div className="offer-card">
@@ -61,6 +79,17 @@ export default function TelephonyPage() {
         </Section>
 
         <FaqSection items={faqs.telephony} />
+
+        <div className="cta-band">
+          <div>
+            <h2>Give every agent a number customers pick up.</h2>
+            <p>Configure your setup and see the price, or book a meeting and we will size it to your team.</p>
+          </div>
+          <div className="cta-row">
+            <GoButton to="contact" className="btn">Book a meeting</GoButton>
+            <GoButton to="contact" className="btn secondary">Contact us</GoButton>
+          </div>
+        </div>
       </div>
     </section>
   );

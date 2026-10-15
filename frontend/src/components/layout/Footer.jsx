@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
 import { useSite } from '../../context/SiteContext.jsx';
-import { logoUrl } from '../../utils/branding.js';
 import { PRODUCT_PAGES, pathFor } from '../../utils/routes.js';
 import { INDUSTRIES_NAV } from './Navbar.jsx';
 
@@ -13,9 +12,8 @@ export default function Footer() {
       <div className="container">
         <div className="footer-grid">
           <div>
-            <Link className="footer-brand" to="/">
-              {logoUrl(site) && <img src={logoUrl(site)} alt="" />}
-              {site.brandName}
+            <Link className="foot-logo-card" to="/" aria-label={`${site.brandName} home`}>
+              <img src="/logo-full.png" alt="Nimantran: Cloud Telephony, AI Voice, Connecting People" width="150" height="141" />
             </Link>
             <p className="footer-tagline">Enable people. Empower businesses.</p>
           </div>
@@ -40,6 +38,7 @@ export default function Footer() {
             <Link to="/contact">Contact us</Link>
             <Link to="/account">Customer login</Link>
             <a href="mailto:care@nimantran.ai">care@nimantran.ai</a>
+            <a href="https://wa.me/919667195550?text=Hi%20Nimantran%2C%20I%20would%20like%20to%20know%20more%20about" target="_blank" rel="noopener noreferrer">WhatsApp: +91 96671 95550</a>
             {extra('company').map((p) => <Link key={p.slug} to={`/${p.slug}`}>{p.title}</Link>)}
           </div>
           <div>
@@ -48,6 +47,7 @@ export default function Footer() {
           </div>
         </div>
         {site.footerNote && <div className="footer-bottom">{site.footerNote}</div>}
+        <p className="footer-copy">&copy; {new Date().getFullYear()} Nimantran. All rights reserved.</p>
       </div>
     </footer>
   );

@@ -52,9 +52,9 @@ const WHY = [
 ];
 
 const STEPS = [
-  { art: 'phone', title: 'Connect a call or channel', text: 'Upload one recording, or link your voice/WhatsApp/email — no integration project needed to start.' },
-  { art: 'target', title: 'AI scores every conversation', text: "CLAP, MAGIC Script or RESO reads the call and tells you what worked, what didn't, and why — in seconds." },
-  { art: 'check', title: 'Your team acts on it', text: 'The best-performing script and the exact moments to fix go straight to every agent, automatically.' },
+  { art: 'phone', title: 'Connect your conversations', text: 'Upload a recording or connect your calling channels. Start with the conversations you already have.' },
+  { art: 'target', title: 'Let intelligence do the listening', text: "AI identifies what worked, what didn't, and what your customers are really telling you." },
+  { art: 'check', title: 'Make every next call better', text: 'Turn insights into coaching, stronger scripts, and more meaningful customer connections.' },
 ];
 
 const FOOTNOTE = '*Illustrative — based on typical results teams see from AI-optimized scripts and collections scoring, not a guaranteed outcome for every account.';
@@ -104,6 +104,7 @@ export default function HomePage() {
         <div className="hero-band">
           <div className="hero hero-grid">
             <div>
+              <img className="hero-logo" src="/logo-full.png" alt="Nimantran: Cloud Telephony, AI Voice, Connecting People" width="230" height="216" />
               <div className="eyebrow-plain">{home.eyebrow}</div>
               <h1>{home.title}</h1>
               <p className="sub">{home.sub}</p>
@@ -176,8 +177,8 @@ export default function HomePage() {
         </Section>
 
         <Section style={{ paddingTop: 0 }}>
-          <h2>How it works</h2>
-          <p className="section-sub">From your first call to a full rollout — three steps, no sales call required to see it happen.</p>
+          <h2>From conversation to transformation.</h2>
+          <p className="section-sub">No lengthy integration project. No starting over.<br />Just smarter ways to do what you already do.</p>
           <HowSteps steps={STEPS} />
         </Section>
 

@@ -59,8 +59,8 @@ export default function ContactPage() {
   return (
     <section className="page active">
       <div className="container">
-        <PageHero title="Let's Talk.">
-          Questions about a pilot, custom pricing, or integration — reach out and we'll get back to you within one business day.
+        <PageHero eyebrow="Contact" title="Talk to sales or book a meeting.">
+          Pick a 30-minute slot that suits you, or leave your details and we'll call you back. You can also write to <a href="mailto:care@nimantran.ai">care@nimantran.ai</a>.
         </PageHero>
         <div className="contact-grid">
           <div>

@@ -43,7 +43,7 @@ export default function InsightArticlePage() {
             <div className="kicker">{article.category}</div>
             <h1>{article.title}</h1>
             <p className="sub" style={{ marginBottom: 6 }}>
-              By the Nimantran team · {article.readTime}
+              {article.readTime} · By the Nimantran team
             </p>
           </div>
         </div>
