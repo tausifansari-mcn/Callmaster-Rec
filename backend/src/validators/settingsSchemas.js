@@ -40,6 +40,7 @@ export const settingsSchemas = {
     })).max(30),
   }),
   email: z.object({
+    provider: z.enum(['smtp', 'brevo']),
     smtp: z.object({
       host: str(190),
       port: z.coerce.number().int().min(1).max(65535),
@@ -47,6 +48,7 @@ export const settingsSchemas = {
       user: str(190),
       pass: z.string().max(500),
     }),
+    brevo: z.object({ apiKey: z.string().max(500) }),
     fromName: str(80),
     fromEmail: str(190).refine((s) => !s || EMAIL_RE.test(s), 'Enter a valid "from" email address'),
     notifyTo: str(500).refine(

@@ -1,5 +1,6 @@
+import { useSite } from '../context/SiteContext.jsx';
 import { GoButton } from '../hooks/useGoto.jsx';
-import { PageHero, Section } from '../components/ui/Blocks.jsx';
+import { BenefitGrid, FaqSection, PageHero, Section } from '../components/ui/Blocks.jsx';
 
 const EXAMPLES = [
   { stat: '+18%', label: 'Example: mention volume, week over week' },
@@ -7,7 +8,17 @@ const EXAMPLES = [
   { stat: '4 min', label: 'Example: average time to flag a negative spike' },
 ];
 
+const HIGHLIGHTS = [
+  { icon: 'social-listening', title: 'Mentions in one view', text: 'See what is being said about your brand across the places people post.' },
+  { icon: 'magic', title: 'Sentiment, not just volume', text: 'Know whether a rise in mentions is praise or a problem.' },
+  { icon: 'clap', title: 'Spike alerts', text: 'Be told when negative mentions climb, so you can respond early.' },
+  { icon: 'audit', title: 'Tie it back to calls', text: 'Compare public sentiment with call quality to see where they diverge.' },
+  { icon: 'users', title: 'Brand and competitor view', text: 'Watch your brand and the names you compete with.' },
+  { icon: 'circle-check', title: 'Early-access pricing', text: 'Join early to shape the product and lock in better terms.' },
+];
+
 export default function SocialListeningPage() {
+  const { faqs } = useSite();
   return (
     <section className="page active">
       <div className="container">
@@ -29,6 +40,13 @@ export default function SocialListeningPage() {
             <GoButton to="contact" className="btn">Talk to Sales</GoButton>
           </div>
         </Section>
+
+        <Section style={{ paddingTop: 0 }}>
+          <h2>Highlights</h2>
+          <BenefitGrid items={HIGHLIGHTS} />
+        </Section>
+
+        <FaqSection items={faqs.social} />
       </div>
     </section>
   );

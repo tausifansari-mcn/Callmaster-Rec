@@ -237,8 +237,16 @@ export const EmailScreen = () => (
       subtitle="Connect your mailbox so new messages, pricing requests and orders are emailed to you, visitors get an optional confirmation, and you can reply from the Contact messages screen. Everything is still saved in the panel either way."
       fields={[
         {
+          type: 'select', key: 'provider', label: 'Sending method',
+          options: [
+            { value: 'smtp', label: 'SMTP (a mail server host/login)' },
+            { value: 'brevo', label: 'Brevo (HTTP API)' },
+          ],
+          hint: 'If test emails fail with "Connection timeout" over SMTP, your host is almost certainly blocking outbound mail ports — switch to Brevo instead, which sends over HTTPS and is never blocked. Needs a free Brevo account and API key (brevo.com → SMTP & API → API Keys) and a Sender email below that is verified in that account.',
+        },
+        {
           type: 'group', key: 'smtp', label: 'Outgoing mail server (SMTP)',
-          hint: 'Gmail: smtp.gmail.com · port 587 · SSL off · use an App Password. Microsoft 365: smtp.office365.com · port 587 · SSL off. Port 465 needs SSL on. Leave the host empty to use the SMTP_* values from backend/.env.',
+          hint: 'Only used when "Sending method" above is SMTP. Gmail: smtp.gmail.com · port 587 · SSL off · use an App Password. Microsoft 365: smtp.office365.com · port 587 · SSL off. Port 465 needs SSL on. Leave the host empty to use the SMTP_* values from backend/.env.',
           fields: [
             { type: 'text', key: 'host', label: 'SMTP host', placeholder: 'smtp.yourprovider.com' },
             { type: 'number', key: 'port', label: 'Port', step: 1, min: 1 },
@@ -247,8 +255,15 @@ export const EmailScreen = () => (
             { type: 'boolean', key: 'secure', label: 'Encryption', switchLabel: 'Use SSL/TLS from the start (port 465)' },
           ],
         },
+        {
+          type: 'group', key: 'brevo', label: 'Brevo API key',
+          hint: 'Only used when "Sending method" above is Brevo.',
+          fields: [
+            { type: 'password', key: 'apiKey', label: 'API key', hint: 'Stored encrypted. Shown as ******** once saved — leave it to keep the current one.' },
+          ],
+        },
         { type: 'text', key: 'fromName', label: 'Sender name', placeholder: 'Nimantran' },
-        { type: 'text', key: 'fromEmail', label: 'Sender email (optional)', placeholder: 'Defaults to the login above', hint: 'Some providers only allow the login address here.' },
+        { type: 'text', key: 'fromEmail', label: 'Sender email', placeholder: 'you@yourdomain.com', hint: 'Required for Brevo (must be a verified sender in your Brevo account). For SMTP, leave blank to default to the login above.' },
         { type: 'text', key: 'notifyTo', label: 'Send notifications to', wide: true, placeholder: 'tausif.ansari@teammas.in, sales@yourdomain.com', hint: 'Comma-separated. The visitor’s address is set as Reply-To, so replying from your inbox goes straight to them.' },
         {
           type: 'group', key: 'notify', label: 'Email me when…', fields: [

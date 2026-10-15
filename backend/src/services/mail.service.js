@@ -6,18 +6,25 @@ import { getEmailSettings } from './settings.service.js';
 // ---------------------------------------------------------------- configuration
 /**
  * Effective mail configuration: what the admin saved under "Email & notifications" wins,
- * with SMTP_* / MAIL_FROM / NOTIFY_EMAIL from backend/.env as the fallback.
+ * with SMTP_* / MAIL_FROM / NOTIFY_EMAIL from backend/.env as the fallback. provider 'brevo'
+ * bypasses SMTP entirely and sends through Brevo's HTTPS API — for hosts that block outbound
+ * SMTP ports (the usual symptom is every send failing with a connection timeout).
  */
 export async function getMailConfig() {
   const s = await getEmailSettings();
+  const provider = s.provider === 'brevo' ? 'brevo' : 'smtp';
   const useDb = Boolean(s.smtp.host);
   const smtp = useDb
     ? { host: s.smtp.host, port: Number(s.smtp.port) || 587, secure: Boolean(s.smtp.secure), user: s.smtp.user, pass: s.smtp.pass }
     : { ...env.smtp };
-  const fromEmail = s.fromEmail || (useDb ? s.smtp.user : '');
-  const from = fromEmail ? `"${(s.fromName || 'Nimantran').replace(/"/g, '')}" <${fromEmail}>` : env.smtp.from;
+  const brevoKey = s.brevo?.apiKey || '';
+  const fromName = s.fromName || 'Nimantran';
+  const fromEmail = s.fromEmail || (provider === 'smtp' && useDb ? s.smtp.user : '');
+  const from = fromEmail ? `"${fromName.replace(/"/g, '')}" <${fromEmail}>` : env.smtp.from;
   const notifyTo = (s.notifyTo || env.notifyEmail || '').split(',').map((x) => x.trim()).filter(Boolean);
-  return { configured: Boolean(smtp.host), source: useDb ? 'admin panel' : '.env', smtp, from, notifyTo, notify: s.notify, autoReply: s.autoReply };
+  const configured = provider === 'brevo' ? Boolean(brevoKey && fromEmail) : Boolean(smtp.host);
+  const source = provider === 'brevo' ? 'Brevo API' : (useDb ? 'admin panel' : '.env');
+  return { configured, provider, source, smtp, brevoKey, fromName, fromEmail, from, notifyTo, notify: s.notify, autoReply: s.autoReply };
 }
 
 let cached = { key: '', transporter: null };
@@ -41,16 +48,43 @@ function transporterFor(smtp) {
   return cached.transporter;
 }
 
-/** Never throws: callers decide whether a failed send matters. `reason` carries the SMTP error for the admin UI. */
+/** Sends through Brevo's HTTPS API (api.brevo.com) instead of raw SMTP — throws on failure, like nodemailer. */
+async function sendViaBrevo(cfg, { to, subject, html, text, replyTo, icalEvent }) {
+  const body = {
+    sender: { name: cfg.fromName, email: cfg.fromEmail },
+    to: [].concat(to).filter(Boolean).map((email) => ({ email })),
+    subject,
+    htmlContent: html || `<pre>${escapeHtml(text || '')}</pre>`,
+  };
+  if (text) body.textContent = text;
+  if (replyTo) body.replyTo = { email: replyTo };
+  if (icalEvent?.content) body.attachment = [{ content: Buffer.from(icalEvent.content, 'utf8').toString('base64'), name: 'invite.ics' }];
+
+  const res = await fetch('https://api.brevo.com/v3/smtp/email', {
+    method: 'POST',
+    headers: { 'api-key': cfg.brevoKey, 'content-type': 'application/json', accept: 'application/json' },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) {
+    const detail = await res.json().catch(() => null);
+    throw new Error(detail?.message || `Brevo API error (HTTP ${res.status})`);
+  }
+}
+
+/** Never throws: callers decide whether a failed send matters. `reason` carries the SMTP/Brevo error for the admin UI. */
 export async function sendMail({ to, subject, html, text, replyTo, icalEvent }) {
   if (!to || (Array.isArray(to) && !to.length)) return { sent: false, reason: 'no-recipient' };
   const cfg = await getMailConfig();
   if (!cfg.configured) {
-    console.log(`[mail] SMTP not configured — would send to ${[].concat(to).join(', ')}: "${subject}"`);
-    return { sent: false, reason: 'SMTP is not configured yet' };
+    console.log(`[mail] ${cfg.provider === 'brevo' ? 'Brevo' : 'SMTP'} not configured — would send to ${[].concat(to).join(', ')}: "${subject}"`);
+    return { sent: false, reason: cfg.provider === 'brevo' ? 'Brevo API key and sender email must both be set' : 'SMTP is not configured yet' };
   }
   try {
-    await transporterFor(cfg.smtp).sendMail({ from: cfg.from, to, subject, html, text, replyTo, icalEvent });
+    if (cfg.provider === 'brevo') {
+      await sendViaBrevo(cfg, { to, subject, html, text, replyTo, icalEvent });
+    } else {
+      await transporterFor(cfg.smtp).sendMail({ from: cfg.from, to, subject, html, text, replyTo, icalEvent });
+    }
     return { sent: true };
   } catch (err) {
     console.error('[mail] send failed:', err.message);

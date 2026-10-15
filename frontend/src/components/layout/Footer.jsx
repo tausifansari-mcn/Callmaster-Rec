@@ -11,12 +11,14 @@ export default function Footer() {
   return (
     <footer>
       <div className="container">
-        <div className="footer-brand">
-          {logoUrl(site) && <img src={logoUrl(site)} alt="" />}
-          {site.brandName}
-        </div>
-        <p className="footer-tagline">Enable people. Empower businesses.</p>
         <div className="footer-grid">
+          <div>
+            <Link className="footer-brand" to="/">
+              {logoUrl(site) && <img src={logoUrl(site)} alt="" />}
+              {site.brandName}
+            </Link>
+            <p className="footer-tagline">Enable people. Empower businesses.</p>
+          </div>
           <div>
             <h4>PRODUCT</h4>
             {PRODUCT_PAGES.map((p) => <Link key={p.id} to={pathFor(p.id)}>{p.label}</Link>)}
@@ -37,6 +39,7 @@ export default function Footer() {
             <Link to="/about">About / Trust</Link>
             <Link to="/contact">Contact us</Link>
             <Link to="/account">Customer login</Link>
+            <a href="mailto:care@nimantran.ai">care@nimantran.ai</a>
             {extra('company').map((p) => <Link key={p.slug} to={`/${p.slug}`}>{p.title}</Link>)}
           </div>
           <div>

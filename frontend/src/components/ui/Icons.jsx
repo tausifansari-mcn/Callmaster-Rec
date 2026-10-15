@@ -22,6 +22,7 @@ const ICONS = {
   cloud: <path d="M6.5 19a4 4 0 1 1 .8-7.93A5.5 5.5 0 0 1 17.9 13H18a3.5 3.5 0 0 1 0 7H6.5z" />,
   bars3: (<><path d="M4 19V11" /><path d="M10 19V6" /><path d="M16 19V14" /></>),
   reso: (<><circle cx="12" cy="12" r="8.5" /><circle cx="12" cy="12" r="4.5" /><circle cx="12" cy="12" r="1" fill="currentColor" stroke="none" /></>),
+  shield: (<><path d="M12 3l7 3v6c0 5-3.5 8-7 9-3.5-1-7-4-7-9V6l7-3z" /><path d="M12 8v5" /><circle cx="12" cy="16" r="0.6" fill="currentColor" stroke="none" /></>),
 };
 
 /** The rounded amber icon tile used on cards and page heroes. */

@@ -8,6 +8,15 @@ import { ERR, PHONE_RE, isOfficialEmail } from '../utils/validators.js';
 
 const EMPTY = { name: '', organization: '', email: '', phone: '', channels: '' };
 
+const HIGHLIGHTS = [
+  { icon: 'reso', title: 'Capacity sized to you', text: 'Pay for the concurrent calls you actually need, not a generic bundle.' },
+  { icon: 'telephony', title: 'Inbound and outbound', text: 'Run both directions on one setup, with capacity you can adjust.' },
+  { icon: 'clock', title: 'Built for 24/7', text: 'Designed for contact centers that cannot afford a quiet outage at peak hour.' },
+  { icon: 'monitor', title: 'Works with your stack', text: 'Connect to your existing dialer or PBX that speaks SIP.' },
+  { icon: 'cloud', title: 'Scale when campaigns scale', text: 'Add channels before a seasonal peak and release them after.' },
+  { icon: 'users', title: 'One partner for the stack', text: 'Pair with Cloud Telephony, Voice Bots and Quality Audits from the same team.' },
+];
+
 export default function SipChannelsPage() {
   const { faqs } = useSite();
   const [v, setV] = useState(EMPTY);
@@ -58,6 +67,11 @@ export default function SipChannelsPage() {
             { icon: 'circle-check', title: 'Enterprise SLAs', text: 'Built for 24/7 contact center uptime, not a best-effort startup SLA.' },
             { icon: 'bars3', title: 'Quoted to your volume', text: 'Channel count and usage pattern set the price — no generic rate card.' },
           ]} />
+        </Section>
+
+        <Section style={{ paddingTop: 0 }}>
+          <h2>Highlights</h2>
+          <BenefitGrid items={HIGHLIGHTS} />
         </Section>
 
         <Section id="sip-quote">

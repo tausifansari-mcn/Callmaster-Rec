@@ -10,6 +10,9 @@ const HIGHLIGHTS = [
   { icon: 'clap', title: 'Coaching flags', text: 'Calls that miss a parameter are flagged with the reason, so team leads coach on evidence instead of hunches.' },
   { icon: 'circle-check', title: 'Works across call types', text: 'Inbound service, outbound sales, collections and campaign calls, each with its own scoring logic.' },
   { icon: 'reso', title: 'Compliance evidence', text: 'Show that mandatory disclosures were read out, call by call, whenever an auditor or client asks.' },
+  { icon: 'magic', title: 'Perceived NPS and CSAT', text: 'Get an estimated satisfaction and promoter score for every call, read from what the customer said and how, with no survey needed.' },
+  { icon: 'shield', title: 'Fraud alerts', text: 'Calls with signs of fraud, such as social engineering, identity or OTP requests, or suspicious account changes, are flagged for review.' },
+  { icon: 'social-listening', title: 'Social media escalation alerts', text: 'Calls where the customer threatens to post online, go to the media or to a regulator are flagged, so the case is handled before it spreads.' },
 ];
 import Field from '../components/ui/Field.jsx';
 import InsightsWizard from '../components/wizards/InsightsWizard.jsx';

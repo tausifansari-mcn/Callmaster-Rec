@@ -15,7 +15,7 @@ export const SECRET_MASK = '********';
 
 /** Secret fields inside each private setting: encrypted at rest, masked in every response. */
 const SECRET_FIELDS = {
-  email: [['smtp', 'pass']],
+  email: [['smtp', 'pass'], ['brevo', 'apiKey']],
   integrations: [['deepgram', 'apiKey'], ['anthropic', 'apiKey']],
 };
 

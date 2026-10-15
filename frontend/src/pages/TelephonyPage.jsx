@@ -2,6 +2,15 @@ import { useSite } from '../context/SiteContext.jsx';
 import { BenefitGrid, FaqSection, PageHero, Section } from '../components/ui/Blocks.jsx';
 import TelephonyCalculator from '../components/calculators/TelephonyCalculator.jsx';
 
+const HIGHLIGHTS = [
+  { icon: 'telephony', title: 'Mobile look-alike numbers', text: 'Calls show up like a normal mobile number, not an unfamiliar landline or service series.' },
+  { icon: 'user', title: 'One licence per agent', text: '₹1,500 per user per month. Add or remove agents as the team changes.' },
+  { icon: 'bars3', title: 'Add channels as you grow', text: 'Increase concurrent call capacity when volume rises, without replacing the setup.' },
+  { icon: 'users', title: 'Extra numbers for teams', text: 'Give each team or campaign its own number so you can see what works.' },
+  { icon: 'cloud', title: 'Works from anywhere', text: 'Agents call from a laptop or phone, at the office or from home.' },
+  { icon: 'circle-check', title: 'Audits included in month one', text: 'New customers get 2% of calls audited free in the first month, with results shared.' },
+];
+
 export default function TelephonyPage() {
   const { faqs } = useSite();
   return (
@@ -33,6 +42,11 @@ export default function TelephonyPage() {
             { icon: 'clock', title: 'Recording & monitoring', text: 'On every line, integration-ready for your CRM and dialer stack.' },
             { icon: 'clap', title: '2% of volume, auto-audited', text: 'Quality Audits scoring (CLAP / MAGIC Script / RESO) included at no extra charge.' },
           ]} />
+        </Section>
+
+        <Section style={{ paddingTop: 0 }}>
+          <h2>Highlights</h2>
+          <BenefitGrid items={HIGHLIGHTS} />
         </Section>
 
         <Section id="telephony-pricing">

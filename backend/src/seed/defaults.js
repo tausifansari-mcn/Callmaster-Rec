@@ -158,13 +158,17 @@ export const DEFAULT_CHATBOT = {
 
 /**
  * Outgoing email + notifications. Managed in the admin panel (Email & notifications).
- * If smtp.host is empty the SMTP_* / NOTIFY_EMAIL values from backend/.env are used instead.
- * smtp.pass is encrypted at rest and never sent to the browser.
+ * provider 'smtp' sends through smtp.* (or the SMTP_* / NOTIFY_EMAIL values from backend/.env if
+ * smtp.host is empty); provider 'brevo' sends through the Brevo HTTP API instead — for hosts that
+ * block outbound SMTP ports entirely. smtp.pass and brevo.apiKey are encrypted at rest and never
+ * sent to the browser.
  */
 export const DEFAULT_EMAIL = {
+  provider: 'smtp', // 'smtp' | 'brevo'
   smtp: { host: '', port: 587, secure: false, user: '', pass: '' },
+  brevo: { apiKey: '' },
   fromName: 'Nimantran',
-  fromEmail: '', // blank = the SMTP user
+  fromEmail: '', // blank = the SMTP user (required when provider is 'brevo')
   notifyTo: '', // comma-separated inboxes that receive new-message / lead / order alerts
   notify: { contact: true, lead: true, order: true, demo: true },
   autoReply: {
