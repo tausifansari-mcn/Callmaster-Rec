@@ -69,6 +69,61 @@ export default function ThemeFragment({ name, parts, className }) {
     return () => root.removeEventListener('click', onClick);
   }, [navigate, html]);
 
+  /**
+   * Keep autoplaying video playing. The design source drives this with an inline <script>, which
+   * innerHTML never executes — and the bare `autoplay` attribute is unreliable on a node inserted
+   * this way, so the video would start on first load but stay frozen after a client-side route
+   * change remounted it. Drive playback explicitly instead, and pause while off-screen or hidden.
+   */
+  useEffect(() => {
+    const videos = ref.current?.querySelectorAll('video[autoplay]');
+    if (!videos?.length) return undefined;
+
+    const cleanups = [];
+    videos.forEach((v) => {
+      // Autoplay is only permitted while genuinely muted, and the property must be set, not just
+      // the attribute — a remounted node can otherwise be treated as unmuted and blocked.
+      v.muted = true;
+      v.defaultMuted = true;
+      v.playsInline = true;
+
+      let onScreen = true;
+      const play = () => { if (v.paused && onScreen) v.play().catch(() => {}); };
+
+      ['loadeddata', 'canplay', 'canplaythrough'].forEach((e) => v.addEventListener(e, play));
+      const onStalled = () => v.load();
+      v.addEventListener('stalled', onStalled);
+
+      const onVisible = () => { if (!document.hidden) play(); };
+      document.addEventListener('visibilitychange', onVisible);
+
+      let io;
+      if ('IntersectionObserver' in window) {
+        io = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            onScreen = entry.isIntersecting;
+            if (onScreen) play(); else v.pause();
+          });
+        }, { threshold: 0.02 });
+        io.observe(v);
+      }
+
+      // The element may already be ready on remount, in which case no media event fires.
+      if (v.readyState >= 2) play(); else v.load();
+      const retry = setTimeout(play, 300);
+
+      cleanups.push(() => {
+        ['loadeddata', 'canplay', 'canplaythrough'].forEach((e) => v.removeEventListener(e, play));
+        v.removeEventListener('stalled', onStalled);
+        document.removeEventListener('visibilitychange', onVisible);
+        io?.disconnect();
+        clearTimeout(retry);
+      });
+    });
+
+    return () => cleanups.forEach((fn) => fn());
+  }, [html]);
+
   if (!html) return null;
   // `display:contents` keeps this wrapper out of layout, so the fragment's own elements act as
   // direct children of the parent — the theme's selectors (e.g. `.hero-grid > .hv-bg`) depend on it.
