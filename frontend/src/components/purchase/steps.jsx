@@ -197,7 +197,9 @@ export function PaymentStep({ eyebrow, session, sandbox, busy, promoCode, setPro
 
   useEffect(() => {
     let alive = true;
-    loadQuote('')
+    // A code carried over from the product page is applied straight away; if it no longer validates, fall back to no code.
+    const initial = promoCode.trim().toUpperCase();
+    (initial ? loadQuote(initial).then((q) => { if (alive) setAppliedCode(q.discountCode || ''); return q; }).catch(() => loadQuote('')) : loadQuote(''))
       .then((q) => alive && setQuote(q))
       .catch((err) => alive && (setLoadFailed(true), setError(err.message)));
     return () => { alive = false; };

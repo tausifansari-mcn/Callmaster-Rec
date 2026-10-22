@@ -1,0 +1,60 @@
+/* Theme-port overrides: company. Loaded after site.css so these win. */
+/* Scope: SIP Channels, Social Listening, Why Nimantran, Pricing — every rule hangs off .pc-page. */
+
+/* ---- 1. Theme base element rules (style.css body/h1-h4/p/inputs) that site.css leaves out.
+   Wrapped in :where() so they keep element-level specificity and every theme class rule still
+   beats them, exactly as in WordPress. ---- */
+.pc-page {
+  --font-body: 'Figtree', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-display: var(--font-head); /* app-only rules that still match theme markup use this */
+  --grad: linear-gradient(135deg, #1F4A2E 0%, #3F7F52 100%); /* theme v5 earth palette */
+  --soft: linear-gradient(135deg, #F3ECDF 0%, #F6E4D6 100%);
+  font-family: var(--font-body);
+  font-size: 17px;
+  line-height: 1.65;
+  color: #16261B;
+}
+:where(.pc-page) :is(h1, h2, h3, h4) { font-family: var(--font-head); font-weight: 700; margin: 0; color: #10231A; letter-spacing: -0.015em; }
+:where(.pc-page) :is(h1, h2) { text-wrap: balance; }
+:where(.pc-page) p { line-height: 1.65; color: var(--ink-soft); margin: 0 0 1rem; }
+:where(.pc-page) :is(p, li) { color: #2B3A30; }
+:where(.pc-page) :is(input, select, textarea) { font-family: inherit; font-size: 15px; padding: 11px 13px; border: 1px solid var(--line-strong); border-radius: 10px; background: #fff; color: var(--ink); width: 100%; transition: border-color .15s, box-shadow .15s; }
+:where(.pc-page) :is(input[type=text], input[type=email], input[type=tel], input[type=number], select, textarea) { border-radius: 12px; }
+:where(.pc-page) :is(input, select, textarea):focus { outline: none; border-color: var(--amber); box-shadow: var(--ring); }
+:where(.pc-page) :is(input, textarea)::placeholder { color: #9C8E7C; }
+:where(.pc-page) label { display: block; font-size: 13.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 6px; }
+:where(.pc-page) img { max-width: none; }
+
+/* ---- 2. Theme class rules that site.css leaves out. ---- */
+.pc-page .block-title { font-family: var(--font-head); font-weight: 700; font-size: 26px; letter-spacing: -0.02em; margin: 48px 0 18px; color: var(--navy-deep); }
+.pc-page .ct-media-head .block-title { margin: 0 0 8px; }
+.pc-page .why-more .block-title { margin-top: 56px; }
+.pc-page .quote-box { border-radius: 24px; }
+
+/* ---- 3. Undo app-only site.css rules that bleed into the theme markup. ---- */
+/* `.section-head` / `.section-head h1|p` (inner-page hero of the old app) */
+.pc-page .section-head { padding-top: 0; }
+.pc-page .section-head h1 { font-family: var(--font-head); }
+.pc-page .section-head p { margin: 0 0 1rem; }
+/* `.field label|input` (app form styling) — restore the theme's element look. */
+.pc-page .field label { font-size: 13.5px; font-weight: 600; color: var(--ink-soft); }
+.pc-page .field :is(input[type=text], input[type=email], input[type=tel], input[type=number]) { font-family: inherit; font-size: 15px; padding: 11px 13px; border-color: var(--line-strong); border-radius: 12px; background: #fff; }
+
+/* `.btn` / `.btn:hover` (app button): its shadow, gradient and lift bleed onto the theme's
+   non-primary buttons, whose own rules never set those properties. */
+.btn:where(.pc-page *):not(.btn-primary) { box-shadow: none; }
+.pc-page .btn-outline:hover:not(:disabled) { background: var(--tint); border-color: var(--amber); color: var(--amber-dark); box-shadow: none; transform: none; }
+.pc-page .btn-light:hover:not(:disabled) { background: var(--tint); box-shadow: none; transform: none; }
+.pc-page .btn-ghost-light:hover:not(:disabled) { background: rgba(255,255,255,.12); box-shadow: none; transform: none; }
+/* `.insight-card` (app stat card) centres its text; the theme card is left-aligned. */
+.pc-page .insight-card { text-align: start; }
+/* `.why-hero` (app version) is itself a padded grid card; in the theme it is a full-bleed band
+   and the grid lives on `.why-hero .wrap`. */
+.pc-page .why-hero { display: block; padding: 0; border-radius: 0; gap: normal; grid-template-columns: none; }
+.pc-page .why-orb .wave { margin: 0; }
+.pc-page .btn-primary:hover:not(:disabled) { box-shadow: 0 14px 28px -10px rgba(47,107,66,.75), inset 0 1px 0 rgba(255,255,255,.25); }
+/* App reset `a { text-decoration: none }`; the theme keeps the UA underline unless a class removes it. */
+:where(.pc-page) a { text-decoration: underline; }
+/* App inline field errors: give them the theme's .error-text look. */
+.pc-page .field .err { font-family: inherit; font-size: 13.5px; font-weight: 500; color: var(--danger); }
+.pc-page .field.invalid :is(input, select, textarea) { border-color: var(--danger); }

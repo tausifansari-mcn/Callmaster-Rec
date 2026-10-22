@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
 import { publicApi } from '../api/public.js';
-import { PageHero, Section } from '../components/ui/Blocks.jsx';
-import Field from '../components/ui/Field.jsx';
 import { money } from '../utils/format.js';
 
 // The token lives in sessionStorage only: closing the tab signs the customer out.
@@ -33,16 +31,14 @@ function LoginForm({ onLoggedIn }) {
   };
 
   return (
-    <div className="lead-form-box customer-box">
-      <h3>Sign in</h3>
-      <p className="sub">Use the username and temporary password from your welcome email. You can also sign in with your email address.</p>
-      <form onSubmit={submit} noValidate>
-        <Field label="Username or email"><input type="text" autoComplete="username" value={login} onChange={(e) => setLogin(e.target.value)} /></Field>
-        <Field label="Password"><input type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></Field>
-        {error && <div className="field-error-banner">{error}</div>}
-        <div className="btn-row"><button type="submit" className="btn" disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button></div>
-      </form>
-    </div>
+    <form className="quote-box acct-box" onSubmit={submit} noValidate>
+      <h2>Sign in</h2>
+      <p>Use the username and temporary password from your welcome email. You can also sign in with your email address.</p>
+      <div className="field"><label htmlFor="acct_login">Username or email</label><input id="acct_login" type="text" autoComplete="username" value={login} onChange={(e) => setLogin(e.target.value)} /></div>
+      <div className="field"><label htmlFor="acct_password">Password</label><input id="acct_password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
+      <div className="error-text" role="alert" style={{ display: error ? 'block' : 'none' }}>{error}</div>
+      <button type="submit" className="btn btn-primary" style={{ width: '100%' }} disabled={busy}>{busy ? 'Signing in…' : 'Sign in'}</button>
+    </form>
   );
 }
 
@@ -72,21 +68,19 @@ function ChangePassword({ token, forced, onDone, onCancel }) {
   };
 
   return (
-    <div className="lead-form-box customer-box">
-      <h3>{forced ? 'Set a new password' : 'Change password'}</h3>
-      {forced && <p className="sub">For your security, please replace the temporary password before continuing.</p>}
-      <form onSubmit={submit} noValidate>
-        <Field label={forced ? 'Temporary password' : 'Current password'}><input type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} /></Field>
-        <Field label="New password"><input type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} /></Field>
-        <Field label="Repeat new password"><input type="password" autoComplete="new-password" value={again} onChange={(e) => setAgain(e.target.value)} /></Field>
-        {error && <div className="field-error-banner">{error}</div>}
-        {saved && <div className="form-success show">Password updated.</div>}
-        <div className="btn-row">
-          {!forced && <button type="button" className="btn secondary" onClick={onCancel}>Cancel</button>}
-          <button type="submit" className="btn" disabled={busy}>{busy ? 'Saving…' : 'Save password'}</button>
-        </div>
-      </form>
-    </div>
+    <form className="quote-box acct-box" onSubmit={submit} noValidate>
+      <h2>{forced ? 'Set a new password' : 'Change password'}</h2>
+      {forced && <p>For your security, please replace the temporary password before continuing.</p>}
+      <div className="field"><label htmlFor="acct_cur">{forced ? 'Temporary password' : 'Current password'}</label><input id="acct_cur" type="password" autoComplete="current-password" value={current} onChange={(e) => setCurrent(e.target.value)} /></div>
+      <div className="field"><label htmlFor="acct_new">New password</label><input id="acct_new" type="password" autoComplete="new-password" value={next} onChange={(e) => setNext(e.target.value)} /></div>
+      <div className="field"><label htmlFor="acct_again">Repeat new password</label><input id="acct_again" type="password" autoComplete="new-password" value={again} onChange={(e) => setAgain(e.target.value)} /></div>
+      <div className="error-text" role="alert" style={{ display: error ? 'block' : 'none' }}>{error}</div>
+      {saved && <div className="quote-success" role="status" style={{ display: 'block', marginBottom: 14 }}>Password updated.</div>}
+      <div className="hero-cta" style={{ marginTop: 0 }}>
+        {!forced && <button type="button" className="btn btn-outline" onClick={onCancel}>Cancel</button>}
+        <button type="submit" className="btn btn-primary" disabled={busy}>{busy ? 'Saving…' : 'Save password'}</button>
+      </div>
+    </form>
   );
 }
 
@@ -125,20 +119,20 @@ function Dashboard({ token, account, onSignOut, onChangePassword, onExpired }) {
 
   return (
     <>
-      <div className="btn-row" style={{ justifyContent: 'space-between', alignItems: 'center', marginTop: 0 }}>
-        <div style={{ fontSize: 13.5, color: 'var(--ink-soft)' }}>
+      <div className="acct-bar">
+        <div className="acct-who">
           Signed in as <b style={{ color: 'var(--ink)' }}>{account.username}</b>{account.company ? ` · ${account.company}` : ''}
         </div>
-        <div className="btn-row" style={{ margin: 0 }}>
-          <button type="button" className="btn secondary" onClick={onChangePassword}>Change password</button>
-          <button type="button" className="btn secondary" onClick={onSignOut}>Sign out</button>
+        <div className="hero-cta" style={{ marginTop: 0 }}>
+          <button type="button" className="btn btn-outline" onClick={onChangePassword}>Change password</button>
+          <button type="button" className="btn btn-outline" onClick={onSignOut}>Sign out</button>
         </div>
       </div>
 
-      <Section style={{ paddingTop: 20 }}>
-        <h2>Your orders</h2>
-        {notice && <div className="form-success show" style={{ marginBottom: 14 }}>{notice}</div>}
-        {error && <div className="field-error-banner">{error}</div>}
+      <div>
+        <h2 className="block-title">Your orders</h2>
+        {notice && <div className="quote-success" role="status" style={{ display: 'block', marginBottom: 14 }}>{notice}</div>}
+        {error && <div className="error-text" role="alert" style={{ display: 'block', marginTop: 0 }}>{error}</div>}
         {!data && !error && <div className="pm-processing"><div className="pm-spinner" />Loading your orders…</div>}
         {data && data.orders.length === 0 && <p className="no-price-note">No orders on this account yet.</p>}
         {data && data.orders.length > 0 && (
@@ -177,7 +171,7 @@ function Dashboard({ token, account, onSignOut, onChangePassword, onExpired }) {
             Cloud Telephony orders can be cancelled here within {data.policy.windowDays} days of purchase for a full refund ({data.policy.refundDays} working days to your original payment method). For anything else, contact our team.
           </p>
         )}
-      </Section>
+      </div>
     </>
   );
 }
@@ -214,11 +208,13 @@ export default function AccountPage() {
   };
 
   return (
-    <section className="page active">
-      <div className="container">
-        <PageHero eyebrow="Customer dashboard" title="Your Nimantran account">
-          Manage your orders and subscription. Your login details are in the welcome email we sent after your purchase.
-        </PageHero>
+    <div className="tp-ct tp-account">
+      <div className="wrap section">
+        <div className="section-head">
+          <div className="kicker">Customer dashboard</div>
+          <h1>Your Nimantran account</h1>
+          <p>Manage your orders and subscription. Your login details are in the welcome email we sent after your purchase.</p>
+        </div>
         {view === 'loading' && <div className="pm-processing"><div className="pm-spinner" />Loading…</div>}
         {view === 'login' && <LoginForm onLoggedIn={onLoggedIn} />}
         {view === 'force-password' && (
@@ -231,6 +227,6 @@ export default function AccountPage() {
           <Dashboard token={token} account={account} onSignOut={signOut} onChangePassword={() => setView('password')} onExpired={signOut} />
         )}
       </div>
-    </section>
+    </div>
   );
 }

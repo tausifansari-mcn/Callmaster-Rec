@@ -24,7 +24,6 @@ function findRule(text, rules) {
 export default function ChatWidget() {
   const { chatbot, pricing, site } = useSite();
   const goto = useGoto();
-  const [visible, setVisible] = useState(false);
   const [open, setOpen] = useState(false);
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
@@ -50,7 +49,6 @@ export default function ChatWidget() {
         if (checkoutRef.current || openRef.current || nudged.current) return schedule();
         nudged.current = true;
         started.current = true;
-        setVisible(true);
         setOpen(true);
         setMessages((m) => [...m, { who: 'bot', text: nudge.messages[Math.floor(Math.random() * nudge.messages.length)] }]);
         return undefined;
@@ -64,12 +62,6 @@ export default function ChatWidget() {
       events.forEach((evt) => document.removeEventListener(evt, schedule));
     };
   }, [pathname, nudge]);
-
-  useEffect(() => {
-    const onScroll = () => { if (window.scrollY > 250) { setVisible(true); window.removeEventListener('scroll', onScroll); } };
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
 
   useEffect(() => {
     if (bodyRef.current) bodyRef.current.scrollTop = bodyRef.current.scrollHeight;
@@ -107,45 +99,50 @@ export default function ChatWidget() {
     goto(cta.to, cta.anchor || undefined);
   };
 
+  // Markup and classes follow the theme's help chat (assets/js/chatbot.js); the replies come from the admin panel.
   return (
-    <>
-      <button type="button" className={`chat-bubble${visible ? ' visible' : ''}`} aria-label="Chat" onClick={toggle}>💬</button>
-
-      <div className={`chat-panel${open ? ' open' : ''}`} role="dialog" aria-label="Nimantran helpline chat">
-        <div className="chat-head">
+    <div className={`nc-root${open ? ' nc-open' : ''}`}>
+      <div className="nc-pop" role="dialog" aria-label="Nimantran help" hidden={!open}>
+        <div className="nc-head">
           <div>
-            <div className="chat-head-title">Nimantran Helpline</div>
-            <div className="chat-head-sub">Usually replies instantly · sandbox bot</div>
+            <div className="nc-title">Nimantran help</div>
+            <div className="nc-sub">Ask me anything, or pick a topic</div>
           </div>
-          <button type="button" className="chat-close-btn" aria-label="Close chat" onClick={() => setOpen(false)}>&times;</button>
+          <button type="button" className="nc-x" aria-label="Close help chat" onClick={() => setOpen(false)}>&times;</button>
         </div>
-        <div className="chat-body" ref={bodyRef}>
+        <div className="nc-body" ref={bodyRef} aria-live="polite">
           {messages.map((m, i) => (
-            <div key={i} className={`chat-msg ${m.who}`}>
-              {m.text}
+            <div key={i} style={{ display: 'contents' }}>
+              <div className={`nc-msg ${m.who === 'user' ? 'nc-me' : 'nc-bot'}`}>{m.text}</div>
               {m.cta && (
-                <> <a href="#" onClick={(e) => followCta(e, m.cta)}>{m.cta.label || 'Take me there'} →</a></>
+                <div className="nc-go">
+                  <button type="button" className="nc-gobtn" onClick={(e) => followCta(e, m.cta)}>{m.cta.label || 'Take me there'}</button>
+                </div>
               )}
             </div>
           ))}
         </div>
-        <div className="chat-quick-replies">
+        <div className="nc-chips">
           {started.current && chatbot.quickReplies.map((q) => (
-            <button type="button" key={q} onClick={() => send(q)}>{q}</button>
+            <button type="button" className="nc-chip" key={q} onClick={() => send(q)}>{q}</button>
           ))}
         </div>
-        <div className="chat-input-row">
+        <form className="nc-form" onSubmit={(e) => { e.preventDefault(); send(input); }}>
           <input
             type="text"
             value={input}
-            placeholder="Ask about pricing, products, refunds…"
+            placeholder="Type your question"
+            aria-label="Type your question"
+            maxLength={200}
             autoComplete="off"
             onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => { if (e.key === 'Enter') send(input); }}
           />
-          <button type="button" aria-label="Send" onClick={() => send(input)}>➤</button>
-        </div>
+          <button type="submit">Send</button>
+        </form>
       </div>
-    </>
+      <button type="button" className="nc-fab" aria-label="Open help chat" aria-expanded={open} onClick={toggle}>
+        <svg viewBox="0 0 24 24" width="26" height="26" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M4 5h16v11H9l-5 4z" /></svg>
+      </button>
+    </div>
   );
 }

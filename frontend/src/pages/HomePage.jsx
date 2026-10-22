@@ -1,13 +1,13 @@
 import { useSite } from '../context/SiteContext.jsx';
-import { GoButton, GoLink } from '../hooks/useGoto.jsx';
+import { useEffect, useRef } from 'react';
+import { GoLink } from '../hooks/useGoto.jsx';
 import ThemeFragment from '../components/ui/ThemeFragment.jsx';
-import RichText from '../components/ui/RichText.jsx';
 
 const HOME_FAQS = [
   { q: 'Is the trial really free?', a: 'Yes. Each phone number gets one free trial of Quality Audits and one of Voice Bots, with no payment details needed.' },
   { q: 'Which languages and accents do the voice bots support?', a: 'English, Hindi and Hinglish, with Indian, British or American accents. You choose the voice and upload your own script.' },
-  { q: 'How do I subscribe to a plan?', a: 'Cloud Telephony and Voice Bots are self-serve — choose a plan and pay online. Quality Audits, SIP Channels and Social Listening are quoted to your volume, so send a request and our team sets up billing directly.' },
-  { q: 'What happens to the recordings I upload?', a: 'They are used only to produce your result and for our team to follow up, per our Data Retention Policy.' },
+  { q: 'How do I subscribe to a plan?', a: "Choose a plan on the Pricing page and send a request. Online checkout isn't live yet, so our team sets up billing with you directly by invoice or bank transfer." },
+  { q: 'What happens to the recordings I upload?', a: 'They are used only to produce your result and for our team to follow up. Trial recordings and transcripts are deleted 30 days after your result is delivered, or sooner on request. See the Data retention policy page for every window.' },
   { q: 'What is the mobile look-alike number?', a: 'Cloud Telephony lines are issued as mobile-style numbers, so your customers see a number that looks like any other mobile when you call.' },
   { q: 'Can I cancel Cloud Telephony?', a: 'Yes. Cancel within 3 days of purchase for a full refund, paid within 7 working days. Email care@nimantran.ai with your company name. This applies to Cloud Telephony only.' },
   { q: 'When can I book a meeting?', a: "Monday to Saturday, 11:30 AM to 5:30 PM India time, in 30-minute slots. We're closed on Sundays, Government of India holidays and major festivals." },
@@ -46,6 +46,14 @@ const SERVICES = [
   },
 ];
 
+/** Same figures as the theme's hard-coded stat row. */
+const STATS = [
+  ['23+', 'Years in contact center operations'],
+  ['250+', 'Businesses served'],
+  ['97%', 'Client retention'],
+  ['ISO 27001', '2022 certified'],
+];
+
 const STEPS = [
   { n: '01', img: 'nimantran-step-1.webp', title: 'Connect your conversations', text: 'Upload a recording or connect your calling channels. Start with the conversations you already have.', alt: 'Dashboard where recordings are uploaded, calling channels are connected and CRM data is imported to start listening' },
   { n: '02', img: 'nimantran-step-2.webp', title: 'Let intelligence do the listening', text: "AI identifies what worked, what didn't, and what your customers are really telling you.", alt: 'AI reads each call into a summary, transcript, sentiment, key topics and insights on one dashboard' },
@@ -62,10 +70,45 @@ const Tick = () => (
   </svg>
 );
 
+/**
+ * The theme's stat count-up (nav.js): numeric values start at 0 and ease up to their final value
+ * once 60% of the tile is on screen. Non-numeric values (ISO 27001) are left as they are.
+ */
+function CountUp({ value }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const el = ref.current;
+    const m = /^(\d+)(.*)$/.exec(value);
+    if (!el || !m) return undefined;
+    if (window.matchMedia('(prefers-reduced-motion:reduce)').matches || !('IntersectionObserver' in window)) return undefined;
+    const to = +m[1];
+    const suf = m[2];
+    let raf = 0;
+    el.textContent = '0' + suf;
+    const io = new IntersectionObserver((es) => {
+      es.forEach((e) => {
+        if (!e.isIntersecting) return;
+        io.disconnect();
+        const t0 = performance.now();
+        const f = (t) => {
+          const p = Math.min(1, (t - t0) / 1100);
+          el.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))) + suf;
+          if (p < 1) raf = requestAnimationFrame(f);
+          else el.textContent = value;
+        };
+        raf = requestAnimationFrame(f);
+      });
+    }, { threshold: 0.6 });
+    io.observe(el);
+    return () => { io.disconnect(); cancelAnimationFrame(raf); el.textContent = value; };
+  }, [value]);
+  return <div className="num" ref={ref}>{value}</div>;
+}
+
 export default function HomePage() {
-  const { site, home } = useSite();
+  const { site } = useSite();
   return (
-    <section className="page active">
+    <section className="page active pg-home">
       {site.sandboxBanner.show && (
         <div className="badge-row"><span className="badge">{site.sandboxBanner.text}</span></div>
       )}
@@ -78,8 +121,8 @@ export default function HomePage() {
               <h1><span className="h1l">AI Contact Centre Solutions.</span> <span className="h1l">Experience Them Before You Buy.</span></h1>
               <ThemeFragment name="home-pitch" />
               <div className="hero-cta">
-                <GoButton to="audit" className="btn btn-primary">Try the live demo</GoButton>
-                <GoButton to="contact" className="btn btn-outline">Talk to sales</GoButton>
+                <GoLink to="audit" className="btn btn-primary">Try the live demo</GoLink>
+                <GoLink to="contact" className="btn btn-outline">Talk to sales</GoLink>
               </div>
               <div className="hero-badges">
                 <span>
@@ -96,8 +139,8 @@ export default function HomePage() {
           <ThemeFragment name="home-intro" />
 
           <div className="stat-row">
-            {home.stats.map((s, i) => (
-              <div className="stat-tile" key={i}><div className="num">{s.value}</div><div className="lbl">{s.label}</div></div>
+            {STATS.map(([n, l]) => (
+              <div className="stat-tile" key={l}><CountUp value={n} /><div className="lbl">{l}</div></div>
             ))}
           </div>
         </div>
@@ -155,7 +198,7 @@ export default function HomePage() {
               <h2 id="heart-h">We know the people. Not just the patterns.</h2>
               <p>Great customer experiences don&apos;t start with an algorithm. They start with understanding.</p>
               <p>We bring 23 years of contact center experience to every insight, every call, and every connection.</p>
-              <GoButton to="why" className="btn btn-light" style={{ marginTop: 10 }}>The experience behind the AI</GoButton>
+              <GoLink to="why" className="btn btn-light" style={{ marginTop: 10 }}>The experience behind the AI</GoLink>
             </div>
             <ul className="pillars">
               <li><Tick />Built by contact center experts</li>
@@ -173,7 +216,7 @@ export default function HomePage() {
           {HOME_FAQS.map((f, i) => (
             <details key={i}>
               <summary>{f.q}</summary>
-              <RichText text={f.a} />
+              <p>{f.a}</p>
             </details>
           ))}
         </div>
@@ -184,8 +227,8 @@ export default function HomePage() {
             <p>Try the live demo now, or book a 30-minute walkthrough with our team.</p>
           </div>
           <div className="hero-cta">
-            <GoButton to="audit" className="btn btn-light">Try the live demo</GoButton>
-            <GoButton to="contact" className="btn btn-ghost-light">Book a meeting</GoButton>
+            <GoLink to="audit" className="btn btn-light">Try the live demo</GoLink>
+            <GoLink to="contact" className="btn btn-ghost-light">Book a meeting</GoLink>
           </div>
         </div>
 

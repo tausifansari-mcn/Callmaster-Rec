@@ -1,137 +1,82 @@
 import { useEffect, useRef, useState } from 'react';
 import { publicApi } from '../../api/public.js';
-import { GoButton } from '../../hooks/useGoto.jsx';
-import { safeGet, safeRemove, safeSet } from '../../utils/storage.js';
-import { AVATAR_NAMES, LANGUAGES, cancelSpeech, playLanguagePreview, speechReady } from '../../utils/speech.js';
-import { ERR, PHONE_RE, isEmail } from '../../utils/validators.js';
-import Field from '../ui/Field.jsx';
-import StepDots from '../ui/StepDots.jsx';
-import OtpInput from './OtpInput.jsx';
+import { GoLink } from '../../hooks/useGoto.jsx';
+import { safeGet, safeSet } from '../../utils/storage.js';
+import { LANGUAGES, cancelSpeech, playLanguagePreview } from '../../utils/speech.js';
+import { PHONE_RE, isEmail } from '../../utils/validators.js';
+import { StepsTrack } from './InsightsWizard.jsx';
 
-const TOTAL = 8;
+/**
+ * Voice Bots sandbox. Markup and step order follow the theme's template-voice-bots.php
+ * (details → verify → consent → configure → call); the data flow is this app's: SMS OTP to the
+ * number the bot will call, then the bot configuration is saved and the demo call requested.
+ */
+const TOTAL = 5;
+// Option values are the ones the backend accepts (validators/publicSchemas.js).
 const INDUSTRIES = ['Personal Care', 'FMCG', 'Automobiles', 'Financial Services', 'E-commerce'];
 const CALL_TYPES = ['Inbound', 'Outbound', 'Collections', 'Abandoned Cart Recovery', 'Renewals/Retention'];
+const BASE_LANGUAGES = ['English', 'Hindi', 'Hinglish'];
+const AVATARS = [
+  { id: 'aditi', name: 'Aditi', gender: 'Female', accent: 'Indian English' },
+  { id: 'arjun', name: 'Arjun', gender: 'Male', accent: 'Indian English' },
+  { id: 'emma', name: 'Emma', gender: 'Female', accent: 'British' },
+  { id: 'james', name: 'James', gender: 'Male', accent: 'British' },
+  { id: 'sophia', name: 'Sophia', gender: 'Female', accent: 'American' },
+  { id: 'michael', name: 'Michael', gender: 'Male', accent: 'American' },
+];
 const USED_NUMBER_KEY = 'callmaster_used_number';
-const EMPTY = { industry: '', callType: '', gender: '', language: null, name: '', company: '', email: '', phone: '' };
+const EMPTY = { name: '', email: '', company: '', phone: '', industry: '', callType: '', language: '', avatar: '', script: '', consent: false };
 
-const Label = ({ n, suffix }) => <div className="step-label">STEP {n} OF {TOTAL}{suffix ? ` — ${suffix}` : ''}</div>;
-
-function ChoiceGrid({ options, value, onPick }) {
-  return (
-    <div className="choice-grid">
-      {options.map((o) => (
-        <div key={o} className={`choice${value === o ? ' selected' : ''}`} role="button" tabIndex={0}
-          onClick={() => onPick(o)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); onPick(o); } }}>
-          {o}
-        </div>
-      ))}
-    </div>
-  );
+/** The backend's language value: English plus a British / American avatar means that accent. */
+function languageFor(language, avatar) {
+  if (language !== 'English' || !avatar) return language;
+  if (avatar.accent === 'British') return 'British English';
+  if (avatar.accent === 'American') return 'American English';
+  return 'English';
 }
+const previewFor = (label) => LANGUAGES.find((l) => l.label === label) || LANGUAGES[0];
 
-function CallPanel({ state, data, onReset }) {
-  if (state.kind === 'placeholder') return <div className="placeholder-state">Verify your number to configure and place a demo call.</div>;
-  if (state.kind === 'dialing') {
-    return (
-      <>
-        <div className="call-status"><span className="status-dot pulse" /><span>Dialing {data.phone}…</span></div>
-        <div className="waveform">
-          {Array.from({ length: 20 }, (_, i) => <div key={i} className="bar" style={{ animationDelay: `${i * 0.06}s` }} />)}
-        </div>
-      </>
-    );
-  }
-  return (
-    <>
-      <div className="call-status"><span className="status-dot" /><span>Call connected — 0:38</span></div>
-      <details className="transcript" open>
-        <summary>What the bot said</summary>
-        <div className="transcript-body">
-          <div><span className="who">Bot:</span> Hi, this is Nimantran's {data.industry} {data.callType} assistant calling — this is a short demo, is now an okay time?</div><br />
-          <div><span className="who">You (simulated):</span> Sure, go ahead.</div><br />
-          <div style={{ opacity: 0.6 }}>[sandbox transcript — mock content for layout testing only]</div>
-        </div>
-      </details>
-      <div className="btn-row">
-        <GoButton to="voice" anchor="voice-pricing" className="btn secondary">See pricing</GoButton>
-        <GoButton to="contact" className="btn">Talk to sales</GoButton>
-      </div>
-      <div className="sandbox-note">{data.company} · {data.email} · one trial per number is now enforced for {data.phone}</div>
-      <div className="btn-row" style={{ marginTop: 14 }}><button type="button" className="btn secondary" onClick={onReset}>Reset sandbox</button></div>
-    </>
-  );
+function ErrorText({ children, style }) {
+  return <div className="error-text" style={{ display: children ? 'block' : 'none', ...style }} role="alert">{children}</div>;
 }
 
 export default function VoiceWizard() {
   const [step, setStep] = useState(1);
   const [d, setD] = useState(EMPTY);
-  const [errors, setErrors] = useState({});
-  const [apiError, setApiError] = useState('');
+  const [error, setError] = useState('');
+  const [notice, setNotice] = useState('');
   const [busy, setBusy] = useState(false);
+  const [blocked, setBlocked] = useState(false);
   const [devOtp, setDevOtp] = useState('');
-  const [otpNotice, setOtpNotice] = useState(false);
   const [code, setCode] = useState('');
-  const [otpError, setOtpError] = useState('');
-  const [resendLocked, setResendLocked] = useState(false);
   const [verifyToken, setVerifyToken] = useState('');
-  const [consent, setConsent] = useState(false);
-  const [panel, setPanel] = useState({ kind: 'placeholder' });
-  const [demo, setDemo] = useState(null); // { id, accessToken } — the visitor saved at step 5
-  const usedNumber = safeGet(USED_NUMBER_KEY);
+  const [playing, setPlaying] = useState('');
+  const [call, setCall] = useState({ stage: 'processing', message: '', failed: false });
   const timers = useRef([]);
+  const demo = useRef(null); // { id, accessToken } — reused if the visitor retries, so one record per visitor
 
   useEffect(() => () => { timers.current.forEach(clearTimeout); cancelSpeech(); }, []);
   const later = (fn, ms) => { timers.current.push(setTimeout(fn, ms)); };
 
   const set = (k) => (e) => setD((s) => ({ ...s, [k]: e.target.value }));
-  const go = (n) => { setApiError(''); setStep(n); };
+  const go = (n) => { setError(''); setNotice(''); setStep(n); };
+  const avatar = AVATARS.find((a) => a.id === d.avatar);
 
-  const pickLanguage = (lang) => {
-    setD((s) => ({ ...s, language: lang }));
-    playLanguagePreview(lang, d.gender);
-  };
-
-  const leaveLanguageStep = (n) => { cancelSpeech(); go(n); };
-
-  /** Step 5: validate, then SAVE the visitor and the bot they configured right away. */
-  const next5 = async () => {
-    const name = d.name.trim(); const company = d.company.trim(); const email = d.email.trim();
-    const e = { name: !name && ERR.name, company: !company && ERR.org, email: !isEmail(email) && ERR.email };
-    setErrors(e);
-    if (Object.values(e).some(Boolean)) return;
-    setApiError('');
-    setBusy(true);
-    try {
-      const saved = await publicApi.voiceRegister({
-        industry: d.industry, callType: d.callType, gender: d.gender, language: d.language.label, name, company, email, ...(demo || {}),
-      });
-      setDemo({ id: saved.id, accessToken: saved.accessToken });
-      setD((s2) => ({ ...s2, name, company, email }));
-      go(6);
-    } catch (err) {
-      setApiError(err.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const next6 = async () => {
-    const phone = d.phone.trim();
-    if (!PHONE_RE.test(phone)) return setErrors({ phone: ERR.phone });
-    if (safeGet(USED_NUMBER_KEY) === phone) return setErrors({ phone: 'This number has already used its one-time trial.' });
-    setErrors({});
-    setApiError('');
+  const next1 = async () => {
+    const name = d.name.trim(); const email = d.email.trim(); const company = d.company.trim(); const phone = d.phone.trim();
+    if (!name || !isEmail(email) || !company || !PHONE_RE.test(phone)) return setError('Enter your name, email, organization and mobile number to continue.');
+    if (safeGet(USED_NUMBER_KEY) === phone) { setError(''); return setBlocked(true); }
+    setBlocked(false);
+    setError('');
     setBusy(true);
     try {
       const r = await publicApi.sendOtp({ purpose: 'voice-demo', phone });
-      setD((s) => ({ ...s, phone }));
+      setD((s) => ({ ...s, name, email, company, phone }));
       setDevOtp(r.devOtp || '');
-      setOtpNotice(false);
       setCode('');
-      setOtpError('');
-      setStep(7);
+      go(2);
     } catch (err) {
-      setErrors({ phone: err.message });
+      setError(err.message);
     } finally {
       setBusy(false);
     }
@@ -139,212 +84,182 @@ export default function VoiceWizard() {
   };
 
   const resend = async () => {
-    setResendLocked(true);
-    setOtpError('');
+    setError('');
     try {
       const r = await publicApi.sendOtp({ purpose: 'voice-demo', phone: d.phone });
       setDevOtp(r.devOtp || '');
-      setOtpNotice(true);
+      setNotice('A new code has been sent.');
     } catch (err) {
-      setOtpError(err.message);
+      setNotice('');
+      setError(err.message);
     }
-    later(() => setResendLocked(false), 5000);
   };
 
   const verify = async () => {
-    if (code.length !== 4) return setOtpError("That code doesn't match. Try again.");
-    setOtpError('');
+    if (!/^\d{4}$/.test(code.trim())) return setError('Enter the 4-digit code from the SMS.');
+    setError('');
     setBusy(true);
     try {
-      const r = await publicApi.verifyOtp({ purpose: 'voice-demo', target: d.phone, code });
+      const r = await publicApi.verifyOtp({ purpose: 'voice-demo', target: d.phone, code: code.trim() });
       setVerifyToken(r.verifyToken);
       safeSet(USED_NUMBER_KEY, d.phone);
-      go(8);
+      go(3);
     } catch (err) {
-      setOtpError(err.message);
+      setError(err.message);
     } finally {
       setBusy(false);
     }
     return undefined;
   };
 
-  const call = async () => {
-    setApiError('');
-    setBusy(true);
-    try {
-      await publicApi.voiceDemo({
-        industry: d.industry, callType: d.callType, gender: d.gender, language: d.language.label,
-        name: d.name, company: d.company, email: d.email, phone: d.phone, consent, verifyToken,
-        ...(demo ? { demoId: demo.id, demoToken: demo.accessToken } : {}),
-      });
-      setPanel({ kind: 'dialing' });
-      later(() => setPanel({ kind: 'connected' }), 2200);
-    } catch (err) {
-      setApiError(err.message);
-    } finally {
-      setBusy(false);
-    }
+  const next3 = () => (d.consent ? go(4) : setError('Consent is required before we can place the call.'));
+
+  const playSample = (a) => {
+    setPlaying(a.id);
+    playLanguagePreview(previewFor(languageFor(d.language || 'English', a)), a.gender, () => setPlaying((p) => (p === a.id ? '' : p)));
   };
 
-  const reset = () => {
-    safeRemove(USED_NUMBER_KEY);
-    timers.current.forEach(clearTimeout);
-    setD(EMPTY); setErrors({}); setApiError(''); setCode(''); setVerifyToken(''); setConsent(false); setDevOtp(''); setDemo(null);
-    setPanel({ kind: 'placeholder' });
-    setStep(1);
+  const generate = async () => {
+    if (!d.industry || !d.callType || !d.language || !avatar) return setError('Choose industry, activity, language and a voice avatar.');
+    cancelSpeech();
+    setPlaying('');
+    go(5);
+    setCall({ stage: 'processing', message: '', failed: false });
+    later(() => setCall((c) => (c.stage === 'processing' ? { ...c, stage: 'anim' } : c)), 700);
+    const config = { industry: d.industry, callType: d.callType, gender: avatar.gender, language: languageFor(d.language, avatar), name: d.name, company: d.company, email: d.email };
+    try {
+      const saved = await publicApi.voiceRegister({ ...config, ...(demo.current || {}) });
+      demo.current = { id: saved.id, accessToken: saved.accessToken };
+      await publicApi.voiceDemo({ ...config, phone: d.phone, consent: d.consent, verifyToken, script: d.script.trim(), demoId: saved.id, demoToken: saved.accessToken });
+      later(() => setCall({ stage: 'done', failed: false, message: `Your call is on its way. ${avatar.name} will call ${d.phone} shortly with your ${d.callType.toLowerCase()} demo for ${d.industry}.` }), 1600);
+    } catch (err) {
+      setCall({ stage: 'done', failed: true, message: err.message || 'Something went wrong — please try again.' });
+    }
+    return undefined;
   };
 
   return (
-    <div className="split">
-      <div className="left">
-        <StepDots total={TOTAL} current={step} />
-        <div>
-          {step === 1 && (
-            <>
-              <Label n={1} suffix="INDUSTRY" />
-              <ChoiceGrid options={INDUSTRIES} value={d.industry} onPick={(v) => setD((s) => ({ ...s, industry: v }))} />
-              <div className="btn-row" style={{ marginTop: 18 }}>
-                <button type="button" className="btn" disabled={!d.industry} onClick={() => go(2)}>Continue</button>
-              </div>
-            </>
-          )}
+    <>
+      <StepsTrack total={TOTAL} current={step} />
 
-          {step === 2 && (
-            <>
-              <Label n={2} suffix="TYPE OF CALLS" />
-              <ChoiceGrid options={CALL_TYPES} value={d.callType} onPick={(v) => setD((s) => ({ ...s, callType: v }))} />
-              <div className="btn-row" style={{ marginTop: 18 }}>
-                <button type="button" className="btn secondary" onClick={() => go(1)}>Back</button>
-                <button type="button" className="btn" disabled={!d.callType} onClick={() => go(3)}>Continue</button>
-              </div>
-            </>
-          )}
-
-          {step === 3 && (
-            <>
-              <Label n={3} suffix="MALE OR FEMALE" />
-              <ChoiceGrid options={['Male', 'Female']} value={d.gender} onPick={(v) => setD((s) => ({ ...s, gender: v }))} />
-              <div className="btn-row" style={{ marginTop: 18 }}>
-                <button type="button" className="btn secondary" onClick={() => go(2)}>Back</button>
-                <button type="button" className="btn" disabled={!d.gender} onClick={() => go(4)}>Continue</button>
-              </div>
-            </>
-          )}
-
-          {step === 4 && (
-            <>
-              <Label n={4} suffix="VOICE AVATAR" />
-              <div className="voice-preview-note">
-                {speechReady
-                  ? 'Pick a voice and play a sample — this is browser text-to-speech standing in for the real prerecorded script.'
-                  : "Voice preview isn't supported in this browser."}
-              </div>
-              <div className="avatar-grid">
-                {LANGUAGES.map((l) => {
-                  const name = AVATAR_NAMES[l.label]?.[d.gender] || l.label;
-                  const selected = d.language === l;
-                  return (
-                    <div key={l.label} className={`avatar-card${selected ? ' selected' : ''}`} role="button" tabIndex={0}
-                      onClick={() => pickLanguage(l)} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); pickLanguage(l); } }}>
-                      <div className="avatar-circle">{name.slice(0, 1)}</div>
-                      <div className="avatar-name">{name}</div>
-                      <div className="avatar-tags"><span className="avatar-tag">{d.gender}</span><span className="avatar-tag">{l.label}</span></div>
-                      <button type="button" className={`play-btn${selected ? ' playing' : ''}`} onClick={(e) => { e.stopPropagation(); pickLanguage(l); }}>
-                        {selected ? 'Playing…' : 'Play sample'}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-              <div className="btn-row" style={{ marginTop: 18 }}>
-                <button type="button" className="btn secondary" onClick={() => leaveLanguageStep(3)}>Back</button>
-                <button type="button" className="btn" disabled={!d.language} onClick={() => leaveLanguageStep(5)}>Continue</button>
-              </div>
-            </>
-          )}
-
-          {step === 5 && (
-            <>
-              <div className="config-summary">
-                Your bot: <b>{d.language.label}</b>, <b>{d.gender}</b> voice, <b>{d.callType}</b> · <b>{d.industry}</b>.{' '}
-                <a href="#" style={{ color: 'var(--accent-live)', fontWeight: 600 }} onClick={(e) => { e.preventDefault(); go(4); }}>Change</a>
-              </div>
-              <Label n={5} />
-              <Field label="Name" error={errors.name}><input type="text" value={d.name} onChange={set('name')} /></Field>
-              <Field label="Organization" error={errors.company}><input type="text" value={d.company} onChange={set('company')} /></Field>
-              <Field label="Email" error={errors.email}><input type="email" value={d.email} onChange={set('email')} /></Field>
-              {apiError && <div className="field-error-banner">{apiError}</div>}
-              <div className="btn-row">
-                <button type="button" className="btn secondary" onClick={() => go(4)}>Back</button>
-                <button type="button" className="btn" onClick={next5} disabled={busy}>{busy ? 'Saving…' : 'Continue'}</button>
-              </div>
-            </>
-          )}
-
-          {step === 6 && (
-            <>
-              <Label n={6} />
-              <Field label="Mobile number" error={errors.phone}>
-                <input type="tel" placeholder="10-digit mobile number" value={d.phone} onChange={set('phone')} />
-              </Field>
-              {usedNumber && (
-                <div className="otp-hint" style={{ color: 'var(--accent-alert)', borderColor: 'rgba(255,110,94,0.35)', background: 'rgba(255,110,94,0.08)' }}>
-                  This browser already used a number (ending {usedNumber.slice(-4)}). One trial per number is enforced — reset to test again.
-                </div>
-              )}
-              <div className="btn-row">
-                <button type="button" className="btn secondary" onClick={() => go(5)}>Back</button>
-                <button type="button" className="btn" onClick={next6} disabled={busy}>{busy ? 'Sending…' : 'Generate OTP'}</button>
-              </div>
-            </>
-          )}
-
-          {step === 7 && (
-            <>
-              <Label n={7} />
-              {devOtp && (
-                <div className="otp-hint">
-                  SANDBOX MODE — {otpNotice ? 'new code sent. ' : 'real builds send this via SMS. '}Your test code is <b>{devOtp}</b>
-                </div>
-              )}
-              <div className="field">
-                <label>Enter the 4-digit code</label>
-                <OtpInput value={code} onChange={setCode} onEnter={verify} />
-                {otpError && <div className="err" style={{ display: 'block' }}>{otpError}</div>}
-                <div className="resend"><button type="button" onClick={resend} disabled={resendLocked}>Resend code</button></div>
-              </div>
-              <div className="btn-row">
-                <button type="button" className="btn secondary" onClick={() => go(6)}>Back</button>
-                <button type="button" className="btn" onClick={verify} disabled={busy}>Verify</button>
-              </div>
-            </>
-          )}
-
-          {step === 8 && (
-            <>
-              <Label n={8} />
-              <div className="config-summary">
-                Calling <b>{d.phone}</b> — a <b>{d.callType}</b> bot for <b>{d.industry}</b>, in <b>{d.language.label}</b>, <b>{d.gender}</b> voice.
-              </div>
-              <div className="checkbox-row">
-                <input type="checkbox" id="v-consent" checked={consent} onChange={(e) => setConsent(e.target.checked)} />
-                <label htmlFor="v-consent">
-                  This is my own number. I understand Nimantran does not store or retain this demo call recording on the website beyond the session, in line with the DPDP Act, 2023, and I consent to receive this demo call. <a href="/privacy" target="_blank" rel="noreferrer">Privacy Policy</a>.
-                </label>
-              </div>
-              {apiError && <div className="field-error-banner">{apiError}</div>}
-              <div className="btn-row">
-                <button type="button" className="btn secondary" onClick={() => go(7)}>Back</button>
-                <button type="button" className="btn" disabled={!consent || busy || panel.kind !== 'placeholder'} onClick={call}>Call me now</button>
-              </div>
-            </>
-          )}
+      {blocked && (
+        <div className="blocked-state">
+          This number has already used its one-time Voice Bot trial. <GoLink to="contact" style={{ color: 'var(--danger)', textDecoration: 'underline' }}>Contact sales</GoLink> for a full account.
         </div>
-      </div>
+      )}
 
-      <div className="right">
-        <CallPanel state={panel} data={d} onReset={reset} />
-      </div>
-    </div>
+      <form onSubmit={(e) => e.preventDefault()} noValidate>
+        {step === 1 && (
+          <div className="step-panel active" data-step="1">
+            <div className="grid2">
+              <div className="field"><label htmlFor="vb_name">Full name</label><input type="text" id="vb_name" placeholder="Rohan Verma" value={d.name} onChange={set('name')} /></div>
+              <div className="field"><label htmlFor="vb_email">Work email</label><input type="email" id="vb_email" placeholder="rohan@company.com" value={d.email} onChange={set('email')} /></div>
+            </div>
+            <div className="grid2">
+              <div className="field"><label htmlFor="vb_company">Organization</label><input type="text" id="vb_company" placeholder="Company name" autoComplete="organization" value={d.company} onChange={set('company')} /></div>
+              <div className="field"><label htmlFor="vb_phone">Phone number the bot will call</label><input type="tel" id="vb_phone" placeholder="98XXXXXXXX" inputMode="tel" autoComplete="tel-national" value={d.phone} onChange={(e) => { setBlocked(false); set('phone')(e); }} /></div>
+            </div>
+            <ErrorText>{error}</ErrorText>
+            <div className="step-actions"><span /><button type="button" className="btn btn-primary" onClick={next1} disabled={busy}>{busy ? 'Sending…' : 'Send OTP'}</button></div>
+          </div>
+        )}
+
+        {step === 2 && (
+          <div className="step-panel active" data-step="2">
+            <p style={{ fontSize: 14 }}>We sent a 4-digit code by SMS to <span className="mono">{d.phone}</span>. It is valid for 10 minutes.</p>
+            {devOtp && <p style={{ fontSize: 13, color: 'var(--muted)' }}>Sandbox mode: SMS delivery isn&apos;t set up on this server. Your test code is <b className="mono">{devOtp}</b>.</p>}
+            <div className="field" style={{ maxWidth: 180 }}>
+              <input
+                type="text" maxLength={4} id="vb_otp" aria-label="4-digit verification code" placeholder="1234" inputMode="numeric" autoComplete="one-time-code"
+                value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))} onKeyDown={(e) => { if (e.key === 'Enter') verify(); }}
+              />
+            </div>
+            <ErrorText style={notice && !error ? { color: 'var(--teal-dark)' } : undefined}>{error || notice}</ErrorText>
+            <div className="step-actions">
+              <button type="button" className="btn btn-outline" onClick={() => go(1)}>Back</button>
+              <button type="button" className="btn btn-outline" onClick={resend}>Resend code</button>
+              <button type="button" className="btn btn-primary" onClick={verify} disabled={busy}>{busy ? 'Verifying…' : 'Verify'}</button>
+            </div>
+          </div>
+        )}
+
+        {step === 3 && (
+          <div className="step-panel active" data-step="3">
+            <div className="consent-box">
+              <h4>Before we call you</h4>
+              <ul>
+                <li>We collect your name, email, organization, verified phone number, and the script you upload.</li>
+                <li>A single call is placed to the number above using this script, for demo purposes only.</li>
+                <li>Call recording retention window: to be confirmed before launch — see the <GoLink to="data-retention">Data Retention Policy</GoLink>.</li>
+              </ul>
+              <label className="consent-check"><input type="checkbox" checked={d.consent} onChange={(e) => setD((s) => ({ ...s, consent: e.target.checked }))} /> I consent to Nimantran placing this call and processing this data as described above.</label>
+            </div>
+            <ErrorText>{error}</ErrorText>
+            <div className="step-actions"><button type="button" className="btn btn-outline" onClick={() => go(2)}>Back</button><button type="button" className="btn btn-primary" onClick={next3}>Continue</button></div>
+          </div>
+        )}
+
+        {step === 4 && (
+          <div className="step-panel active" data-step="4">
+            <div className="grid2">
+              <div className="field"><label htmlFor="vb_industry">Industry</label><select id="vb_industry" value={d.industry} onChange={set('industry')}><option value="">Choose one</option>{INDUSTRIES.map((o) => <option key={o}>{o}</option>)}</select></div>
+              <div className="field"><label htmlFor="vb_activity">Activity type</label><select id="vb_activity" value={d.callType} onChange={set('callType')}><option value="">Choose one</option>{CALL_TYPES.map((o) => <option key={o}>{o}</option>)}</select></div>
+            </div>
+            <div className="field"><label htmlFor="vb_lang">Language</label><select id="vb_lang" value={d.language} onChange={set('language')}><option value="">Choose one</option>{BASE_LANGUAGES.map((o) => <option key={o}>{o}</option>)}</select></div>
+            <div className="field">
+              <span className="field-label">Voice avatar — play a sample to hear each one</span>
+              <div className="avatar-grid">
+                {AVATARS.map((a) => (
+                  <div key={a.id} className={`avatar-card${d.avatar === a.id ? ' selected' : ''}`} onClick={() => setD((s) => ({ ...s, avatar: a.id }))}>
+                    <div className="avatar-circle">{a.name.slice(0, 1)}</div>
+                    <div className="avatar-name">{a.name}</div>
+                    <div className="avatar-tags"><span className="avatar-tag">{a.gender}</span><span className="avatar-tag">{a.accent}</span></div>
+                    <button type="button" className={`play-btn${playing === a.id ? ' playing' : ''}`} onClick={(e) => { e.stopPropagation(); playSample(a); }}>
+                      {playing === a.id ? 'Playing…' : 'Play sample'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <p style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>Samples use your browser&apos;s built-in voices for this demo — the live product uses studio-quality TTS matched to each avatar.</p>
+            </div>
+            <div className="field"><label htmlFor="vb_script">Script</label><textarea id="vb_script" rows={3} placeholder="Paste your call script, or upload a file below" value={d.script} onChange={set('script')} /></div>
+            <ErrorText>{error}</ErrorText>
+            <div className="step-actions"><button type="button" className="btn btn-outline" onClick={() => go(3)}>Back</button><button type="button" className="btn btn-primary" onClick={generate}>Generate call</button></div>
+          </div>
+        )}
+
+        {step === 5 && (
+          <div className="step-panel active" data-step="5">
+            {call.stage === 'processing' && <div className="processing" style={{ display: 'flex' }}><div className="spinner" /> Placing your call to <span className="mono" style={{ marginLeft: 4 }}>{d.phone}</span>…</div>}
+            {call.stage === 'anim' && (
+              <div className="call-anim" style={{ display: 'flex' }}>
+                {[0, 0.1, 0.2, 0.3, 0.15, 0.05].map((delay, i) => <span key={i} style={{ animationDelay: `${delay}s` }} />)}
+              </div>
+            )}
+            {call.stage === 'done' && (
+              <div>
+                <div
+                  className="blocked-state"
+                  style={call.failed
+                    ? { background: 'var(--danger-bg)', borderColor: 'var(--danger)', color: 'var(--danger)' }
+                    : { background: 'var(--teal-bg)', borderColor: 'var(--teal)', color: 'var(--teal-dark)' }}
+                >
+                  {call.message}
+                </div>
+                {!call.failed && (
+                  <div style={{ marginTop: 22 }}>
+                    <div style={{ marginTop: 8 }}>
+                      <span className="tier-label tier-minute">Per-minute</span>
+                      <p style={{ fontSize: 13.5 }}>Full rate card on the <GoLink to="pricing" style={{ color: 'var(--teal-dark)', textDecoration: 'underline' }}>Pricing page</GoLink>.</p>
+                    </div>
+                  </div>
+                )}
+                {call.failed && <div className="step-actions"><button type="button" className="btn btn-outline" onClick={() => go(4)}>Back</button></div>}
+              </div>
+            )}
+          </div>
+        )}
+      </form>
+    </>
   );
 }

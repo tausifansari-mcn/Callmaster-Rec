@@ -44,11 +44,12 @@ export default function PurchaseModal({ session, onClose }) {
 
   const [step, setStep] = useState(isCart ? 'details' : 'requirement');
   const [qty, setQty] = useState(1);
-  const [customer, setCustomer] = useState(EMPTY_CUSTOMER);
-  const [scopeFile, setScopeFile] = useState(null);
+  // Product pages may pre-fill what the visitor already typed there (customer fields, scope file, discount code).
+  const [customer, setCustomer] = useState(() => ({ ...EMPTY_CUSTOMER, ...(session.customer || {}) }));
+  const [scopeFile, setScopeFile] = useState(session.scopeFile || null);
   const [devOtp, setDevOtp] = useState('');
   const [verifyToken, setVerifyToken] = useState('');
-  const [promoCode, setPromoCode] = useState('');
+  const [promoCode, setPromoCode] = useState(session.promoCode || '');
   const [result, setResult] = useState(null);
   const [accessToken, setAccessToken] = useState(''); // the order's secret — lets the buyer cancel straight from the success screen
   const [busy, setBusy] = useState(false); // true while the order is being created / payment is in flight

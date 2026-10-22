@@ -271,7 +271,7 @@ export default function AuditReport({ results: r, transcript, submitter, admin =
 
       {!admin && (
         <div className="ar-actions">
-          <GoButton to="audit" anchor="audit-pricing" className="btn secondary">See pricing</GoButton>
+          <GoButton to="pricing" className="btn secondary">See pricing</GoButton>
           <GoButton to="contact" className="btn">Talk to sales</GoButton>
         </div>
       )}

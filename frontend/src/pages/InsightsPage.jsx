@@ -1,127 +1,28 @@
-import { useState } from 'react';
-import { publicApi } from '../api/public.js';
-import { useSite } from '../context/SiteContext.jsx';
-import { GoButton } from '../hooks/useGoto.jsx';
-import { PageHero, Section } from '../components/ui/Blocks.jsx';
 import ThemeFragment from '../components/ui/ThemeFragment.jsx';
-import Field from '../components/ui/Field.jsx';
 import InsightsWizard from '../components/wizards/InsightsWizard.jsx';
-import { ERR, PHONE_RE, isOfficialEmail } from '../utils/validators.js';
 
-const CALL_TYPES = ['Inbound Support', 'Outbound Sales', 'Collections', 'Retention', 'A mix of the above'];
-const VOLUMES = ['Under 5,000 calls/month', '5,000–25,000 calls/month', '25,000–100,000 calls/month', '100,000+ calls/month'];
-const SETUPS = ['Manual/sample-based QA today', 'Using another QA/analytics tool', 'No formal QA process today'];
-const EMPTY = { name: '', organization: '', email: '', phone: '', callType: '', monthlyVolume: '', qaSetup: '' };
-
-function PricingRequestForm() {
-  const [v, setV] = useState(EMPTY);
-  const [errors, setErrors] = useState({});
-  const [sent, setSent] = useState(false);
-  const [apiError, setApiError] = useState('');
-  const [busy, setBusy] = useState(false);
-  const set = (k) => (e) => setV((s) => ({ ...s, [k]: e.target.value }));
-
-  const submit = async (e) => {
-    e.preventDefault();
-    const t = Object.fromEntries(Object.entries(v).map(([k, x]) => [k, x.trim()]));
-    const next = {
-      name: !t.name && ERR.name,
-      organization: !t.organization && ERR.org,
-      email: !isOfficialEmail(t.email) && ERR.officialEmail,
-      phone: !PHONE_RE.test(t.phone) && ERR.phone,
-      callType: !t.callType && 'Select a call type',
-      monthlyVolume: !t.monthlyVolume && 'Select a volume band',
-      qaSetup: !t.qaSetup && 'Select an option',
-    };
-    setErrors(next);
-    if (Object.values(next).some(Boolean)) return;
-    setApiError('');
-    setBusy(true);
-    try {
-      await publicApi.lead(t);
-      setSent(true);
-      setV(EMPTY);
-    } catch (err) {
-      setApiError(err.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  return (
-    <div className="lead-form-box">
-      <h3>Quality Audits — pricing request</h3>
-      <p className="sub">A few details so we can size this correctly for your volume.</p>
-      <form onSubmit={submit} noValidate>
-        <div className="field-row2">
-          <Field label="Name" error={errors.name}><input type="text" value={v.name} onChange={set('name')} /></Field>
-          <Field label="Organization" error={errors.organization}><input type="text" value={v.organization} onChange={set('organization')} /></Field>
-        </div>
-        <div className="field-row2">
-          <Field label="Official email ID" error={errors.email}><input type="email" value={v.email} onChange={set('email')} /></Field>
-          <Field label="Phone" error={errors.phone}><input type="tel" value={v.phone} onChange={set('phone')} /></Field>
-        </div>
-        <div className="field-row2">
-          <Field label="Call type you want audited" error={errors.callType}>
-            <select value={v.callType} onChange={set('callType')}>
-              <option value="">Select</option>{CALL_TYPES.map((o) => <option key={o}>{o}</option>)}
-            </select>
-          </Field>
-          <Field label="Monthly call volume" error={errors.monthlyVolume}>
-            <select value={v.monthlyVolume} onChange={set('monthlyVolume')}>
-              <option value="">Select</option>{VOLUMES.map((o) => <option key={o}>{o}</option>)}
-            </select>
-          </Field>
-        </div>
-        <Field label="Current QA setup" error={errors.qaSetup}>
-          <select value={v.qaSetup} onChange={set('qaSetup')}>
-            <option value="">Select</option>{SETUPS.map((o) => <option key={o}>{o}</option>)}
-          </select>
-        </Field>
-        {apiError && <div className="field-error-banner">{apiError}</div>}
-        <div className="btn-row"><button type="submit" className="btn" disabled={busy}>{busy ? 'Sending…' : 'Send me pricing'}</button></div>
-        <div className={`form-success${sent ? ' show' : ''}`}>
-          Thanks — pricing tailored to your volume will be sent to your official email ID within one business day.
-        </div>
-      </form>
-    </div>
-  );
-}
-
+/** Quality Audits — transcribed from the theme's template-quality-audits.php. */
 export default function InsightsPage() {
   return (
-    <section className="page active">
-      <div className="container">
-        <ThemeFragment name="qa-banner" />
-
-        <PageHero eyebrow="Quality Audits" title="Stop sampling 2% of your calls and hoping the rest are fine.">
-          Every recording gets the same rigor a senior QA analyst would give it — transcribed, scored against your own parameters, and flagged for coaching, in the time it takes to make coffee. Upload one of your own calls below and see it for yourself.
-        </PageHero>
-        <div className="chip-row">
-          <span className="chip">Inbound</span><span className="chip">Outbound sales</span><span className="chip">Collections</span><span className="chip">Sales campaigns</span>
-        </div>
-
-        <ThemeFragment name="ov-audits" />
-
-        <div className="sandbox" id="qaSandbox">
-          <div className="sandbox-head">
-            <div>
-              <h3>Try it on your own call</h3>
-              <p>One free trial per phone number.</p>
-            </div>
-          </div>
-          <InsightsWizard />
-        </div>
-
-        <Section id="audit-pricing">
-          <h2>Get pricing</h2>
-          <p className="no-price-note">We don't publish rates here — tell us your call volume and we'll send exact per-minute pricing to your official email ID.</p>
-          <PricingRequestForm />
-        </Section>
-
-        <ThemeFragment name="qa-media" />
-        <ThemeFragment name="tail-audits" />
+    <section className="wrap section pp pp-audits">
+      <ThemeFragment name="qa-banner" />
+      <div className="section-head">
+        <div className="kicker">Quality Audits</div>
+        <h1>Stop sampling 2% of your calls and hoping the rest are fine.</h1>
+        <p>Every recording gets the same rigor a senior QA analyst would give it — transcribed, scored against your own parameters, and flagged for coaching, in the time it takes to make coffee. Upload one of your own calls below and see it for yourself.</p>
+        <div className="chip-row"><span className="chip">Inbound</span><span className="chip">Outbound sales</span><span className="chip">Collections</span><span className="chip">Sales campaigns</span></div>
       </div>
+
+      <ThemeFragment name="ov-audits" />
+
+      <div className="sandbox" id="qaSandbox">
+        <div className="sandbox-head">
+          <div><h3>Try it on your own call</h3><p style={{ margin: '6px 0 0', fontSize: 13 }}>One free trial per phone number.</p></div>
+        </div>
+        <InsightsWizard />
+      </div>
+      <ThemeFragment name="qa-media" />
+      <ThemeFragment name="tail-audits" />
     </section>
   );
 }

@@ -128,7 +128,7 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
 .nav-menu-grid a.ind-all { grid-column: 1 / -1; justify-content: center; background: var(--accent-live); color: #fff; font-weight: 700; margin-top: 4px; }
 .nav-menu-grid a.ind-all:hover { background: var(--accent-live-dark); }
 .nav-menu { max-width: calc(100vw - 24px); }
-@media (max-width: 959px) { .nav-dd, .nav-menu, .nav-menu-grid { display: none !important; } }
+
 
 .nav-right { display: flex; align-items: center; gap: 10px; }
 .nav-cta {

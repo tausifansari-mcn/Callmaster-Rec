@@ -52,7 +52,8 @@ export function cancelSpeech() {
   try { if (speechReady) window.speechSynthesis.cancel(); } catch { /* ignore */ }
 }
 
-export function playLanguagePreview(language, gender) {
+/** onEnd (optional) fires when the sample finishes or fails, so a caller can reset a "Playing…" label. */
+export function playLanguagePreview(language, gender, onEnd) {
   if (!speechReady) return;
   try {
     window.speechSynthesis.cancel();
@@ -62,6 +63,7 @@ export function playLanguagePreview(language, gender) {
     utter.lang = language.code;
     utter.pitch = gender === 'Male' ? 0.85 : 1.25;
     utter.rate = 1;
+    if (onEnd) { utter.onend = onEnd; utter.onerror = onEnd; }
     window.speechSynthesis.speak(utter);
   } catch { /* preview is best-effort */ }
 }

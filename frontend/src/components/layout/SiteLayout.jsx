@@ -1,20 +1,16 @@
-import { useEffect, useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { useEffect } from 'react';
+import { Outlet } from 'react-router-dom';
 import { SiteProvider, useSite, useSiteState } from '../../context/SiteContext.jsx';
 import { logoUrl } from '../../utils/branding.js';
 import { PurchaseProvider } from '../purchase/PurchaseContext.jsx';
 import ChatWidget from '../chat/ChatWidget.jsx';
 import WhatsAppButton from '../chat/WhatsAppButton.jsx';
 import Footer from './Footer.jsx';
-import { MobileMenu, MobileStickyCta, Navbar } from './Navbar.jsx';
+import { Navbar } from './Navbar.jsx';
 import ScrollManager from './ScrollManager.jsx';
 
 function Shell() {
   const site = useSite().site;
-  const [menuOpen, setMenuOpen] = useState(false);
-  const { pathname } = useLocation();
-
-  useEffect(() => { setMenuOpen(false); }, [pathname]);
   useEffect(() => { document.title = site.siteTitle; }, [site.siteTitle]);
   // The public site is light-only (matches the brand); only the admin panel offers a dark theme.
   useEffect(() => { document.documentElement.setAttribute('data-theme', 'light'); }, []);
@@ -35,10 +31,8 @@ function Shell() {
   return (
     <PurchaseProvider>
       <ScrollManager />
-      <Navbar onToggleMenu={() => setMenuOpen((o) => !o)} />
-      <MobileMenu open={menuOpen} />
-      <MobileStickyCta />
-      <main><Outlet /></main>
+      <Navbar />
+      <main id="main"><Outlet /></main>
       <ChatWidget />
       <WhatsAppButton />
       <Footer />
