@@ -2,26 +2,8 @@ import { useState } from 'react';
 import { publicApi } from '../api/public.js';
 import { useSite } from '../context/SiteContext.jsx';
 import { GoButton } from '../hooks/useGoto.jsx';
-import { FaqSection, PageHero, Section } from '../components/ui/Blocks.jsx';
-import ProductOverview from '../components/ui/ProductOverview.jsx';
-
-const OV_STEPS = [
-  { title: 'Upload a recording', text: 'Drop in one of your own calls. No integration needed to try it.' },
-  { title: 'Pick the parameters', text: 'Choose the standard scorecard or describe your own.' },
-  { title: 'Read the result', text: 'Get the transcript, the score and the coaching points in minutes.' },
-];
-
-const HIGHLIGHTS = [
-  { title: 'Every call scored', text: 'Replace sampling with full coverage, so a bad call is found when it happens, not at the next quarterly review.' },
-  { title: 'Your own scorecard', text: 'Use standard parameters or define your own: greeting, empathy, compliance lines, product knowledge, closing.' },
-  { title: 'Transcript you can search', text: 'Each recording becomes a readable transcript, so you can find what was promised and when.' },
-  { title: 'Coaching flags', text: 'Calls that miss a parameter are flagged with the reason, so team leads coach on evidence instead of hunches.' },
-  { title: 'Works across call types', text: 'Inbound service, outbound sales, collections and campaign calls, each with its own scoring logic.' },
-  { title: 'Compliance evidence', text: 'Show that mandatory disclosures were read out, call by call, whenever an auditor or client asks.' },
-  { title: 'Perceived NPS and CSAT', text: 'Get an estimated satisfaction and promoter score for every call, read from what the customer said and how, with no survey needed.' },
-  { title: 'Fraud alerts', text: 'Calls with signs of fraud, such as social engineering, identity or OTP requests, or suspicious account changes, are flagged for review.' },
-  { title: 'Social media escalation alerts', text: 'Calls where the customer threatens to post online, go to the media or to a regulator are flagged, so the case is handled before it spreads.' },
-];
+import { PageHero, Section } from '../components/ui/Blocks.jsx';
+import ThemeFragment from '../components/ui/ThemeFragment.jsx';
 import Field from '../components/ui/Field.jsx';
 import InsightsWizard from '../components/wizards/InsightsWizard.jsx';
 import { ERR, PHONE_RE, isOfficialEmail } from '../utils/validators.js';
@@ -107,30 +89,21 @@ function PricingRequestForm() {
 }
 
 export default function InsightsPage() {
-  const { faqs } = useSite();
   return (
     <section className="page active">
       <div className="container">
+        <ThemeFragment name="qa-banner" />
+
         <PageHero eyebrow="Quality Audits" title="Stop sampling 2% of your calls and hoping the rest are fine.">
-          Every recording gets the same rigor a senior QA analyst would give it — transcribed, scored against your own parameters, and flagged for coaching, in the time it takes to make coffee. For sales calls, it goes further: it finds your best-performing pitch from real calls and pushes it to your whole team. Upload one of your own calls below and see it for yourself.
+          Every recording gets the same rigor a senior QA analyst would give it — transcribed, scored against your own parameters, and flagged for coaching, in the time it takes to make coffee. Upload one of your own calls below and see it for yourself.
         </PageHero>
         <div className="chip-row">
           <span className="chip">Inbound</span><span className="chip">Outbound sales</span><span className="chip">Collections</span><span className="chip">Sales campaigns</span>
         </div>
 
-        <ProductOverview
-          illo="audit"
-          title="What Quality Audits does"
-          lead="Quality Audits listens to a call recording the way a senior QA analyst would: it transcribes the conversation, scores it against the parameters you care about, estimates how satisfied the customer was, and tells you which calls need coaching or urgent attention. The difference is that it does this for every call, not a 2% sample."
-          steps={OV_STEPS}
-          highlights={HIGHLIGHTS}
-          tryTitle="Seen enough? Test it on one of your own calls."
-          tryText="Upload a recording below. One free trial per phone number."
-          tryCta="Try Quality Audits"
-          tryHref="#qa-sandbox"
-        />
+        <ThemeFragment name="ov-audits" />
 
-        <div className="sandbox" id="qa-sandbox">
+        <div className="sandbox" id="qaSandbox">
           <div className="sandbox-head">
             <div>
               <h3>Try it on your own call</h3>
@@ -146,18 +119,8 @@ export default function InsightsPage() {
           <PricingRequestForm />
         </Section>
 
-        <FaqSection items={faqs.audit} />
-
-        <div className="cta-band">
-          <div>
-            <h2>Know what is really said on your calls.</h2>
-            <p>Try one recording free, or book 30 minutes and we will walk through a scorecard built for your team.</p>
-          </div>
-          <div className="cta-row">
-            <GoButton to="contact" className="btn">Book a meeting</GoButton>
-            <GoButton to="contact" className="btn secondary">Contact us</GoButton>
-          </div>
-        </div>
+        <ThemeFragment name="qa-media" />
+        <ThemeFragment name="tail-audits" />
       </div>
     </section>
   );

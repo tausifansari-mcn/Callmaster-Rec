@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink } from 'react-router-dom';
 import { useSite } from '../../context/SiteContext.jsx';
 import { GoButton } from '../../hooks/useGoto.jsx';
-import { logoUrl } from '../../utils/branding.js';
 import { IconBadge } from '../ui/Icons.jsx';
 import { PRODUCT_PAGES, pathFor } from '../../utils/routes.js';
 
@@ -77,9 +76,8 @@ export function Navbar({ onToggleMenu }) {
   const site = useSite().site;
   return (
     <nav className="site-nav">
-      <Link to="/" className="brand">
-        {logoUrl(site) ? <img className="brand-logo" src={logoUrl(site)} alt="" /> : <span className="dot" />}
-        {site.brandName}
+      <Link to="/" className="brand logo">
+        <img className="site-logo-full" src="/assets/images/logo-header.png" alt={site.brandName} width="181" height="40" />
       </Link>
       <div className="nav-links">
         <NavLink to="/" end>Home</NavLink>

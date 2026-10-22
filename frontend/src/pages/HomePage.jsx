@@ -1,8 +1,6 @@
 import { useSite } from '../context/SiteContext.jsx';
 import { GoButton, GoLink } from '../hooks/useGoto.jsx';
-import BookCall from '../components/booking/BookCall.jsx';
-import { IconBadge } from '../components/ui/Icons.jsx';
-import { BenefitGrid, HowSteps, Section } from '../components/ui/Blocks.jsx';
+import ThemeFragment from '../components/ui/ThemeFragment.jsx';
 import RichText from '../components/ui/RichText.jsx';
 
 const HOME_FAQS = [
@@ -16,217 +14,181 @@ const HOME_FAQS = [
 ];
 
 const SERVICES = [
-  { icon: 'audit', tag: 'Quality Audits', title: 'Every call scored, not just a sample', to: 'audit', cta: 'Explore Quality Audits',
-    text: "Nimantran audits every call your team makes or takes — inbound, outbound sales, collections, and sales campaigns — instead of the 2% sample most quality teams manage manually. Each recording is transcribed and scored against a set of parameters, either Nimantran's built-in rubric or your own, so coaching decisions rest on full coverage instead of guesswork." },
-  { icon: 'voice', tag: 'Voice Bots', title: 'Bots that actually call you', to: 'voice', cta: 'Explore Voice Bots',
-    text: 'Nimantran\'s voice bots handle collections, customer service, and abandoned-cart recovery in English, Hindi, or Hinglish, with a choice of Indian, British, or American accents so the voice fits your customers, not just your product roadmap. Upload your own script and the bot is ready to place calls immediately.' },
-  { icon: 'sip-channels', tag: 'SIP Channels', title: 'Concurrent-call capacity, quoted right', to: 'sip-channels', cta: 'Explore SIP Channels',
-    text: "Nimantran's SIP channels give you inbound and outbound concurrent-call capacity built to the uptime standard a 24/7 contact center actually needs, not a best-effort startup SLA. Channel count and usage pattern set the price, so it's quoted to your actual volume instead of sold off a generic rate card." },
-  { icon: 'social-listening', tag: 'Social Listening', title: 'The signal beyond the call', to: 'social-listening', cta: 'Explore Social Listening',
-    text: "Nimantran tracks what's said about your brand across the channels people actually use to vent, not just the calls that reach your center. It's built to sit alongside the audit and voice bot modules, so a five-star call doesn't quietly mask a one-star thread elsewhere. Scope and data sources are being finalized ahead of general availability." },
-];
-
-const FRAMEWORKS = [
   {
-    icon: 'clap', name: 'CLAP', forWhom: '"What is this customer really telling us?"',
-    letters: [['C', 'the customer & their sentiment'], ['L', 'logistics & operations'], ['A', 'the agent'], ['P', 'the product']],
-    why: <><b>What you get:</b> a true read of the customer — who they are, how they actually feel, and why — cross-checked against operations, the agent and the product on the same call. Not a QA scorecard that just blames the agent: real, actionable feedback the brand can act on to lift CX and turn more customers into repeat business.</>,
+    to: 'audit', tag: 'Quality Audits', title: 'Every call scored, not just a sample', cta: 'Explore Quality Audits',
+    img: 'nimantran-home-audits.webp',
+    alt: 'Smiling agent on a call beside call recordings, transcript, sentiment scores and a quality score of 92',
+    text: 'Score every inbound and outbound call, not a 2% sample. Get a transcript, sentiment and quality score for each recording, with your own parameters.',
   },
   {
-    icon: 'magic', name: 'MAGIC Script', forWhom: '"What\'s our best-performing pitch, right now?"',
-    letters: [['→', 'Finds exactly where deals fall apart on the call'], ['→', "Spots the opening and pitch that's winning today"]],
-    why: <><b>What you get:</b> your best script isn't in the training deck — it's the one closing deals this week. MAGIC Script finds it automatically and pushes it to every agent. Typical result: <b>close rates up by up to 20%.</b><sup style={{ fontSize: 10 }}>*</sup></>,
+    to: 'voice', tag: 'Voice Bots', title: 'Bots that actually call you', cta: 'Explore Voice Bots',
+    img: 'nimantran-home-voicebot.webp',
+    alt: 'Friendly AI voice bot at a laptop handling collections, customer service and cart recovery calls in English, Hindi and Hinglish',
+    text: 'Voice bots for collections, service and cart recovery in English, Hindi or Hinglish. Choose the voice, upload a script and get a live call on your phone.',
   },
   {
-    icon: 'reso', name: 'RESO', forWhom: '"Which promises to pay will actually be kept?"',
-    letters: [['→', 'Every promise-to-pay, scored for how likely it is to hold'], ['→', 'Flags any service issue hiding inside the same call']],
-    why: <><b>What you get:</b> deeper read on every promise-to-pay, so you call back the right people at the right time. Typical result: <b>collections up by up to 32%.</b><sup style={{ fontSize: 10 }}>*</sup></>,
+    to: 'sip-channels', tag: 'SIP Channels', title: 'Concurrent-call capacity, quoted right', cta: 'Explore SIP Channels',
+    img: 'nimantran-home-sip.webp',
+    alt: 'Row of desk phones connected through the cloud to a dashboard showing concurrent calls and call capacity',
+    text: 'SIP channels sized to your calling volume. Tell us how many concurrent calls you run and get a quote.',
   },
-];
-
-const WHY = [
-  { icon: 'search', title: 'See results before you talk to anyone', text: 'Upload a real call, get a real scorecard — right here, right now.' },
-  { icon: 'pen', title: 'No jargon, no feature grid', text: 'Just what changes for your team, in plain language.' },
-  { icon: 'clock', title: 'Set up in minutes, not weeks', text: 'Self-serve pricing — no sales cycle required to get started.' },
-  { icon: 'sip-channels', title: 'A trackable lead, not a cold quote', text: 'Tell us your volume and setup — pricing lands in your inbox, not on a public page.' },
+  {
+    to: 'social-listening', tag: 'Social Listening', title: 'The signal beyond the call', cta: 'Explore Social Listening',
+    img: 'nimantran-home-social.webp',
+    alt: 'Social media posts and call recordings flowing into one dashboard of brand sentiment and mentions',
+    text: 'Track what people say about your brand on social channels and read it next to what customers say on calls.',
+  },
+  {
+    to: 'telephony', tag: 'Cloud Telephony', title: 'Call from a number that looks like a mobile', cta: 'Explore Cloud Telephony',
+    img: 'nimantran-home-telephony.webp', wide: true,
+    alt: 'Agent on a call with a list of mobile-style numbers routed through the cloud to a customer phone showing an incoming call',
+    text: 'Cloud calling lines issued as mobile-style numbers, so customers see a number they are more likely to answer.',
+  },
 ];
 
 const STEPS = [
-  { art: 'phone', title: 'Connect your conversations', text: 'Upload a recording or connect your calling channels. Start with the conversations you already have.' },
-  { art: 'target', title: 'Let intelligence do the listening', text: "AI identifies what worked, what didn't, and what your customers are really telling you." },
-  { art: 'check', title: 'Make every next call better', text: 'Turn insights into coaching, stronger scripts, and more meaningful customer connections.' },
+  { n: '01', img: 'nimantran-step-1.webp', title: 'Connect your conversations', text: 'Upload a recording or connect your calling channels. Start with the conversations you already have.', alt: 'Dashboard where recordings are uploaded, calling channels are connected and CRM data is imported to start listening' },
+  { n: '02', img: 'nimantran-step-2.webp', title: 'Let intelligence do the listening', text: "AI identifies what worked, what didn't, and what your customers are really telling you.", alt: 'AI reads each call into a summary, transcript, sentiment, key topics and insights on one dashboard' },
+  { n: '03', img: 'nimantran-step-3.webp', title: 'Make every next call better', text: 'Turn insights into coaching, stronger scripts, and more meaningful customer connections.', alt: 'Agent on a call with insights, a recommended script and coaching tips that lead to better calls' },
 ];
 
-const FOOTNOTE = '*Illustrative — based on typical results teams see from AI-optimized scripts and collections scoring, not a guaranteed outcome for every account.';
+/** Sits inside the split home-sample fragment pair, which opens a wrapper in -a and closes it in -b. */
+const AUDIT_SAMPLE_PIC = `<figure class="hs-pic"><img src="/assets/images/nimantran-audit-sample.webp" alt="Quality Audits sample output: call waveform, transcript, overall sentiment 92% positive, key topics, compliance checks and greeting, resolution, tone and compliance scores" loading="lazy" decoding="async"></figure>`;
 
-const WAVE_BARS = [26, 31, 10, 12, 9, 19, 33, 21, 33, 42, 20, 43, 42, 9, 8, 14, 15, 42, 17, 42, 29, 10, 19, 40, 26, 35, 21, 21, 25, 27];
-
-function Wave() {
-  return (
-    <div className="wave" aria-hidden="true">
-      {WAVE_BARS.map((h, i) => <i key={i} style={{ '--h': h, '--d': ((i * 37) % 150) / 100 }} />)}
-    </div>
-  );
-}
-
-function ServicesGrid() {
-  return (
-    <div className="services-grid">
-      {SERVICES.map((s) => (
-        <div className="service-block" key={s.tag}>
-          <IconBadge name={s.icon} />
-          <div className="tag">{s.tag}</div>
-          <h3>{s.title}</h3>
-          <p>{s.text}</p>
-          <GoLink to={s.to}>{s.cta}</GoLink>
-        </div>
-      ))}
-      <div className="service-block wide">
-        <IconBadge name="telephony" />
-        <div className="tag">Cloud Telephony</div>
-        <h3>Call from a number that looks like a mobile</h3>
-        <p>Cloud calling lines for your team, issued as mobile-style numbers so your calls look personal from the first ring. Pay per user at ₹1,500 a month, add channels and numbers as you grow, and get 2% of your calls audited free in your first month.</p>
-        <GoLink to="telephony">Explore Cloud Telephony</GoLink>
-      </div>
-    </div>
-  );
-}
+const Tick = () => (
+  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+    <circle cx="12" cy="12" r="11" fill="rgba(143,217,230,.18)" />
+    <path d="M7.5 12.5l3 3 6-6.5" stroke="#E2B89C" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+);
 
 export default function HomePage() {
   const { site, home } = useSite();
   return (
     <section className="page active">
-      <div className="container">
-        {site.sandboxBanner.show && (
-          <div className="badge-row"><span className="badge">{site.sandboxBanner.text}</span></div>
-        )}
+      {site.sandboxBanner.show && (
+        <div className="badge-row"><span className="badge">{site.sandboxBanner.text}</span></div>
+      )}
 
-        <div className="hero-band">
-          <div className="hero hero-grid">
+      <div className="hero-band hero-dark">
+        <div className="wrap hero">
+          <div className="hero-grid">
+            <ThemeFragment name="home-video" />
             <div>
-              <img className="hero-logo" src="/logo-full.png" alt="Nimantran: Cloud Telephony, AI Voice, Connecting People" width="230" height="216" />
-              <div className="eyebrow-plain">{home.eyebrow}</div>
-              <h1>{home.title}</h1>
-              <p className="sub">{home.sub}</p>
-              <div className="cta-row">
-                <GoButton to="audit" className="btn">{home.primaryCta}</GoButton>
-                <GoButton to="contact" className="btn secondary">{home.secondaryCta}</GoButton>
+              <h1><span className="h1l">AI Contact Centre Solutions.</span> <span className="h1l">Experience Them Before You Buy.</span></h1>
+              <ThemeFragment name="home-pitch" />
+              <div className="hero-cta">
+                <GoButton to="audit" className="btn btn-primary">Try the live demo</GoButton>
+                <GoButton to="contact" className="btn btn-outline">Talk to sales</GoButton>
               </div>
               <div className="hero-badges">
-                <span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="var(--surface-raised)" /><path d="M7.5 12.5l3 3 6-6.5" stroke="var(--accent-live)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>ISO 27001:2022 certified</span>
-                <span><svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="var(--surface-raised)" /><path d="M7.5 12.5l3 3 6-6.5" stroke="var(--accent-live)" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" /></svg>No credit card. Just possibilities.</span>
+                <span>
+                  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" fill="#E9E0CD" />
+                    <path d="M7.5 12.5l3 3 6-6.5" stroke="#2F6B42" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                  ISO 27001:2022 certified
+                </span>
               </div>
             </div>
-            <div className="hero-mock">
-              <div className="mock-head">
-                <span className="mock-title">Quality Audits — sample output</span>
-                <span className="mock-live"><span className="mock-dot" />Live on this site</span>
-              </div>
-              <Wave />
-              <div className="mock-transcript">
-                Agent: Thank you for calling, this is Priya, how may I help you today?<br />
-                Customer: Hi, I wanted to check on my order status...<br />
-                Agent: Of course, let me pull that up. Could I get your order number?
-              </div>
-              <div className="mock-scores">
-                <div className="mock-score"><div className="n">92</div><div className="l">Greeting</div></div>
-                <div className="mock-score"><div className="n">88</div><div className="l">Resolution</div></div>
-                <div className="mock-score"><div className="n">95</div><div className="l">Tone</div></div>
-                <div className="mock-score"><div className="n">81</div><div className="l">Compliance</div></div>
-              </div>
-              <div className="float-chip fc1"><span className="dot" />Customer sentiment: Positive</div>
-              <div className="float-chip fc2">Every call scored</div>
-            </div>
           </div>
-          <p className="intro-para">Nimantran brings call quality auditing, human-sounding voice bots, cloud telephony, scalable SIP channels, and social listening into one platform, built to plug into how your team already works rather than force a new one. There's no lengthy integration project or separate onboarding cycle — configure it with your own calls, scripts, and channels, and it's ready to run from day one.</p>
-          <div className="stats-grid">
-            {home.stats.map((s, i) => <div className="stat-card" key={i}><div className="num">{s.value}</div><div className="lbl">{s.label}</div></div>)}
-          </div>
-        </div>
 
-        <Section>
-          <div className="kicker">What's included</div>
-          <h2>Five products, one place to run your call operations.</h2>
-          <ServicesGrid />
-        </Section>
+          <ThemeFragment name="home-intro" />
 
-        <Section style={{ paddingTop: 0 }}>
-          <h2>What's in it for you</h2>
-          <p className="section-sub">Three AI coaches, built into every call — each one answers a different question your team asks every day.</p>
-          <div className="fw-grid">
-            {FRAMEWORKS.map((f) => (
-              <div className="fw-card" key={f.name}>
-                <IconBadge name={f.icon} />
-                <div className="fw-name">{f.name}</div>
-                <div className="fw-for">{f.forWhom}</div>
-                <div className="fw-letters">
-                  {f.letters.map(([l, d], i) => (
-                    <div className="fw-letter" key={i}><span className="l">{l}</span><span className="d">{d}</span></div>
-                  ))}
-                </div>
-                <div className="fw-why">{f.why}</div>
-              </div>
+          <div className="stat-row">
+            {home.stats.map((s, i) => (
+              <div className="stat-tile" key={i}><div className="num">{s.value}</div><div className="lbl">{s.label}</div></div>
             ))}
           </div>
-          <p style={{ fontSize: 11, color: 'var(--ink-faint)', marginTop: 14 }}>{FOOTNOTE}</p>
-        </Section>
+        </div>
+      </div>
 
-        <Section>
-          <h2>Why teams switch to us</h2>
-          <BenefitGrid items={WHY} />
-        </Section>
-
-        <Section style={{ paddingTop: 0 }}>
-          <h2>From conversation to transformation.</h2>
-          <p className="section-sub">No lengthy integration project. No starting over.<br />Just smarter ways to do what you already do.</p>
-          <HowSteps steps={STEPS} />
-        </Section>
-
-        <div className="heart-band">
-          <div className="heart-grid">
-            <div>
-              <div className="kicker" style={{ color: '#E2B89C' }}>Technology with a human heart</div>
-              <div className="heart-big"><b>23+</b><span>Years of real human connection</span></div>
-              <h2>We know the people. Not just the patterns.</h2>
-              <p>Great customer experiences don't start with an algorithm. They start with understanding.</p>
-              <p>We bring 23 years of contact center experience to every insight, every call, and every connection.</p>
-              <GoButton to="why" className="btn dark" style={{ marginTop: 10 }}>The experience behind the AI</GoButton>
-            </div>
-            <ul className="heart-pillars">
-              <li>Built by contact center experts</li>
-              <li>Designed around your customers</li>
-              <li>Intelligence your team can act on</li>
-            </ul>
-          </div>
+      <div className="wrap prod-wrap" style={{ padding: '72px 28px 64px' }}>
+        <div className="section-head" style={{ marginBottom: 0 }}>
+          <div className="kicker">What&apos;s included</div>
+          <h2>Five products, one place to run your call operations.</h2>
         </div>
 
-        <Section style={{ paddingTop: 0 }}>
+        <div className="services-grid sb-grid">
+          {SERVICES.map((s) => (
+            <div className={`service-block sb${s.wide ? ' wide' : ''}`} key={s.tag}>
+              <img className="sb-bg" src={`/assets/images/${s.img}`} alt={s.alt} loading="lazy" decoding="async" />
+              <div className="sb-shade" aria-hidden="true" />
+              <div className="sb-copy">
+                <div className="tag">{s.tag}</div>
+                <h3>{s.title}</h3>
+                <p>{s.text}</p>
+                <GoLink to={s.to} className="sb-link">{s.cta}</GoLink>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <ThemeFragment parts={['home-sample-a', AUDIT_SAMPLE_PIC, 'home-sample-b']} />
+
+        <section className="how" aria-labelledby="how-h">
+          <div className="section-head center">
+            <div className="kicker">How it works</div>
+            <h2 id="how-h">From conversation to transformation.</h2>
+            <p>No lengthy integration project. No starting over.<br />Just smarter ways to do what you already do.</p>
+          </div>
+          <ol className="steps">
+            {STEPS.map((s) => (
+              <li className="st" key={s.n}>
+                <img className="sb-bg" src={`/assets/images/${s.img}`} alt={s.alt} loading="lazy" decoding="async" />
+                <div className="sb-shade" aria-hidden="true" />
+                <div className="st-copy">
+                  <span className="step-n">{s.n}</span>
+                  <h3>{s.title}</h3>
+                  <p>{s.text}</p>
+                </div>
+              </li>
+            ))}
+          </ol>
+        </section>
+
+        <section className="heart" aria-labelledby="heart-h">
+          <div className="heart-grid">
+            <div>
+              <div className="kicker">Technology with a human heart</div>
+              <div className="big"><b>23+</b><span>Years of real human connection</span></div>
+              <h2 id="heart-h">We know the people. Not just the patterns.</h2>
+              <p>Great customer experiences don&apos;t start with an algorithm. They start with understanding.</p>
+              <p>We bring 23 years of contact center experience to every insight, every call, and every connection.</p>
+              <GoButton to="why" className="btn btn-light" style={{ marginTop: 10 }}>The experience behind the AI</GoButton>
+            </div>
+            <ul className="pillars">
+              <li><Tick />Built by contact center experts</li>
+              <li><Tick />Designed around your customers</li>
+              <li><Tick />Intelligence your team can act on</li>
+            </ul>
+          </div>
+        </section>
+
+        <div className="section-head" style={{ margin: '84px 0 0' }}>
           <div className="kicker">Questions</div>
           <h2>What people ask before they start.</h2>
+        </div>
+        <div className="faq">
           {HOME_FAQS.map((f, i) => (
-            <details className="faq-item" key={i}>
+            <details key={i}>
               <summary>{f.q}</summary>
               <RichText text={f.a} />
             </details>
           ))}
-        </Section>
+        </div>
 
-        <div className="cta-band">
+        <div className="cta-band" style={{ marginTop: 72 }}>
           <div>
             <h2>Hear it on your own calls.</h2>
             <p>Try the live demo now, or book a 30-minute walkthrough with our team.</p>
           </div>
-          <div className="cta-row">
-            <GoButton to="audit" className="btn">Try the live demo</GoButton>
-            <GoButton to="contact" className="btn secondary">Book a meeting</GoButton>
+          <div className="hero-cta">
+            <GoButton to="audit" className="btn btn-light">Try the live demo</GoButton>
+            <GoButton to="contact" className="btn btn-ghost-light">Book a meeting</GoButton>
           </div>
         </div>
 
-        <Section style={{ paddingTop: 0 }}>
-          <h2>Or skip the form — book a call directly</h2>
-          <p className="section-sub">Pick a day and time that works for you — we'll send a calendar invite to you and loop in our sales team automatically.</p>
-          <BookCall source="home" />
-        </Section>
       </div>
     </section>
   );
