@@ -88,6 +88,7 @@ export const adminApi = {
   removeWhitepaperPdf: (id) => call('DELETE', `/whitepapers/${id}/file`),
   uploadHeroVideo: (file) => { const f = new FormData(); f.append('file', file); return call('POST', '/branding/hero-video', { body: f }); },
   deleteHeroVideo: () => call('DELETE', '/branding/hero-video'),
+  uploadContentImage: (file) => { const f = new FormData(); f.append('file', file); return call('POST', '/content/images', { body: f }); },
   uploadLogo: (file) => { const f = new FormData(); f.append('file', file); return call('POST', '/branding/logo', { body: f }); },
   deleteLogo: () => call('DELETE', '/branding/logo'),
   setCustomerActive: (id, active) => call('PATCH', `/customers/${id}/active`, { body: { active } }),

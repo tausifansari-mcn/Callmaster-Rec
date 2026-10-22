@@ -1,8 +1,10 @@
+import { useState } from 'react';
+import { adminApi } from '../../api/admin.js';
 /**
  * A small schema-driven form used by every settings screen (pricing, home copy, FAQs, chatbot…).
  *
  * Field specs:
- *   { type: 'text' | 'textarea' | 'number' | 'boolean' | 'select' | 'csv', key, label, hint, options?, rows?, prefix? }
+ *   { type: 'text' | 'textarea' | 'number' | 'boolean' | 'select' | 'csv' | 'password' | 'image', key, label, hint, options?, rows?, prefix? }
  *   { type: 'group',   key, label, fields: [...] }                                  nested object
  *   { type: 'strings', key, label, hint, addLabel }                                  array of strings
  *   { type: 'list',    key, label, hint, fields: [...], itemTitle(item, i), newItem(), addLabel }   array of objects
@@ -19,9 +21,46 @@ function Label({ spec }) {
   );
 }
 
+/** Text field for an image address, with an Upload button that fills it in from a chosen file. */
+function ImageField({ spec, value, onChange }) {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+  const pick = async (e) => {
+    const file = e.target.files?.[0];
+    e.target.value = ''; // let the same file be chosen again after an error
+    if (!file) return;
+    setBusy(true);
+    setError('');
+    try {
+      const { url } = await adminApi.uploadContentImage(file);
+      onChange(url);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <>
+      <div className="adm-string-row">
+        <input className="adm-input" type="text" placeholder={spec.placeholder} value={value ?? ''} onChange={(ev) => onChange(ev.target.value)} />
+        <label className="adm-btn" style={{ whiteSpace: 'nowrap', cursor: busy ? 'default' : 'pointer' }}>
+          {busy ? 'Uploading…' : 'Upload'}
+          <input type="file" accept="image/*" hidden disabled={busy} onChange={pick} />
+        </label>
+        {value && <button type="button" className="adm-icon-btn danger" aria-label="Clear image" onClick={() => onChange('')}>&times;</button>}
+      </div>
+      {error && <div className="adm-error" style={{ display: 'block', marginTop: 8 }}>{error}</div>}
+      {value && <img src={value} alt="" style={{ marginTop: 10, maxWidth: 240, width: '100%', height: 'auto', borderRadius: 8, display: 'block' }} />}
+    </>
+  );
+}
+
 function Scalar({ spec, value, onChange }) {
   const v = value ?? '';
   switch (spec.type) {
+    case 'image':
+      return <ImageField spec={spec} value={value} onChange={onChange} />;
     case 'textarea':
       return <textarea className="adm-input" rows={spec.rows || 4} value={v} onChange={(e) => onChange(e.target.value)} />;
     case 'number':

@@ -68,6 +68,29 @@ export const getHeroVideo = asyncHandler(async (_req, res) => {
   res.sendFile(filePath(UPLOAD_KINDS.branding, home.heroVideoFile));
 });
 
+// ---------------------------------------------------------------- content images
+/**
+ * Pictures attached to editable content. Unlike the logo these aren't tied to one setting — any
+ * number can exist and each is referenced by the URL returned here, so they're addressed by
+ * filename rather than looked up from a setting.
+ */
+export const uploadContentImage = asyncHandler(async (req, res) => {
+  if (!req.file) throw ApiError.badRequest('Choose an image to upload');
+  res.status(201).json({ url: `/api/public/content/${req.file.filename}`, name: req.file.originalname });
+});
+
+export const getContentImage = asyncHandler(async (req, res) => {
+  // basename() keeps a crafted name from escaping the uploads directory.
+  const file = filePath(UPLOAD_KINDS.content, req.params.file);
+  if (!fs.existsSync(file)) throw ApiError.notFound('Image not found');
+  res.setHeader('Cache-Control', 'public, max-age=86400');
+  // An SVG opened directly is a document, and any script inside it would run on our own origin.
+  // These are <img> sources, so deny subresources and scripts outright.
+  res.setHeader('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; sandbox");
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.sendFile(file);
+});
+
 // ---------------------------------------------------------------- admin: logo & hero video
 /** Points a branding setting (site.logoFile / home.heroVideoFile) at a new file and deletes the one it replaces. */
 async function setBrandingFile(req, settingKey, field, value) {

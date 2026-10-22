@@ -2036,3 +2036,8 @@ main#main>.wrap.section::before{content:'';position:absolute;z-index:-1;left:50%
 .logo .site-logo-full{height:40px;width:auto;display:block;flex:0 0 auto;}
 .foot-logo-card img{width:190px !important;height:auto !important;}
 @media(max-width:640px){.logo .site-logo-full{height:34px;}.foot-logo-card img{width:170px !important;}}
+
+/* Optional image and "Read more" link on an admin-managed Insights article */
+.res-art-img { display: block; width: 100%; height: auto; max-width: 560px; border-radius: 14px; margin: 4px 0 14px; box-shadow: var(--shadow-md); }
+.res-art-link { display: inline-block; margin-top: 10px; font-weight: 700; color: var(--amber-dark); text-decoration: none; }
+.res-art-link:hover { text-decoration: underline; }

@@ -3,7 +3,6 @@ import { useSite } from '../../context/SiteContext.jsx';
 import { PRODUCT_PAGES, pathFor } from '../../utils/routes.js';
 import { INDUSTRIES_NAV } from './Navbar.jsx';
 
-const WA_URL = 'https://wa.me/919667195550?text=Hi%20Nimantran%2C%20I%20would%20like%20to%20know%20more%20about';
 
 /** The theme's four legal pages, in footer order. Admin-added legal pages are appended after them. */
 const LEGAL = [
@@ -53,7 +52,6 @@ export default function Footer() {
               <li><Link to="/insights">Insights</Link></li>
               <li><Link to="/pricing">Pricing</Link></li>
               <li><Link to="/contact">Contact us</Link></li>
-              <li><a href={WA_URL} target="_blank" rel="noopener noreferrer">WhatsApp: +91 96671 95550</a></li>
               <li><Link to="/resources">Resources</Link></li>
               <li><Link to="/about">About / Trust</Link></li>
               <li><Link to="/account">Customer login</Link></li>

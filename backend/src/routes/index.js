@@ -9,7 +9,7 @@ import * as customer from '../controllers/customer.controller.js';
 import * as appt from '../controllers/appointment.controller.js';
 import * as wp from '../controllers/whitepaper.controller.js';
 import {
-  auditLimiter, formLimiter, loginLimiter, otpLimiter, requireAdmin, requireCustomer, requireSuperAdmin, uploadAudio, uploadHeroVideo, uploadLogo, uploadPdf, uploadScope, validate,
+  auditLimiter, formLimiter, loginLimiter, otpLimiter, requireAdmin, requireCustomer, requireSuperAdmin, uploadAudio, uploadContentImage, uploadHeroVideo, uploadLogo, uploadPdf, uploadScope, validate,
 } from '../middleware/common.js';
 import { quoteRequestSchema } from '../services/pricing.service.js';
 import {
@@ -31,6 +31,7 @@ router.post('/public/leads', formLimiter, validate(leadSchema), pub.submitLead);
 router.post('/public/whitepapers/:slug/unlock', formLimiter, validate(unlockSchema), wp.unlockWhitepaper);
 router.get('/public/whitepapers/download', wp.downloadWhitepaper);
 router.get('/public/branding/logo', wp.getLogo);
+router.get('/public/content/:file', wp.getContentImage);
 router.get('/public/branding/hero-video', wp.getHeroVideo);
 router.get('/public/appointments/slots', appt.slots);
 router.post('/public/appointments', formLimiter, validate(appointmentSchema), appt.book);
@@ -99,6 +100,7 @@ admin.delete('/whitepapers/:id', wp.deleteWhitepaper);
 admin.post('/whitepapers/:id/file', uploadPdf, wp.uploadWhitepaperPdf);
 admin.delete('/whitepapers/:id/file', wp.removeWhitepaperPdf);
 
+admin.post('/content/images', uploadContentImage, wp.uploadContentImage);
 admin.post('/branding/logo', uploadLogo, wp.uploadLogoFile);
 admin.delete('/branding/logo', wp.deleteLogo);
 admin.post('/branding/hero-video', uploadHeroVideo, wp.uploadHeroVideoFile);

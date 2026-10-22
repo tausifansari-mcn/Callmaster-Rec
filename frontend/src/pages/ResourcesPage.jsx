@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { publicApi } from '../api/public.js';
 import { useSite } from '../context/SiteContext.jsx';
 import { ERR, isOfficialEmail } from '../utils/validators.js';
@@ -58,6 +59,15 @@ function WhitepaperCard({ paper }) {
   );
 }
 
+/** An article's optional "Read more". Site paths route in-app; external addresses open in a new tab. */
+function ArticleLink({ href }) {
+  const external = /^https?:\/\//i.test(href);
+  if (external) {
+    return <a className="res-art-link" href={href} target="_blank" rel="noopener noreferrer">Read more →</a>;
+  }
+  return <Link className="res-art-link" to={href}>Read more →</Link>;
+}
+
 /** Resources (React-only page) — the admin-managed articles and gated white papers, in the theme's components. */
 export default function ResourcesPage() {
   const { insights, whitepapers } = useSite();
@@ -77,7 +87,9 @@ export default function ResourcesPage() {
               {insights.articles.map((a, i) => (
                 <details key={i}>
                   <summary><span><span className="ind-tag">{a.tag}</span> {a.title}</span></summary>
+                  {a.image && <img className="res-art-img" src={a.image} alt="" loading="lazy" decoding="async" />}
                   <p>{a.body}</p>
+                  {a.link && <ArticleLink href={a.link} />}
                 </details>
               ))}
             </div>

@@ -85,7 +85,15 @@ export const settingsSchemas = {
     title: str(160).min(1),
     sub: longStr(1000),
     articlesHeading: str(120),
-    articles: z.array(z.object({ tag: str(40), title: str(200).min(1), body: longStr(6000) })).max(12),
+    // image/link were added after articles were already being saved, so they default rather than
+    // being required — otherwise every previously stored article fails validation on the next save.
+    articles: z.array(z.object({
+      tag: str(40),
+      title: str(200).min(1),
+      body: longStr(6000),
+      image: str(300).default(''),
+      link: str(300).default(''),
+    })).max(12),
     whitepapersHeading: str(120),
     whitepapersSub: longStr(600),
     gateNote: longStr(600),

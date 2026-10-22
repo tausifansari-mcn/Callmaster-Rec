@@ -326,11 +326,21 @@ export const InsightsContentScreen = () => (
       {
         type: 'list', key: 'articles', label: 'Articles', addLabel: 'Add article', confirmRemove: 'Remove this article?',
         itemTitle: (a) => a.title || 'New article',
-        newItem: () => ({ tag: 'OPERATIONS', title: '', body: '' }),
+        newItem: () => ({ tag: 'OPERATIONS', title: '', body: '', image: '', link: '' }),
         fields: [
           { type: 'text', key: 'tag', label: 'Category label', placeholder: 'OPERATIONS' },
           { type: 'text', key: 'title', label: 'Title', wide: true },
           { type: 'textarea', key: 'body', label: 'Text (shown when the visitor clicks “Read the piece”)', rows: 8 },
+          {
+            type: 'image', key: 'image', label: 'Image (optional)', wide: true,
+            placeholder: 'Upload a picture, or paste an address',
+            hint: 'Shown above the article text. Upload a file, or paste a path from this site (starting with /) or a full https:// address. Leave blank for no image.',
+          },
+          {
+            type: 'text', key: 'link', label: 'Link (optional)', wide: true,
+            placeholder: '/deep-customer-insights',
+            hint: 'Adds a “Read more” link under the article. Use a path on this site (e.g. /pricing) or a full https:// address, which opens in a new tab.',
+          },
         ],
       },
       { type: 'text', key: 'whitepapersHeading', label: 'White papers heading' },

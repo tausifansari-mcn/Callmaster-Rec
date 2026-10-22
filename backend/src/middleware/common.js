@@ -98,7 +98,8 @@ export const formLimiter = limiter(60 * 60 * 1000, 30, 'Too many submissions fro
 // ---------------------------------------------------------------- uploads
 export const AUDIO_EXTS = ['.mp3', '.wav', '.m4a', '.mpeg', '.mpga', '.ogg', '.aac', '.flac', '.amr', '.wma'];
 export const DOC_EXTS = ['.pdf', '.doc', '.docx', '.xls', '.xlsx', '.txt', '.csv', '.ppt', '.pptx'];
-export const UPLOAD_KINDS = { audio: 'audio', sow: 'sow', whitepapers: 'whitepapers', branding: 'branding' };
+export const UPLOAD_KINDS = { audio: 'audio', sow: 'sow', whitepapers: 'whitepapers', branding: 'branding', content: 'content' };
+export const IMAGE_EXTS = ['.png', '.jpg', '.jpeg', '.webp', '.gif', '.svg'];
 
 function makeUpload(kind, allowed, fieldName, maxMb = env.uploadMaxMb) {
   const dir = path.join(env.uploadDir, kind);
@@ -132,6 +133,8 @@ export const uploadScope = makeUpload(UPLOAD_KINDS.sow, DOC_EXTS, 'scopeOfWork')
 export const uploadPdf = makeUpload(UPLOAD_KINDS.whitepapers, ['.pdf'], 'file');
 export const uploadLogo = makeUpload(UPLOAD_KINDS.branding, ['.png', '.jpg', '.jpeg', '.webp', '.gif'], 'file', 2);
 export const uploadHeroVideo = makeUpload(UPLOAD_KINDS.branding, ['.mp4', '.webm', '.mov'], 'file', 80);
+/** Pictures attached to editable content (e.g. an Insights article), addressed by filename. */
+export const uploadContentImage = makeUpload(UPLOAD_KINDS.content, IMAGE_EXTS, 'file', 5);
 
 export const fileMeta = (file) =>
   file ? { originalName: file.originalname, storedName: file.filename, size: file.size } : undefined;
