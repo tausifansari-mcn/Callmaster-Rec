@@ -4,7 +4,6 @@ import { SiteProvider, useSite, useSiteState } from '../../context/SiteContext.j
 import { logoUrl } from '../../utils/branding.js';
 import { PurchaseProvider } from '../purchase/PurchaseContext.jsx';
 import ChatWidget from '../chat/ChatWidget.jsx';
-import WhatsAppButton from '../chat/WhatsAppButton.jsx';
 import Footer from './Footer.jsx';
 import { Navbar } from './Navbar.jsx';
 import ScrollManager from './ScrollManager.jsx';
@@ -34,7 +33,6 @@ function Shell() {
       <Navbar />
       <main id="main"><Outlet /></main>
       <ChatWidget />
-      <WhatsAppButton />
       <Footer />
     </PurchaseProvider>
   );
