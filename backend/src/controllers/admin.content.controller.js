@@ -40,6 +40,9 @@ export const emailStatus = asyncHandler(async (_req, res) => {
   const cfg = await getMailConfig();
   res.json({
     sandboxMode: env.sandboxMode,
+    // SANDBOX_MODE defaults to true when unset, so "on" is ambiguous: it may be deliberate, or the
+    // variable may never be reaching the process. Report the raw value so the two can be told apart.
+    sandboxModeRaw: process.env.SANDBOX_MODE ?? null,
     provider: cfg.provider,
     source: cfg.source,
     configured: cfg.configured,

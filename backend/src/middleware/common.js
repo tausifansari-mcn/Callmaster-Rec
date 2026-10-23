@@ -171,7 +171,10 @@ export function errorHandler(err, req, res, _next) {
 
   if (status >= 500) {
     console.error(`[error] ${req.method} ${req.originalUrl}`, err);
-    if (env.isProd) message = 'Something went wrong. Please try again.';
+    // Hide the details of an unexpected crash, but keep a deliberately thrown ApiError's message:
+    // those are written for the visitor (e.g. "we could not send the verification email"), carry
+    // nothing sensitive, and replacing them with "Something went wrong" leaves people stuck.
+    if (env.isProd && !(err instanceof ApiError)) message = 'Something went wrong. Please try again.';
   }
   res.status(status).json({ error: { message, ...(details ? { details } : {}) } });
 }

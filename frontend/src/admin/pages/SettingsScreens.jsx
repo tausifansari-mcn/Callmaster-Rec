@@ -231,9 +231,14 @@ function DeliveryStatusCard() {
             label="OTP delivery"
             warn={s.sandboxMode}
             value={s.sandboxMode
-              ? 'SANDBOX — codes are shown on screen, not emailed. Set SANDBOX_MODE=false in backend/.env and restart the app.'
+              ? `SANDBOX — codes are shown on screen, not emailed.${s.sandboxModeRaw === null
+                ? ' SANDBOX_MODE is not reaching this server at all (it defaults to on). Set it in backend/.env on the server itself, then fully stop and start the app.'
+                : ` SANDBOX_MODE is reaching the server as "${s.sandboxModeRaw}" — change it to false and restart.`}`
               : 'Live — codes are emailed'}
           />
+          {s.sandboxModeRaw !== null && (
+            <Row label="SANDBOX_MODE seen as" value={`"${s.sandboxModeRaw}"`} />
+          )}
           <Row label="Settings coming from" value={s.source} />
           <Row label="Sending method" value={s.provider === 'brevo' ? 'Brevo (HTTP API)' : 'SMTP'} />
           <Row label="Ready to send" warn={!s.configured} value={s.configured ? 'Yes' : 'No — fill in the host and login above'} />
