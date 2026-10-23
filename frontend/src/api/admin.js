@@ -62,6 +62,7 @@ export const adminApi = {
   integrationStatus: () => call('GET', '/integrations/status'),
   testIntegration: (service) => call('POST', '/integrations/test', { body: { service } }),
   testEmail: (to) => call('POST', '/email/test', { body: { to } }),
+  emailStatus: () => call('GET', '/email/status'),
   replyContact: (id, subject, message) => call('POST', `/contacts/${id}/reply`, { body: { subject, message } }),
 
   settings: () => call('GET', '/settings'),

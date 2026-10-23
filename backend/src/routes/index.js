@@ -107,6 +107,7 @@ admin.post('/branding/hero-video', uploadHeroVideo, wp.uploadHeroVideoFile);
 admin.delete('/branding/hero-video', wp.deleteHeroVideo);
 
 admin.get('/settings', content.listSettings);
+admin.get('/email/status', content.emailStatus);
 admin.post('/email/test', content.testEmail);
 admin.get('/integrations/status', requireSuperAdmin, content.integrationStatus);
 admin.post('/integrations/test', requireSuperAdmin, content.testIntegration);

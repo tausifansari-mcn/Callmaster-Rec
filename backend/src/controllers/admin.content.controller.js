@@ -1,3 +1,4 @@
+import { env } from '../config/env.js';
 import { Admins } from '../repositories/admins.js';
 import { Pages, RESERVED_SLUGS } from '../repositories/pages.js';
 import { Promos } from '../repositories/promos.js';
@@ -27,6 +28,31 @@ export const testEmail = asyncHandler(async (req, res) => {
   const result = await sendTestEmail(to);
   if (!result.sent) throw ApiError.badRequest(`Could not send: ${result.reason}`);
   res.json({ ok: true, to, source: result.source });
+});
+
+/**
+ * What this server is actually doing about email, right now. Settings come from three places
+ * (admin panel → backend/.env → built-in defaults) and an unset value is not the same as a visible
+ * one, which makes "why didn't that send?" very hard to answer remotely. This reports the resolved
+ * truth. Secrets are never included — only whether they are present.
+ */
+export const emailStatus = asyncHandler(async (_req, res) => {
+  const cfg = await getMailConfig();
+  res.json({
+    sandboxMode: env.sandboxMode,
+    provider: cfg.provider,
+    source: cfg.source,
+    configured: cfg.configured,
+    host: cfg.smtp.host || null,
+    port: cfg.smtp.port,
+    secure: cfg.smtp.secure,
+    user: cfg.smtp.user || null,
+    passwordSet: Boolean(cfg.smtp.pass),
+    passwordLength: cfg.smtp.pass ? String(cfg.smtp.pass).length : 0,
+    brevoKeySet: Boolean(cfg.brevoKey),
+    from: cfg.from || null,
+    notifyTo: cfg.notifyTo,
+  });
 });
 
 const assertMayEdit = (req, key) => {

@@ -1,7 +1,8 @@
-import { useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { adminApi } from '../../api/admin.js';
 import { useAuth, useToast } from '../AdminContext.jsx';
 import SettingsEditor from '../components/SettingsEditor.jsx';
+import { ErrorNote, Loading } from '../components/ui.jsx';
 import { HeroVideoCard, LogoCard } from './CommerceScreens.jsx';
 
 // ---------------------------------------------------------------- Pricing
@@ -195,6 +196,69 @@ export const SiteScreen = () => (
 );
 
 // ---------------------------------------------------------------- Email & notifications
+/**
+ * What the server is actually using right now. Settings resolve from the admin panel, then
+ * backend/.env, then defaults — and an unset value looks identical to a deliberate one, which makes
+ * a misconfigured server very hard to diagnose. This shows the resolved truth.
+ */
+function DeliveryStatusCard() {
+  const [s, setS] = useState(null);
+  const [error, setError] = useState('');
+  const load = useCallback(async () => {
+    setError('');
+    try { setS(await adminApi.emailStatus()); } catch (err) { setError(err.message); }
+  }, []);
+  useEffect(() => { load(); }, [load]);
+
+  const Row = ({ label, value, warn }) => (
+    <div style={{ display: 'flex', gap: 12, padding: '7px 0', borderBottom: '1px solid var(--adm-line, rgba(0,0,0,.07))' }}>
+      <span className="adm-muted small" style={{ minWidth: 190 }}>{label}</span>
+      <span className="small" style={{ fontWeight: 600, color: warn ? 'var(--danger, #B42318)' : 'inherit' }}>{value}</span>
+    </div>
+  );
+
+  return (
+    <div className="adm-card">
+      <h3 className="adm-card-title">Current delivery status</h3>
+      <p className="adm-muted small" style={{ marginTop: -6 }}>
+        Read from the running server, so it reflects what is actually in effect — not what was typed in. Passwords are never shown.
+      </p>
+      <ErrorNote error={error} onRetry={load} />
+      {!s && !error && <Loading />}
+      {s && (
+        <div style={{ marginTop: 10 }}>
+          <Row
+            label="OTP delivery"
+            warn={s.sandboxMode}
+            value={s.sandboxMode
+              ? 'SANDBOX — codes are shown on screen, not emailed. Set SANDBOX_MODE=false in backend/.env and restart the app.'
+              : 'Live — codes are emailed'}
+          />
+          <Row label="Settings coming from" value={s.source} />
+          <Row label="Sending method" value={s.provider === 'brevo' ? 'Brevo (HTTP API)' : 'SMTP'} />
+          <Row label="Ready to send" warn={!s.configured} value={s.configured ? 'Yes' : 'No — fill in the host and login above'} />
+          {s.provider === 'brevo'
+            ? <Row label="Brevo API key" warn={!s.brevoKeySet} value={s.brevoKeySet ? 'Set' : 'Missing'} />
+            : (
+              <>
+                <Row label="Host / port" value={`${s.host || '—'} : ${s.port}${s.secure ? ' (SSL)' : ''}`} />
+                <Row label="Login" value={s.user || '—'} />
+                <Row
+                  label="Password"
+                  warn={!s.passwordSet}
+                  value={s.passwordSet ? `Set (${s.passwordLength} characters)` : 'Missing'}
+                />
+              </>
+            )}
+          <Row label="Sends as" value={s.from || '—'} warn={/localhost/.test(s.from || '')} />
+          <Row label="Notifies" value={s.notifyTo?.length ? s.notifyTo.join(', ') : '— nobody'} />
+          <button type="button" className="adm-btn small" style={{ marginTop: 12 }} onClick={load}>Refresh</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function TestEmailCard() {
   const { admin } = useAuth();
   const toast = useToast();
@@ -284,6 +348,7 @@ export const EmailScreen = () => (
         },
       ]}
     />
+    <DeliveryStatusCard />
     <TestEmailCard />
   </>
 );
