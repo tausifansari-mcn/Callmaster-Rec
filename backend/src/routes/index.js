@@ -8,12 +8,13 @@ import * as content from '../controllers/admin.content.controller.js';
 import * as customer from '../controllers/customer.controller.js';
 import * as appt from '../controllers/appointment.controller.js';
 import * as wp from '../controllers/whitepaper.controller.js';
+import * as post from '../controllers/post.controller.js';
 import {
   auditLimiter, formLimiter, loginLimiter, otpLimiter, requireAdmin, requireCustomer, requireSuperAdmin, uploadAudio, uploadContentImage, uploadHeroVideo, uploadLogo, uploadPdf, uploadScope, validate,
 } from '../middleware/common.js';
 import { quoteRequestSchema } from '../services/pricing.service.js';
 import {
-  appointmentSchema, cancelRequestSchema, customerLoginSchema, customerPasswordSchema, unlockSchema, whitepaperSchema,
+  appointmentSchema, cancelRequestSchema, customerLoginSchema, customerPasswordSchema, postSchema, unlockSchema, whitepaperSchema,
   replySchema, adminLoginSchema, adminForgotPasswordSchema, adminResetPasswordSchema, adminUserSchema, auditRegisterSchema, auditSubmitSchema, voiceRegisterSchema, changePasswordSchema, contactSchema, leadSchema, orderAccessSchema,
   otpSendSchema, otpVerifySchema, pageSchema, promoSchema, razorpayVerifySchema, voiceDemoSchema,
 } from '../validators/publicSchemas.js';
@@ -25,6 +26,8 @@ router.get('/health', (_req, res) => res.json({ ok: true, time: new Date().toISO
 // ------------------------------------------------------------------ public site
 router.get('/public/config', pub.getConfig);
 router.get('/public/pages/:slug', pub.getPage);
+router.get('/public/posts', post.listPublicPosts);
+router.get('/public/posts/:slug', post.getPublicPost);
 router.post('/public/contact', formLimiter, validate(contactSchema), pub.submitContact);
 router.post('/public/leads', formLimiter, validate(leadSchema), pub.submitLead);
 
@@ -92,6 +95,12 @@ admin.get('/customers', wp.customersResource.list);
 admin.get('/customers/:id', wp.customersResource.get);
 admin.patch('/customers/:id/active', wp.setCustomerActive);
 admin.post('/customers/:id/reset-password', wp.resetCustomerPassword);
+
+admin.get('/posts', post.listPosts);
+admin.get('/posts/:id', post.getPost);
+admin.post('/posts', validate(postSchema), post.createPost);
+admin.put('/posts/:id', validate(postSchema), post.updatePost);
+admin.delete('/posts/:id', post.deletePost);
 
 admin.get('/whitepapers', wp.listWhitepapers);
 admin.post('/whitepapers', validate(whitepaperSchema), wp.createWhitepaper);

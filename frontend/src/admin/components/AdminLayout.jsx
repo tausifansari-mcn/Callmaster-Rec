@@ -24,6 +24,7 @@ const NAV = [
     items: [
       { to: '/admin/pricing', label: 'Pricing' },
       { to: '/admin/home', label: 'Home page' },
+      { to: '/admin/posts', label: 'Blog posts' },
       { to: '/admin/insights', label: 'Insights page' },
       { to: '/admin/whitepapers', label: 'White papers' },
       { to: '/admin/faqs', label: 'FAQs' },

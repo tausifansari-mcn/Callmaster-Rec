@@ -187,3 +187,19 @@ export const whitepaperSchema = z.object({
   active: z.boolean().default(true),
   order: z.coerce.number().int().min(0).max(1000).default(100),
 });
+
+/** A blog post written in the admin panel. `body` is HTML produced by the editor. */
+export const postSchema = z.object({
+  slug: z.string().trim().toLowerCase().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, 'Use lowercase letters, numbers and dashes').max(160),
+  title: text('a title', 200),
+  excerpt: z.string().trim().max(500).default(''),
+  body: z.string().max(200000).default(''),
+  category: z.string().trim().max(80).default(''),
+  tags: z.array(z.string().trim().max(60)).max(20).default([]),
+  coverImage: z.string().trim().max(300).default(''),
+  readTime: z.string().trim().max(40).default(''),
+  author: z.string().trim().max(120).default(''),
+  status: z.enum(['draft', 'published']).default('draft'),
+  seoTitle: z.string().trim().max(200).default(''),
+  seoDescription: z.string().trim().max(400).default(''),
+});

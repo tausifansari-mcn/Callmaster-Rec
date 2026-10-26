@@ -14,6 +14,7 @@ import {
   AppointmentsScreen, CancellationsScreen, CustomersScreen, InsightsContentScreen, WhitepaperLeadsScreen, WhitepapersScreen,
 } from './pages/CommerceScreens.jsx';
 import IntegrationsScreen from './pages/IntegrationsScreen.jsx';
+import PostsScreen from './pages/PostsScreen.jsx';
 
 export default function AdminApp() {
   return (
@@ -32,6 +33,7 @@ export default function AdminApp() {
           <Route path="cancellations" element={<CancellationsScreen />} />
           <Route path="whitepaper-leads" element={<WhitepaperLeadsScreen />} />
           <Route path="customers" element={<CustomersScreen />} />
+          <Route path="posts" element={<PostsScreen />} />
           <Route path="insights" element={<InsightsContentScreen />} />
           <Route path="whitepapers" element={<WhitepapersScreen />} />
           <Route path="pricing" element={<PricingScreen />} />

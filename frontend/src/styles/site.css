@@ -2030,3 +2030,7 @@ main#main>.wrap.section::before{content:'';position:absolute;z-index:-1;left:50%
 .res-art-img { display: block; width: 100%; height: auto; max-width: 560px; border-radius: 14px; margin: 4px 0 14px; box-shadow: var(--shadow-md); }
 .res-art-link { display: inline-block; margin-top: 10px; font-weight: 700; color: var(--amber-dark); text-decoration: none; }
 .res-art-link:hover { text-decoration: underline; }
+
+/* Cover picture on an Insights card and article */
+.insight-pic { display: block; width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+.post-cover { display: block; width: 100%; height: auto; border-radius: 14px; margin: 18px 0 6px; }

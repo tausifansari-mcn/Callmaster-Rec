@@ -3,6 +3,8 @@ import { request } from './http.js';
 export const publicApi = {
   config: () => request('GET', '/public/config'),
   page: (slug) => request('GET', `/public/pages/${encodeURIComponent(slug)}`),
+  posts: () => request('GET', '/public/posts'),
+  post: (slug) => request('GET', `/public/posts/${encodeURIComponent(slug)}`),
   contact: (body) => request('POST', '/public/contact', { body }),
   appointmentSlots: () => request('GET', '/public/appointments/slots'),
   bookAppointment: (body) => request('POST', '/public/appointments', { body }),

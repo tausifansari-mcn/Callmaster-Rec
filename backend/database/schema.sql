@@ -318,3 +318,26 @@ CREATE TABLE IF NOT EXISTS appointments (
   KEY idx_appt_email (email),
   KEY idx_appt_created (created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Blog posts shown on the Insights page, written in the admin panel ---------
+CREATE TABLE IF NOT EXISTS posts (
+  id              BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
+  slug            VARCHAR(160)  NOT NULL,
+  title           VARCHAR(200)  NOT NULL,
+  excerpt         VARCHAR(500)  NOT NULL DEFAULT '',   -- teaser on the listing
+  body            LONGTEXT      NOT NULL,              -- HTML from the editor
+  category        VARCHAR(80)   NOT NULL DEFAULT '',
+  tags            VARCHAR(300)  NOT NULL DEFAULT '',   -- comma separated
+  cover_image     VARCHAR(300)  NOT NULL DEFAULT '',
+  read_time       VARCHAR(40)   NOT NULL DEFAULT '',
+  author          VARCHAR(120)  NOT NULL DEFAULT '',
+  status          ENUM('draft','published') NOT NULL DEFAULT 'draft',
+  seo_title       VARCHAR(200)  NOT NULL DEFAULT '',
+  seo_description VARCHAR(400)  NOT NULL DEFAULT '',
+  published_at    DATETIME(3)   NULL,                  -- set the first time it is published
+  created_at      DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
+  updated_at      DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),
+  PRIMARY KEY (id),
+  UNIQUE KEY uq_posts_slug (slug),
+  KEY idx_posts_status (status, published_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -81,6 +81,12 @@ export const adminApi = {
   deletePromo: (id) => call('DELETE', `/promos/${id}`),
 
   // white papers, logo, customer accounts
+  posts: () => call('GET', '/posts'),
+  post: (id) => call('GET', `/posts/${id}`),
+  createPost: (body) => call('POST', '/posts', { body }),
+  updatePost: (id, body) => call('PUT', `/posts/${id}`, { body }),
+  deletePost: (id) => call('DELETE', `/posts/${id}`),
+
   whitepapers: () => call('GET', '/whitepapers'),
   createWhitepaper: (body) => call('POST', '/whitepapers', { body }),
   updateWhitepaper: (id, body) => call('PUT', `/whitepapers/${id}`, { body }),
