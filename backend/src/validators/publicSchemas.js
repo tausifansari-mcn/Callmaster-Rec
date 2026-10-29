@@ -195,11 +195,16 @@ export const postSchema = z.object({
   excerpt: z.string().trim().max(500).default(''),
   body: z.string().max(200000).default(''),
   category: z.string().trim().max(80).default(''),
+  categories: z.array(z.string().trim().min(1).max(80)).max(10).default([]),
   tags: z.array(z.string().trim().max(60)).max(20).default([]),
   coverImage: z.string().trim().max(300).default(''),
   readTime: z.string().trim().max(40).default(''),
   author: z.string().trim().max(120).default(''),
   status: z.enum(['draft', 'published']).default('draft'),
+  visibility: z.enum(['public', 'private']).default('public'),
+  focusKeyphrase: z.string().trim().max(160).default(''),
+  // An explicit date schedules the post (or back-dates it); blank means "now, the first time it goes live".
+  publishedAt: z.string().trim().max(40).nullish().transform((s) => (s ? s : null)).refine((s) => s === null || !Number.isNaN(Date.parse(s)), 'That publish date is not valid'),
   seoTitle: z.string().trim().max(200).default(''),
   seoDescription: z.string().trim().max(400).default(''),
 });

@@ -334,6 +334,9 @@ CREATE TABLE IF NOT EXISTS posts (
   status          ENUM('draft','published') NOT NULL DEFAULT 'draft',
   seo_title       VARCHAR(200)  NOT NULL DEFAULT '',
   seo_description VARCHAR(400)  NOT NULL DEFAULT '',
+  focus_keyphrase VARCHAR(160)  NOT NULL DEFAULT '',
+  visibility      ENUM('public','private') NOT NULL DEFAULT 'public',
+  categories      VARCHAR(400)  NOT NULL DEFAULT '',   -- comma separated; `category` stays the first
   published_at    DATETIME(3)   NULL,                  -- set the first time it is published
   created_at      DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3),
   updated_at      DATETIME(3)   NOT NULL DEFAULT CURRENT_TIMESTAMP(3) ON UPDATE CURRENT_TIMESTAMP(3),

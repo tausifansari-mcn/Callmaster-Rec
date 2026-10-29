@@ -53,6 +53,9 @@ const ADDED_COLUMNS = [
   { table: 'orders', column: 'dpdp_consent_at', ddl: 'DATETIME(3) NULL AFTER customer_account_id' },
   { table: 'orders', column: 'welcome_offer', ddl: 'TINYINT(1) NOT NULL DEFAULT 0 AFTER dpdp_consent_at' },
   { table: 'orders', column: 'cancelled_at', ddl: 'DATETIME(3) NULL AFTER welcome_offer' },
+  { table: 'posts', column: 'focus_keyphrase', ddl: "VARCHAR(160) NOT NULL DEFAULT '' AFTER seo_description" },
+  { table: 'posts', column: 'visibility', ddl: "ENUM('public','private') NOT NULL DEFAULT 'public' AFTER focus_keyphrase" },
+  { table: 'posts', column: 'categories', ddl: "VARCHAR(400) NOT NULL DEFAULT '' AFTER visibility" },
 ];
 
 async function migrateColumns(connection) {

@@ -227,3 +227,62 @@ a.adm-stat:hover { border-color: var(--accent-live); }
 
 .adm-pill { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; background: var(--surface-raised); color: var(--ink-soft); border: 1px solid var(--border); }
 .adm-pill.ok { background: rgba(var(--accent-rgb),0.12); color: var(--accent-live-dark); border-color: rgba(var(--accent-rgb),0.35); }
+
+/* ---------- Blog editor: Visual / Code tabs, fullscreen, code view ---------- */
+.rte-tabs { display: flex; gap: 2px; padding: 6px 8px 0; background: var(--surface-raised); }
+.rte-tabs button { border: 1px solid transparent; border-bottom: 0; background: transparent; padding: 6px 14px; font: 600 13px var(--font-body); color: var(--ink-soft); border-radius: 8px 8px 0 0; cursor: pointer; }
+.rte-tabs button.on { background: var(--surface); border-color: var(--border); color: var(--ink); }
+.rte-code { display: block; width: 100%; min-height: 340px; padding: 16px 18px; border: 0; outline: none; resize: vertical; background: var(--surface); color: var(--ink); font: 13px/1.6 var(--font-mono); tab-size: 2; }
+.rte-full { position: fixed; inset: 0; z-index: 400; border-radius: 0; display: flex; flex-direction: column; }
+.rte-full .rte-body, .rte-full .rte-code { flex: 1; min-height: 0; overflow: auto; }
+
+/* ---------- Blog editor: SEO block, analysis panels ---------- */
+.adm-sub { font-family: var(--font-display); font-size: 15px; margin: 18px 0 8px; }
+.adm-label-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.adm-label-row .adm-label { margin: 0; }
+.ana { border: 1px solid var(--border); border-radius: 10px; margin-top: 12px; background: var(--surface); overflow: hidden; }
+.ana-head { display: flex; align-items: center; gap: 10px; width: 100%; padding: 12px 14px; border: 0; background: transparent; cursor: pointer; text-align: left; font: inherit; color: var(--ink); }
+.ana-head:hover { background: var(--surface-raised); }
+.ana-title { font-weight: 700; }
+.ana-head .adm-muted { margin-left: auto; }
+.ana-caret { color: var(--ink-faint); }
+.ana-list { list-style: none; margin: 0; padding: 4px 14px 14px; border-top: 1px solid var(--border); }
+.ana-list li { display: flex; gap: 9px; padding: 8px 0; font-size: 14px; line-height: 1.5; color: var(--ink-soft); border-bottom: 1px solid var(--border); }
+.ana-list li:last-child { border-bottom: 0; }
+.ana-list li > span:first-child { flex: none; line-height: 1.5; }
+
+/* ---------- Blog editor: sidebar boxes ---------- */
+.pub-actions { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 14px; }
+.pub-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; font-size: 14px; color: var(--ink-soft); border-top: 1px solid var(--border); }
+.pub-row > span:first-child { min-width: 70px; }
+.pub-select { width: 100%; padding: 6px 10px; font-size: 13.5px; }
+.pub-foot { display: flex; justify-content: flex-end; padding-top: 14px; margin-top: 8px; border-top: 1px solid var(--border); }
+.cat-box { max-height: 190px; overflow-y: auto; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; background: var(--surface); }
+.cat-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; font-size: 14px; color: var(--ink); cursor: pointer; }
+.cat-row input { width: auto; }
+.adm-link { border: 0; background: none; padding: 0; margin-top: 10px; color: var(--accent-live); font: 600 13.5px var(--font-body); cursor: pointer; }
+.adm-link:hover { text-decoration: underline; }
+.tag-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.tag-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 4px 3px 10px; border-radius: 999px; background: var(--surface-raised); border: 1px solid var(--border); font-size: 13px; color: var(--ink); }
+.tag-chip button { border: 0; background: none; cursor: pointer; font-size: 16px; line-height: 1; color: var(--ink-faint); padding: 0 6px; }
+.tag-chip button:hover { color: var(--accent-alert); }
+.post-filters { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 14px; }
+.post-filters button { border: 0; background: none; padding: 5px 10px; font: 600 13.5px var(--font-body); color: var(--ink-soft); cursor: pointer; border-radius: 6px; }
+.post-filters button span { color: var(--ink-faint); font-weight: 500; }
+.post-filters button.on { background: var(--surface-raised); color: var(--ink); }
+
+/* ---------- Blog editor: preview overlay ---------- */
+.prev-overlay { position: fixed; inset: 0; z-index: 500; display: flex; flex-direction: column; background: var(--bg); }
+.prev-bar { display: flex; align-items: center; gap: 14px; padding: 12px 20px; background: var(--surface-raised); border-bottom: 1px solid var(--border); }
+.prev-scroll { flex: 1; overflow: auto; padding: 24px 16px 60px; }
+.prev-post { max-width: 760px; margin: 0 auto; }
+.prev-post h1 { font-family: var(--font-display); font-size: clamp(28px, 4vw, 40px); line-height: 1.12; margin: 6px 0 10px; }
+.prev-post img { max-width: 100%; height: auto; border-radius: 10px; }
+.prev-post p, .prev-post li { font-size: 17px; line-height: 1.7; }
+.prev-post h2 { font-family: var(--font-display); margin: 28px 0 10px; }
+.prev-post blockquote { margin: 0 0 14px; padding: 8px 16px; border-left: 3px solid var(--accent-live); background: var(--surface-card); }
+
+/* A flex child won't shrink below its content unless told it may — without this the date picker pushes past the card. */
+.pub-row > div { min-width: 0; }
+.pub-row input, .pub-row select { max-width: 100%; box-sizing: border-box; }
+.pub-row input[type="datetime-local"] { padding-left: 8px; padding-right: 6px; font-size: 13px; }

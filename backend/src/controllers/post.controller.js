@@ -36,6 +36,9 @@ export const getPublicPost = asyncHandler(async (req, res) => {
 // ---------------------------------------------------------------- admin
 export const listPosts = asyncHandler(async (_req, res) => res.json(await Posts.listAll()));
 
+/** Categories already in use, so the editor can offer them as a checkbox list. */
+export const listPostCategories = asyncHandler(async (_req, res) => res.json(await Posts.categoryNames()));
+
 export const getPost = asyncHandler(async (req, res) => res.json(found(await Posts.findById(req.params.id))));
 
 export const createPost = asyncHandler(async (req, res) => {

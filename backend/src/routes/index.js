@@ -97,6 +97,7 @@ admin.patch('/customers/:id/active', wp.setCustomerActive);
 admin.post('/customers/:id/reset-password', wp.resetCustomerPassword);
 
 admin.get('/posts', post.listPosts);
+admin.get('/posts-categories', post.listPostCategories);
 admin.get('/posts/:id', post.getPost);
 admin.post('/posts', validate(postSchema), post.createPost);
 admin.put('/posts/:id', validate(postSchema), post.updatePost);

@@ -82,6 +82,7 @@ export const adminApi = {
 
   // white papers, logo, customer accounts
   posts: () => call('GET', '/posts'),
+  postCategories: () => call('GET', '/posts-categories'),
   post: (id) => call('GET', `/posts/${id}`),
   createPost: (body) => call('POST', '/posts', { body }),
   updatePost: (id, body) => call('PUT', `/posts/${id}`, { body }),
